@@ -4,8 +4,12 @@ import {
   getPartnerId,
   getDefaultLanguage,
 } from "@/lib/experticket/server-client"
+import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { CatalogResponse } from "@/lib/experticket/types"
 
+/**
+ * Handles GET requests to retrieve the product catalog.
+ */
 export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams
@@ -20,7 +24,6 @@ export async function GET(request: NextRequest) {
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }

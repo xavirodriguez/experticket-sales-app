@@ -6,14 +6,8 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { AlertCircle, Loader2, Search, XCircle, CheckCircle2, Info } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
 import { StatusBadge } from "@/components/status-badge"
 
@@ -45,7 +39,6 @@ export default function CancellationsPage() {
   const [cancelling, setCancelling] = useState(false)
   const [checkResult, setCheckResult] = useState<CancellationCheckResult | null>(null)
   const [cancelComplete, setCancelComplete] = useState(false)
-  const [reason, setReason] = useState("0")
   const [error, setError] = useState<string | null>(null)
 
   /**
@@ -61,10 +54,7 @@ export default function CancellationsPage() {
     try {
       const res = await apiFetch("/api/experticket/cancellation", {
         method: "POST",
-        body: JSON.stringify({
-          action: "check",
-          saleId: txId.trim(),
-        }),
+        body: JSON.stringify({ action: "check", saleId: txId.trim() }),
       })
 
       if (!res.ok) {
@@ -95,7 +85,7 @@ export default function CancellationsPage() {
         body: JSON.stringify({
           action: "confirm",
           saleId: txId.trim(),
-          reason: parseInt(reason, 10),
+          reason: DEFAULT_CANCELLATION_REASON,
         }),
       })
 
@@ -113,60 +103,27 @@ export default function CancellationsPage() {
     }
   }
 
-  const isCancellable = checkResult?.IsCancellable || checkResult?.Cancellable
-
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Cancellations</h1>
-        <p className="text-muted-foreground mt-1">Check eligibility and process transaction cancellations</p>
-      </div>
+      <CancellationsHeader
+        title="Cancellations"
+        description="Check eligibility and process transaction cancellations"
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Check Cancellation Eligibility</CardTitle>
-          <CardDescription>
-            Enter a Transaction ID to check if it can be cancelled and what the refund policy is
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-end">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label htmlFor="cancelTxId">Transaction ID</Label>
-              <Input
-                id="cancelTxId"
-                placeholder="Enter transaction ID..."
-                value={txId}
-                onChange={(e) => setTxId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-              />
-            </div>
-            <Button onClick={handleCheck} disabled={checking || !txId.trim()}>
-              {checking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Check
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Check Cancellation Eligibility"
+        description="Enter a Transaction ID to check if it can be cancelled and what the refund policy is"
+        inputLabel="Transaction ID"
+        inputPlaceholder="Enter transaction ID..."
+        searchValue={txId}
+        onSearchValueChange={setTxId}
+        onSearch={handleCheck}
+        isLoading={checking}
+      />
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {error && <ErrorAlert message={error} />}
 
-      {cancelComplete && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-          <CardContent className="flex flex-col items-center gap-4 py-12">
-            <CheckCircle2 className="h-16 w-16 text-green-600" />
-            <h2 className="text-2xl font-bold text-foreground">Cancellation Processed</h2>
-            <p className="text-muted-foreground">
-              Transaction <span className="font-mono font-semibold">{txId}</span> has been cancelled.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {cancelComplete && <CancellationSuccessDisplay txId={txId} />}
 
       {checkResult && (
         <Card>
@@ -235,5 +192,23 @@ export default function CancellationsPage() {
         </Card>
       )}
     </div>
+  )
+}
+
+function CancellationsHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
+      <p className="text-muted-foreground mt-1">{description}</p>
+    </div>
+  )
+}
+
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
   )
 }

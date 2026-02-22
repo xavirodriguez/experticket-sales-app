@@ -9,8 +9,6 @@ import { useState } from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -52,30 +50,16 @@ export default function DocumentsPage() {
         <p className="text-muted-foreground mt-1">Retrieve tickets, vouchers, and documents for a transaction</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Documents</CardTitle>
-          <CardDescription>Enter a Transaction ID to retrieve associated documents</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-end">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label htmlFor="docTxId">Transaction ID</Label>
-              <Input
-                id="docTxId"
-                placeholder="Enter transaction ID..."
-                value={txId}
-                onChange={(e) => setTxId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
-            <Button onClick={handleSearch} disabled={isLoading || !txId.trim()}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Search Documents"
+        description="Enter a Transaction ID to retrieve associated documents"
+        inputLabel="Transaction ID"
+        inputPlaceholder="Enter transaction ID..."
+        searchValue={txId}
+        onSearchValueChange={setTxId}
+        onSearch={handleSearch}
+        isLoading={isLoading}
+      />
 
       {error && (
         <Alert variant="destructive">
