@@ -1,3 +1,8 @@
+/**
+ * @module TransactionsPage
+ * @description Page for searching and viewing details of completed transactions.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -12,19 +17,30 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Search, Loader2, AlertCircle, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
-import { apiFetch, fetcher } from "@/lib/experticket/client"
+import { apiFetch, fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { StatusBadge } from "@/components/status-badge"
 
+/**
+ * Main Transactions Page component.
+ * Allows users to search for transactions by ID and view their full details.
+ */
 export default function TransactionsPage() {
   const [searchId, setSearchId] = useState("")
   const [searchedId, setSearchedId] = useState<string | null>(null)
   const [selectedTx, setSelectedTx] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Fetches transaction data when a search ID is provided.
+   */
   const { data: txData, isLoading } = useSWR(
     searchedId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedId)}` : null,
     fetcher
   )
 
+  /**
+   * Handles the search action.
+   */
   function handleSearch() {
     if (!searchId.trim()) return
     setError(null)
@@ -32,9 +48,10 @@ export default function TransactionsPage() {
     setSearchedId(searchId.trim())
   }
 
-  const transactions: Record<string, unknown>[] = txData
-    ? Array.isArray(txData) ? txData : txData.Transactions ? txData.Transactions : [txData]
-    : []
+  /**
+   * Normalizes the API response into an array of transactions.
+   */
+  const transactions = normalizeApiResponse(txData, ["Transactions"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -142,25 +159,19 @@ export default function TransactionsPage() {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const lower = status.toLowerCase()
-  if (lower.includes("confirm") || lower.includes("complete") || lower.includes("ok")) {
-    return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">{status}</Badge>
-  }
-  if (lower.includes("cancel") || lower.includes("refund")) {
-    return <Badge variant="destructive">{status}</Badge>
-  }
-  if (lower.includes("pending") || lower.includes("reserv")) {
-    return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">{status}</Badge>
-  }
-  return <Badge variant="secondary">{status}</Badge>
-}
-
+/**
+ * Props for the {@link TransactionDetail} component.
+ */
 interface TransactionDetailProps {
+  /** The transaction data object. */
   transaction: Record<string, unknown>
+  /** Callback to return to the search results. */
   onBack: () => void
 }
 
+/**
+ * Component for displaying the full details of a single transaction.
+ */
 function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
   const [cancelDialog, setCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
@@ -168,6 +179,9 @@ function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
 
   const txId = String(transaction.SaleId || transaction.TransactionId || transaction.Id || "")
 
+  /**
+   * Initiates the cancellation process for this transaction.
+   */
   async function handleCancel() {
     setCancelling(true)
     try {
@@ -199,9 +213,11 @@ function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
     }
   }
 
+  /** Filter top-level flat fields for display. */
   const entries = Object.entries(transaction).filter(
     ([, v]) => typeof v !== "object" || v === null
   )
+  /** Filter nested object/array fields for display. */
   const nestedEntries = Object.entries(transaction).filter(
     ([, v]) => typeof v === "object" && v !== null
   )
