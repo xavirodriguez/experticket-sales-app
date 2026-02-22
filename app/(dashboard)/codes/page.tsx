@@ -1,3 +1,8 @@
+/**
+ * @module AccessCodesPage
+ * @description Page for retrieving and managing ticket access codes/barcodes for a transaction.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -7,35 +12,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AlertCircle, QrCode, Copy, Check } from "lucide-react"
-import { fetcher } from "@/lib/experticket/client"
-import { SearchCard } from "@/components/experticket/SearchCard"
-import { normalizeApiResponse } from "@/lib/experticket/utils"
-import { toast } from "sonner"
+import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
+import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { StatusBadge } from "@/components/status-badge"
 
-export default function CodesPage() {
+/**
+ * Main Access Codes Page component.
+ * Allows users to fetch the list of barcodes/QR codes associated with a specific sale.
+ */
+export default function AccessCodesPage() {
   const [txId, setTxId] = useState("")
   const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
+  /**
+   * Fetches access code data based on the searched Transaction ID.
+   */
   const { data, isLoading, error } = useSWR(
     searchedTxId ? `/api/experticket/accesscodes?SaleId=${encodeURIComponent(searchedTxId)}` : null,
     fetcher
   )
 
+  /**
+   * Trigger a search for the entered Transaction ID.
+   */
   function handleSearch() {
     if (!txId.trim()) return
     setSearchedTxId(txId.trim())
   }
 
-  const codes = normalizeApiResponse(data, "AccessCodes")
-
-  const copyToClipboard = (text: string, id: string) => {
+  /**
+   * Copies a code to the system clipboard and shows a temporary success state.
+   * @param text - The code value to copy.
+   * @param id - The unique ID of the item for state tracking.
+   */
+  function copyToClipboard(text: string, id: string) {
     navigator.clipboard.writeText(text)
     setCopiedId(id)
     toast.success("Code copied to clipboard")
     setTimeout(() => setCopiedId(null), 2000)
   }
+
+  /** Normalizes the access codes into a flat array. */
+  const codes = normalizeApiResponse(data, ["AccessCodes", "Codes"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -94,16 +113,7 @@ export default function CodesPage() {
                         <Badge variant="outline">{String(code.Type || code.CodeType || "Barcode")}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={
-                            String(code.Status || "").toLowerCase().includes("active") ||
-                            String(code.Status || "").toLowerCase().includes("valid")
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : ""
-                          }
-                        >
-                          {String(code.Status || "Active")}
-                        </Badge>
+                        <StatusBadge status={String(code.Status || "Active")} />
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

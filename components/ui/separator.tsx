@@ -1,3 +1,8 @@
+/**
+ * @module Separator
+ * @description A visual line to separate content, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -5,6 +10,16 @@ import * as SeparatorPrimitive from '@radix-ui/react-separator'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Separator component for dividing content.
+ *
+ * @param props - Radix UI Separator Root props.
+ *
+ * @example
+ * ```tsx
+ * <Separator orientation="horizontal" />
+ * ```
+ */
 function Separator({
   className,
   orientation = 'horizontal',

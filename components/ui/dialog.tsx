@@ -1,3 +1,8 @@
+/**
+ * @module Dialog
+ * @description A modal dialog component for important content, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -6,30 +11,50 @@ import { XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Root component for the dialog.
+ * @param props - Radix UI Dialog Root props.
+ */
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
+/**
+ * Trigger button that opens the dialog.
+ * @param props - Radix UI Dialog Trigger props.
+ */
 function DialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
+/**
+ * Portal for rendering the dialog into the body.
+ * @param props - Radix UI Dialog Portal props.
+ */
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
+/**
+ * Button to close the dialog.
+ * @param props - Radix UI Dialog Close props.
+ */
 function DialogClose({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+/**
+ * Overlay that covers the background when the dialog is open.
+ * @param props - Radix UI Dialog Overlay props.
+ */
 function DialogOverlay({
   className,
   ...props
@@ -46,6 +71,23 @@ function DialogOverlay({
   )
 }
 
+/**
+ * Container for the dialog content.
+ *
+ * @param props - Radix UI Dialog Content props and an optional `showCloseButton`.
+ *
+ * @example
+ * ```tsx
+ * <Dialog>
+ *   <DialogTrigger>Open</DialogTrigger>
+ *   <DialogContent>
+ *     <DialogHeader>
+ *       <DialogTitle>Are you sure?</DialogTitle>
+ *     </DialogHeader>
+ *   </DialogContent>
+ * </Dialog>
+ * ```
+ */
 function DialogContent({
   className,
   children,
@@ -80,6 +122,10 @@ function DialogContent({
   )
 }
 
+/**
+ * Header section of the dialog.
+ * @param props - React div props.
+ */
 function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -90,6 +136,10 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+/**
+ * Footer section of the dialog.
+ * @param props - React div props.
+ */
 function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -103,6 +153,10 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+/**
+ * Title displayed in the dialog header.
+ * @param props - Radix UI Dialog Title props.
+ */
 function DialogTitle({
   className,
   ...props
@@ -116,6 +170,10 @@ function DialogTitle({
   )
 }
 
+/**
+ * Descriptive text displayed in the dialog header.
+ * @param props - Radix UI Dialog Description props.
+ */
 function DialogDescription({
   className,
   ...props

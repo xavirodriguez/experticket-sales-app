@@ -1,3 +1,8 @@
+/**
+ * @module Switch
+ * @description A toggle switch component, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -5,6 +10,16 @@ import * as SwitchPrimitive from '@radix-ui/react-switch'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Switch component for toggling between two states.
+ *
+ * @param props - Radix UI Switch Root props.
+ *
+ * @example
+ * ```tsx
+ * <Switch checked={isEnabled} onCheckedChange={setIsEnabled} />
+ * ```
+ */
 function Switch({
   className,
   ...props

@@ -1,3 +1,8 @@
+/**
+ * @module ConfigPage
+ * @description Configuration page for managing API connection settings and test mode.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -11,6 +16,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, XCircle, Wifi, Settings2 } from "lucide-react"
 import { toast } from "sonner"
 
+/**
+ * Main Configuration Page component.
+ * Provides tools to check the API connection health and toggle "Test Mode".
+ */
 export default function ConfigPage() {
   const [isTest, setIsTest] = useState(false)
   const [localPartnerId, setLocalPartnerId] = useState("")
@@ -23,6 +32,9 @@ export default function ConfigPage() {
     timestamp?: string
   } | null>(null)
 
+  /**
+   * Performs a health check by calling the lastupdated API endpoint.
+   */
   async function checkConnection() {
     setChecking(true)
     setConnectionResult(null)

@@ -1,22 +1,22 @@
+/**
+ * @module TransactionsPage
+ * @description Page for searching and viewing details of completed transactions.
+ */
+
 "use client"
 
 import { useState } from "react"
 import useSWR from "swr"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search, AlertCircle } from "lucide-react"
-import { fetcher } from "@/lib/experticket/client"
-import { normalizeApiResponse } from "@/lib/experticket/utils"
-import { TransactionSearch } from "./components/TransactionSearch"
-import { TransactionResultsTable } from "./components/TransactionResultsTable"
-import { TransactionDetailsView } from "./components/TransactionDetailsView"
-import type { Transaction } from "@/lib/experticket/types"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Search, Loader2, AlertCircle, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
+import { apiFetch, fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { StatusBadge } from "@/components/status-badge"
 
 /**
- * Main page component for managing Experticket transactions.
- * Handles searching, listing, and viewing transaction details.
- *
- * @returns The rendered transactions page.
+ * Main Transactions Page component.
+ * Allows users to search for transactions by ID and view their full details.
  */
 export default function TransactionsPage() {
   const [txIdSearch, setTxIdSearch] = useState("")
@@ -24,19 +24,28 @@ export default function TransactionsPage() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const { data: transactionsResponse, isLoading } = useSWR(
-    searchedTxId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}` : null,
+  /**
+   * Fetches transaction data when a search ID is provided.
+   */
+  const { data: txData, isLoading } = useSWR(
+    searchedId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedId)}` : null,
     fetcher
   )
 
-  const handleSearch = () => {
-    if (!txIdSearch.trim()) return
+  /**
+   * Handles the search action.
+   */
+  function handleSearch() {
+    if (!searchId.trim()) return
     setError(null)
     setSelectedTx(null)
     setSearchedTxId(txIdSearch.trim())
   }
 
-  const transactions = normalizeApiResponse<Transaction>(transactionsResponse, "Transactions")
+  /**
+   * Normalizes the API response into an array of transactions.
+   */
+  const transactions = normalizeApiResponse(txData, ["Transactions"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -69,26 +78,66 @@ export default function TransactionsPage() {
 }
 
 /**
- * Renders the page header.
+ * Props for the {@link TransactionDetail} component.
  */
-function TransactionsHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-      <p className="text-muted-foreground mt-1">{description}</p>
-    </div>
-  )
+interface TransactionDetailProps {
+  /** The transaction data object. */
+  transaction: Record<string, unknown>
+  /** Callback to return to the search results. */
+  onBack: () => void
 }
 
 /**
- * Renders an error alert.
+ * Component for displaying the full details of a single transaction.
  */
-function ErrorAlert({ message }: { message: string }) {
-  return (
-    <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
-      <AlertDescription>{message}</AlertDescription>
-    </Alert>
+function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
+  const [cancelDialog, setCancelDialog] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelResult, setCancelResult] = useState<string | null>(null)
+
+  const txId = String(transaction.SaleId || transaction.TransactionId || transaction.Id || "")
+
+  /**
+   * Initiates the cancellation process for this transaction.
+   */
+  async function handleCancel() {
+    setCancelling(true)
+    try {
+      const res = await apiFetch("/api/experticket/cancellation", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "check",
+          transactionId: txId,
+        }),
+      })
+      const data = await res.json()
+      if (data.IsCancellable || data.Cancellable) {
+        const confirmRes = await apiFetch("/api/experticket/cancellation", {
+          method: "POST",
+          body: JSON.stringify({
+            action: "confirm",
+            transactionId: txId,
+          }),
+        })
+        const confirmData = await confirmRes.json()
+        setCancelResult(confirmData.Message || "Cancellation processed successfully.")
+      } else {
+        setCancelResult(data.Message || "This transaction cannot be cancelled.")
+      }
+    } catch {
+      setCancelResult("Failed to process cancellation request.")
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  /** Filter top-level flat fields for display. */
+  const entries = Object.entries(transaction).filter(
+    ([, v]) => typeof v !== "object" || v === null
+  )
+  /** Filter nested object/array fields for display. */
+  const nestedEntries = Object.entries(transaction).filter(
+    ([, v]) => typeof v === "object" && v !== null
   )
 }
 

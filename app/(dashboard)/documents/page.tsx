@@ -1,3 +1,8 @@
+/**
+ * @module DocumentsPage
+ * @description Page for searching and retrieving PDF tickets or vouchers for a transaction.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -7,26 +12,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AlertCircle, FileText, Download, ExternalLink } from "lucide-react"
-import { fetcher } from "@/lib/experticket/client"
-import { SearchCard } from "@/components/experticket/SearchCard"
-import { normalizeApiResponse } from "@/lib/experticket/utils"
+import { Search, Loader2, AlertCircle, FileText, Download, ExternalLink } from "lucide-react"
+import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { StatusBadge } from "@/components/status-badge"
 
+/**
+ * Main Documents Page component.
+ * Allows users to fetch and download documents associated with a sale ID.
+ */
 export default function DocumentsPage() {
   const [txId, setTxId] = useState("")
   const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
 
+  /**
+   * Fetches document links based on the Transaction ID.
+   */
   const { data, isLoading, error } = useSWR(
     searchedTxId ? `/api/experticket/documents?id=${encodeURIComponent(searchedTxId)}` : null,
     fetcher
   )
 
+  /**
+   * Triggers the search for documents.
+   */
   function handleSearch() {
     if (!txId.trim()) return
     setSearchedTxId(txId.trim())
   }
 
-  const documents = normalizeApiResponse(data, "Documents")
+  /** Normalizes the response into an array of document records. */
+  const documents = normalizeApiResponse(data, ["Documents"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -84,15 +99,7 @@ export default function DocumentsPage() {
                     </TableCell>
                     <TableCell>{String(doc.ProductName || doc.Product || "N/A")}</TableCell>
                     <TableCell>
-                      <Badge
-                        className={
-                          String(doc.Status || "").toLowerCase().includes("active")
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : ""
-                        }
-                      >
-                        {String(doc.Status || "Active")}
-                      </Badge>
+                      <StatusBadge status={String(doc.Status || "Active")} />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
