@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AvailableCapacityResponse } from "@/lib/experticket/types"
 
+/**
+ * Handles GET requests to check available capacity.
+ */
 export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams
@@ -22,7 +26,6 @@ export async function GET(request: NextRequest) {
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }

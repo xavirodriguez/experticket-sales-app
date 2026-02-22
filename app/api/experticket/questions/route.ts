@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TicketQuestionsResponse } from "@/lib/experticket/types"
 
+/**
+ * Handles POST requests to retrieve ticket questions for specific products.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -10,13 +14,12 @@ export async function POST(request: NextRequest) {
       ...body,
     }
 
-    const data = await experticketFetch<TicketQuestionsResponse>("/checkticketsquestions", {
+    const data = await experticketFetch<TicketQuestionsResponse>("/ticketquestions", {
       method: "POST",
       body: payload,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }

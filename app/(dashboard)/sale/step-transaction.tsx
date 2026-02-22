@@ -19,6 +19,8 @@ import {
   QrCode,
   RotateCcw,
 } from "lucide-react"
+import { apiFetch } from "@/lib/experticket/client"
+import { getIsTestMode } from "@/lib/experticket/storage"
 import type { SaleState } from "./page"
 import type { Transaction } from "@/lib/experticket/types"
 
@@ -61,36 +63,26 @@ export function StepTransaction({ state, onReset }: Props) {
     setError(null)
 
     try {
-      const isTest =
-        typeof window !== "undefined"
-          ? localStorage.getItem("experticket_is_test") === "true"
-          : false
-
       const payload: Record<string, unknown> = {
-        IsTest: isTest,
+        IsTest: getIsTestMode(),
         ReservationId: state.reservation.ReservationId,
         AccessDateTime: `${state.accessDate}T00:00:00`,
-        Products: state.selectedProducts.map((p) => ({
-          ProductId: p.ProductId,
-        })),
+        Products: state.selectedProducts.map((p) => ({ ProductId: p.ProductId })),
       }
 
       if (paymentRef.trim()) {
         payload.PartnerSaleId = paymentRef.trim()
       }
 
-      const res = await fetch("/api/experticket/transaction", {
+      const res = await apiFetch("/api/experticket/transaction", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
       const data = await res.json()
 
       if (data.Success === false) {
-        setError(data.ErrorMessage || "Transaction creation failed")
-        toast.error(data.ErrorMessage || "Transaction creation failed")
-        return
+        throw new Error(data.ErrorMessage || "Transaction creation failed")
       }
 
       setTransaction(data)
@@ -105,90 +97,7 @@ export function StepTransaction({ state, onReset }: Props) {
   }
 
   if (transaction) {
-    const saleId = transaction.SaleId || transaction.TransactionId || ""
-    return (
-      <div className="space-y-6">
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-          <CardContent className="flex flex-col items-center gap-4 py-12">
-            <CheckCircle2 className="h-16 w-16 text-green-600" />
-            <h2 className="text-2xl font-bold text-foreground">Sale Complete!</h2>
-            <p className="text-muted-foreground">
-              Transaction ID: <span className="font-mono font-semibold">{saleId}</span>
-            </p>
-            {transaction.TotalPrice != null && (
-              <p className="text-lg font-semibold">{transaction.TotalPrice.toFixed(2)} EUR</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Product details */}
-        {transaction.Products && transaction.Products.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {transaction.Products.map((p, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-md border border-border px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {p.ProductName || p.ProductId}
-                      </p>
-                      {p.AccessCode && (
-                        <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                          Access: {p.AccessCode}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {p.Price != null && (
-                        <span className="text-sm font-medium">
-                          {p.Price.toFixed(2)} EUR
-                        </span>
-                      )}
-                      <Badge variant={p.Status === 1 || p.Status === undefined ? "secondary" : "destructive"}>
-                        {p.Status === 1 || p.Status === undefined ? "OK" : `Status ${p.Status}`}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <Button
-              variant="outline"
-              onClick={() => window.open(`/documents?txId=${saleId}`, "_self")}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              View Documents
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open(`/codes?txId=${saleId}`, "_self")}
-            >
-              <QrCode className="mr-2 h-4 w-4" />
-              View Access Codes
-            </Button>
-            <Button variant="outline" onClick={onReset}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              New Sale
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return <SaleSuccessScreen transaction={transaction} onReset={onReset} />
   }
 
   return (
@@ -201,19 +110,13 @@ export function StepTransaction({ state, onReset }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Summary */}
-          <div className="rounded-md border border-border p-3">
-            <p className="text-sm font-medium">Transaction Summary</p>
-            <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-              <li>Reservation: {state.reservation?.ReservationId || "N/A"}</li>
-              <li>Access Date: {state.accessDate}</li>
-              <li>Products: {state.selectedProducts.length}</li>
-              <li>Total Items: {state.selectedProducts.reduce((a, p) => a + p.quantity, 0)}</li>
-              {state.reservation?.TotalPrice != null && (
-                <li>Total: {state.reservation.TotalPrice.toFixed(2)} EUR</li>
-              )}
-            </ul>
-          </div>
+          <TransactionSummary
+            reservationId={state.reservation?.ReservationId}
+            accessDate={state.accessDate}
+            productsCount={state.selectedProducts.length}
+            itemsCount={state.selectedProducts.reduce((a, p) => a + p.quantity, 0)}
+            totalPrice={state.reservation?.TotalPrice}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="paymentRef">Payment Reference (optional)</Label>
@@ -234,6 +137,116 @@ export function StepTransaction({ state, onReset }: Props) {
 
           <Button className="w-full" size="lg" onClick={createTransaction} disabled={loading}>
             {loading ? "Creating Transaction..." : "Confirm & Create Transaction"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function TransactionSummary({
+  reservationId,
+  accessDate,
+  productsCount,
+  itemsCount,
+  totalPrice,
+}: {
+  reservationId?: string
+  accessDate: string
+  productsCount: number
+  itemsCount: number
+  totalPrice?: number
+}) {
+  return (
+    <div className="rounded-md border border-border p-3">
+      <p className="text-sm font-medium">Transaction Summary</p>
+      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+        <li>Reservation: {reservationId || "N/A"}</li>
+        <li>Access Date: {accessDate}</li>
+        <li>Products: {productsCount}</li>
+        <li>Total Items: {itemsCount}</li>
+        {totalPrice != null && <li>Total: {totalPrice.toFixed(2)} EUR</li>}
+      </ul>
+    </div>
+  )
+}
+
+function SaleSuccessScreen({
+  transaction,
+  onReset,
+}: {
+  transaction: Transaction
+  onReset: () => void
+}) {
+  const saleId = transaction.SaleId || transaction.TransactionId || ""
+  return (
+    <div className="space-y-6">
+      <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+        <CardContent className="flex flex-col items-center gap-4 py-12">
+          <CheckCircle2 className="h-16 w-16 text-green-600" />
+          <h2 className="text-2xl font-bold text-foreground">Sale Complete!</h2>
+          <p className="text-muted-foreground">
+            Transaction ID: <span className="font-mono font-semibold">{saleId}</span>
+          </p>
+          {transaction.TotalPrice != null && (
+            <p className="text-lg font-semibold">{transaction.TotalPrice.toFixed(2)} EUR</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {transaction.Products && transaction.Products.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {transaction.Products.map((p, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{p.ProductName || p.ProductId}</p>
+                    {p.AccessCode && (
+                      <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                        Access: {p.AccessCode}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {p.Price != null && (
+                      <span className="text-sm font-medium">{p.Price.toFixed(2)} EUR</span>
+                    )}
+                    <Badge
+                      variant={p.Status === 1 || p.Status === undefined ? "secondary" : "destructive"}
+                    >
+                      {p.Status === 1 || p.Status === undefined ? "OK" : `Status ${p.Status}`}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => window.open(`/documents?txId=${saleId}`, "_self")}>
+            <FileText className="mr-2 h-4 w-4" />
+            View Documents
+          </Button>
+          <Button variant="outline" onClick={() => window.open(`/codes?txId=${saleId}`, "_self")}>
+            <QrCode className="mr-2 h-4 w-4" />
+            View Access Codes
+          </Button>
+          <Button variant="outline" onClick={onReset}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            New Sale
           </Button>
         </CardContent>
       </Card>

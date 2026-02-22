@@ -7,6 +7,8 @@
  * It uses environment variables for configuration.
  */
 
+import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
+
 const BASE_URL = process.env.EXPERTICKET_BASE_URL || ""
 const PARTNER_ID = process.env.EXPERTICKET_PARTNER_ID || ""
 const API_KEY = process.env.EXPERTICKET_API_KEY || ""
@@ -56,7 +58,7 @@ interface FetchOptions {
   params?: Record<string, string | number | boolean | undefined>
   /** Timeout in milliseconds before the request is aborted. Defaults to 15000ms. */
   timeout?: number
-  /** Number of retry attempts for idempotent GET requests. Defaults to 0. */
+  /** Number of retry attempts for idempotent GET requests. Defaults to 1. */
   retries?: number
 }
 
@@ -81,56 +83,94 @@ export async function experticketFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { method = "GET", body, params = {}, timeout = 15000, retries = 0 } = options
+  const {
+    method = "GET",
+    body,
+    params = {},
+    timeout = DEFAULT_FETCH_TIMEOUT,
+    retries = DEFAULT_FETCH_RETRIES,
+  } = options
+  const url = buildUrl(path, params)
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
 
-  // Build URL
+  try {
+    const fetchOptions = getFetchOptions(method, body, controller.signal)
+    return await executeFetchWithRetry<T>(url.toString(), fetchOptions, retries)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Builds a URL with query parameters.
+ */
+function buildUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== "") {
       url.searchParams.set(k, String(v))
     }
   })
+  return url
+}
 
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeout)
-
-  const fetchOptions: RequestInit = {
+/**
+ * Configures fetch options including headers and body.
+ */
+function getFetchOptions(method: string, body: unknown, signal: AbortSignal): RequestInit {
+  const options: RequestInit = {
     method,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    signal: controller.signal,
+    signal,
     cache: "no-store",
   }
 
   if (body && (method === "POST" || method === "DELETE")) {
-    fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body)
+    options.body = typeof body === "string" ? body : JSON.stringify(body)
   }
 
+  return options
+}
+
+/**
+ * Executes fetch with retry logic for idempotent GET requests.
+ */
+async function executeFetchWithRetry<T>(
+  url: string,
+  options: RequestInit,
+  retries: number
+): Promise<T> {
   let lastError: unknown
-  const attempts = 1 + (method === "GET" ? retries : 0) // only retry idempotent GETs
+  const attempts = 1 + (options.method === "GET" ? retries : 0)
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await fetch(url.toString(), fetchOptions)
-      clearTimeout(timer)
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => "")
-        throw new Error(`Experticket API error ${res.status}: ${text}`)
-      }
-
-      const data = await res.json()
-      return data as T
+      const res = await fetch(url, options)
+      return await handleResponse<T>(res)
     } catch (err) {
       lastError = err
-      if (attempt < attempts - 1) {
-        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
-      }
+      if (attempt < attempts - 1) await delay(500 * (attempt + 1))
     }
   }
-
-  clearTimeout(timer)
   throw lastError
 }
+
+/**
+ * Handles the fetch response and parses JSON.
+ */
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(`Experticket API error ${res.status}: ${text}`)
+  }
+  return (await res.json()) as T
+}
+
+/**
+ * Simple delay helper.
+ */
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))

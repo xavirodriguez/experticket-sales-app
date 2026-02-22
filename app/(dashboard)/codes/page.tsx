@@ -4,15 +4,16 @@ import { useState } from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
+import { AlertCircle, QrCode, Copy, Check } from "lucide-react"
 import { fetcher } from "@/lib/experticket/client"
+import { SearchCard } from "@/components/experticket/SearchCard"
+import { normalizeApiResponse } from "@/lib/experticket/utils"
+import { toast } from "sonner"
 
-export default function AccessCodesPage() {
+export default function CodesPage() {
   const [txId, setTxId] = useState("")
   const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -27,47 +28,32 @@ export default function AccessCodesPage() {
     setSearchedTxId(txId.trim())
   }
 
-  function copyToClipboard(text: string, id: string) {
+  const codes = normalizeApiResponse(data, "AccessCodes")
+
+  const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
     setCopiedId(id)
+    toast.success("Code copied to clipboard")
     setTimeout(() => setCopiedId(null), 2000)
   }
-
-  const codes: Record<string, unknown>[] = data
-    ? Array.isArray(data) ? data : data.AccessCodes ? data.AccessCodes : data.Codes ? data.Codes : [data]
-    : []
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Access Codes</h1>
-        <p className="text-muted-foreground mt-1">Retrieve QR codes and access codes for tickets</p>
+        <p className="text-muted-foreground mt-1">Retrieve and manage access codes for valid transactions</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Access Codes</CardTitle>
-          <CardDescription>Enter a Transaction ID to retrieve access codes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-end">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label htmlFor="codeTxId">Transaction ID</Label>
-              <Input
-                id="codeTxId"
-                placeholder="Enter transaction ID..."
-                value={txId}
-                onChange={(e) => setTxId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
-            <Button onClick={handleSearch} disabled={isLoading || !txId.trim()}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Search Access Codes"
+        description="Enter a Transaction ID to retrieve access codes"
+        inputLabel="Transaction ID"
+        inputPlaceholder="Enter transaction ID..."
+        searchValue={txId}
+        onSearchValueChange={setTxId}
+        onSearch={handleSearch}
+        isLoading={isLoading}
+      />
 
       {error && (
         <Alert variant="destructive">

@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { LastUpdatedResponse } from "@/lib/experticket/types"
 
-export async function GET(request: NextRequest) {
+/**
+ * Handles GET requests to check when the catalog was last updated.
+ */
+export async function GET() {
   try {
-    void request
-    const data = await experticketFetch<LastUpdatedResponse>("/cataloglastupdateddatetime", {
+    const data = await experticketFetch<LastUpdatedResponse>("/cataloglastupdated", {
       params: { PartnerId: getPartnerId() },
       retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }

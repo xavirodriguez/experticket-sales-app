@@ -3,8 +3,12 @@ import {
   experticketFetch,
   getRawApiKey,
 } from "@/lib/experticket/server-client"
+import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { ReservationResponse } from "@/lib/experticket/types"
 
+/**
+ * Handles POST requests to create a new reservation.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -19,11 +23,13 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }
 
+/**
+ * Handles DELETE requests to cancel a reservation.
+ */
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
@@ -38,7 +44,6 @@ export async function DELETE(request: NextRequest) {
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ Success: false, ErrorMessage: message }, { status: 502 })
+    return createErrorResponse(err)
   }
 }
