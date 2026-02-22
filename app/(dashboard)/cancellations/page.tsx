@@ -1,3 +1,8 @@
+/**
+ * @module CancellationsPage
+ * @description Page for checking cancellation eligibility and processing refunds for transactions.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -10,16 +15,30 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { AlertCircle, Loader2, Search, XCircle, CheckCircle2, Info } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
+import { StatusBadge } from "@/components/status-badge"
 
+/**
+ * Result of a cancellation eligibility check.
+ */
 interface CancellationCheckResult {
+  /** Whether the transaction is technically eligible for cancellation. */
   IsCancellable?: boolean
+  /** Alias for IsCancellable. */
   Cancellable?: boolean
+  /** The amount to be refunded. */
   Amount?: number
+  /** Currency of the refund amount. */
   Currency?: string
+  /** Status message from the API. */
   Message?: string
+  /** Detailed cancellation policies applicable to this transaction. */
   Policies?: Record<string, unknown>[]
 }
 
+/**
+ * Main Cancellations Page component.
+ * Provides a specialized interface for handling refunds and cancellations.
+ */
 export default function CancellationsPage() {
   const [txId, setTxId] = useState("")
   const [checking, setChecking] = useState(false)
@@ -29,6 +48,9 @@ export default function CancellationsPage() {
   const [reason, setReason] = useState("0")
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Checks if the transaction can be cancelled and retrieves the refund amount.
+   */
   async function handleCheck() {
     if (!txId.trim()) return
     setChecking(true)
@@ -59,6 +81,9 @@ export default function CancellationsPage() {
     }
   }
 
+  /**
+   * Finalizes the cancellation and processes the refund.
+   */
   async function handleConfirmCancel() {
     if (!txId.trim()) return
     setCancelling(true)
@@ -147,13 +172,7 @@ export default function CancellationsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {isCancellable ? (
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  Cancellable
-                </Badge>
-              ) : (
-                <Badge variant="destructive">Not Cancellable</Badge>
-              )}
+              <StatusBadge status={isCancellable ? "Cancellable" : "Not Cancellable"} />
               <span>Cancellation Check Result</span>
             </CardTitle>
           </CardHeader>

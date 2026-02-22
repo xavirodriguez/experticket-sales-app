@@ -42,3 +42,33 @@ export async function apiFetch(
   })
   return res
 }
+
+/**
+ * Normalizes an API response that might be a single object, an array, or an object containing a list.
+ *
+ * @param data - The raw data from the API response.
+ * @param listKeys - Priority keys to look for if the data is an object (e.g., ['Transactions', 'Codes']).
+ * @returns An array of items of type T.
+ *
+ * @example
+ * ```typescript
+ * const transactions = normalizeApiResponse<Transaction>(txData, ['Transactions']);
+ * ```
+ */
+export function normalizeApiResponse<T = Record<string, unknown>>(
+  data: unknown,
+  listKeys: string[] = []
+): T[] {
+  if (!data) return []
+  if (Array.isArray(data)) return data as T[]
+
+  if (typeof data === "object") {
+    for (const key of listKeys) {
+      const list = (data as any)[key]
+      if (Array.isArray(list)) return list as T[]
+    }
+    return [data as T]
+  }
+
+  return []
+}
