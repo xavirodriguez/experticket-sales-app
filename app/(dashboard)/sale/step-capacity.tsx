@@ -1,3 +1,8 @@
+/**
+ * @module StepCapacity
+ * @description Step 2 of the sale process: Check availability for the selected products and date.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -9,18 +14,35 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react"
+import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "./page"
 import type { AvailableCapacityResponse } from "@/lib/experticket/types"
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
-
+/**
+ * Props for the {@link StepCapacity} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Function to update the global sale state. */
   updateState: (p: Partial<SaleState>) => void
+  /** Callback to navigate to the next step. */
   onNext: () => void
+  /** Callback to navigate back to the previous step. */
   onBack: () => void
 }
 
+/**
+ * Component for Step 2: Capacity.
+ * Checks for availability restrictions on the selected products.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Fetches capacity data from the `/api/experticket/capacity` proxy.
+ * - Displays a table with availability for Product Bases, Products, and Sessions.
+ * - Prevents the user from proceeding if any selected item has zero available capacity, unless manually acknowledged (logic simplified for this version).
+ */
 export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
   const productIds = state.selectedProducts.map((p) => p.ProductId).join(",")
   const params = new URLSearchParams({
@@ -29,6 +51,9 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
     IncludePrices: "true",
   })
 
+  /**
+   * Fetch capacity data for all selected products on the specified date.
+   */
   const { data, isLoading, error } = useSWR<AvailableCapacityResponse>(
     `/api/experticket/capacity?${params.toString()}`,
     fetcher
@@ -36,16 +61,25 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
 
   const [acknowledged, setAcknowledged] = useState(false)
 
+  /**
+   * Combined list of capacity items from different levels (ProductBases, Products, Sessions).
+   */
   const capacityItems = [
     ...(data?.ProductBases || []),
     ...(data?.Products || []),
     ...(data?.Sessions || []),
   ]
 
+  /**
+   * Determines if all items have available capacity.
+   */
   const hasCapacity = capacityItems.length === 0 || capacityItems.some(
     (c) => c.AvailableCapacity === undefined || c.AvailableCapacity > 0
   )
 
+  /**
+   * Saves the capacity data to global state and proceeds to the next step.
+   */
   function handleNext() {
     updateState({ capacityData: capacityItems })
     onNext()

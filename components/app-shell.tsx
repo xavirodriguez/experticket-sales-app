@@ -1,3 +1,8 @@
+/**
+ * @module AppShell
+ * @description The main layout wrapper for the application, providing navigation and a responsive container.
+ */
+
 "use client"
 
 import Link from "next/link"
@@ -16,6 +21,9 @@ import {
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 
+/**
+ * Navigation item configuration.
+ */
 const navItems = [
   { href: "/sale", label: "New Sale", icon: ShoppingCart },
   { href: "/transactions", label: "Transactions", icon: List },
@@ -25,6 +33,17 @@ const navItems = [
   { href: "/config", label: "Configuration", icon: Settings },
 ]
 
+/**
+ * AppShell component that renders the top navigation bar and a mobile drawer.
+ *
+ * @param props - Contains the `children` to be rendered within the main content area.
+ * @param props.children - The content of the page.
+ *
+ * @remarks
+ * - It uses a sticky header and a responsive navigation system.
+ * - Mobile navigation is handled via a state-controlled drawer.
+ * - Active links are highlighted based on the current pathname.
+ */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)

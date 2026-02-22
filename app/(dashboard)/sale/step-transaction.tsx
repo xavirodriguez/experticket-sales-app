@@ -1,3 +1,8 @@
+/**
+ * @module StepTransaction
+ * @description Final step of the sale process: Confirm the transaction and finalize the sale.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -17,17 +22,36 @@ import {
 import type { SaleState } from "./page"
 import type { Transaction } from "@/lib/experticket/types"
 
+/**
+ * Props for the {@link StepTransaction} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Callback to reset the sale wizard to Step 1. */
   onReset: () => void
 }
 
+/**
+ * Component for Step 6: Transaction.
+ * Converts the active reservation into a finalized transaction.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Finalizes the sale by calling `/api/experticket/transaction` via POST.
+ * - Supports an optional payment reference (`PartnerSaleId`).
+ * - Displays a success screen with transaction details and quick actions (documents, access codes).
+ */
 export function StepTransaction({ state, onReset }: Props) {
   const [loading, setLoading] = useState(false)
   const [transaction, setTransaction] = useState<Transaction | null>(state.transaction)
   const [error, setError] = useState<string | null>(null)
   const [paymentRef, setPaymentRef] = useState("")
 
+  /**
+   * Finalizes the sale by creating the transaction in the Experticket system.
+   */
   async function createTransaction() {
     if (!state.reservation?.ReservationId) {
       toast.error("No valid reservation found")

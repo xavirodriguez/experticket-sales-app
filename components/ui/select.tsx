@@ -1,3 +1,8 @@
+/**
+ * @module Select
+ * @description A select component for picking an option from a list, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -6,24 +11,41 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Root component for the select.
+ * @param props - Radix UI Select Root props.
+ */
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
+/**
+ * Group container for select items.
+ * @param props - Radix UI Select Group props.
+ */
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />
 }
 
+/**
+ * Displays the currently selected value.
+ * @param props - Radix UI Select Value props.
+ */
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+/**
+ * The button that opens the select dropdown.
+ *
+ * @param props - Radix UI Select Trigger props and an optional `size`.
+ */
 function SelectTrigger({
   className,
   size = 'default',
@@ -50,6 +72,10 @@ function SelectTrigger({
   )
 }
 
+/**
+ * The content of the select dropdown.
+ * @param props - Radix UI Select Content props.
+ */
 function SelectContent({
   className,
   children,
@@ -85,6 +111,10 @@ function SelectContent({
   )
 }
 
+/**
+ * Label for a group of select items.
+ * @param props - Radix UI Select Label props.
+ */
 function SelectLabel({
   className,
   ...props
@@ -98,6 +128,10 @@ function SelectLabel({
   )
 }
 
+/**
+ * Individual item in the select list.
+ * @param props - Radix UI Select Item props.
+ */
 function SelectItem({
   className,
   children,
@@ -122,6 +156,10 @@ function SelectItem({
   )
 }
 
+/**
+ * Separator between select items or groups.
+ * @param props - Radix UI Select Separator props.
+ */
 function SelectSeparator({
   className,
   ...props
@@ -135,6 +173,10 @@ function SelectSeparator({
   )
 }
 
+/**
+ * Button to scroll up within the select dropdown.
+ * @param props - Radix UI Select ScrollUpButton props.
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -153,6 +195,10 @@ function SelectScrollUpButton({
   )
 }
 
+/**
+ * Button to scroll down within the select dropdown.
+ * @param props - Radix UI Select ScrollDownButton props.
+ */
 function SelectScrollDownButton({
   className,
   ...props

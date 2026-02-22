@@ -1,3 +1,8 @@
+/**
+ * @module Label
+ * @description A label component for form fields, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -5,6 +10,16 @@ import * as LabelPrimitive from '@radix-ui/react-label'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Label component for associating text with form inputs.
+ *
+ * @param props - Radix UI Label Root props.
+ *
+ * @example
+ * ```tsx
+ * <Label htmlFor="email">Email Address</Label>
+ * ```
+ */
 function Label({
   className,
   ...props

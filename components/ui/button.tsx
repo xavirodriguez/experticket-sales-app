@@ -1,3 +1,8 @@
+/**
+ * @module Button
+ * @description A flexible button component with multiple variants and sizes.
+ */
+
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -36,6 +41,18 @@ const buttonVariants = cva(
   },
 )
 
+/**
+ * Standard button component.
+ *
+ * @param props - React button props, {@link buttonVariants} props, and an optional `asChild` prop.
+ *
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="lg" onClick={() => console.log('Clicked')}>
+ *   Click me
+ * </Button>
+ * ```
+ */
 function Button({
   className,
   variant,

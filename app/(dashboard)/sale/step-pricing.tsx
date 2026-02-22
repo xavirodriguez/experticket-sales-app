@@ -1,3 +1,8 @@
+/**
+ * @module StepPricing
+ * @description Step 3 of the sale process: Calculate and display real-time pricing.
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -10,18 +15,39 @@ import { ChevronLeft, ChevronRight, AlertTriangle, RefreshCw } from "lucide-reac
 import type { SaleState } from "./page"
 import type { RealTimePricesResponse } from "@/lib/experticket/types"
 
+/**
+ * Props for the {@link StepPricing} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Function to update the global sale state. */
   updateState: (p: Partial<SaleState>) => void
+  /** Callback to navigate to the next step. */
   onNext: () => void
+  /** Callback to navigate back to the previous step. */
   onBack: () => void
 }
 
+/**
+ * Component for Step 3: Pricing.
+ * Fetches the most up-to-date prices from the Experticket API.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Users must trigger the price fetch manually or proceed with previously cached/catalog prices.
+ * - The component calculates a subtotal for each product and an estimated total for the entire sale.
+ * - Uses the `/api/experticket/prices` proxy endpoint.
+ */
 export function StepPricing({ state, updateState, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<RealTimePricesResponse | null>(null)
   const [fetched, setFetched] = useState(false)
 
+  /**
+   * Fetches real-time prices for all products in the cart for the selected date.
+   */
   async function fetchPrices() {
     setLoading(true)
     try {
@@ -48,15 +74,22 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
     }
   }
 
+  /** List of real-time prices returned by the API. */
   const prices = data?.ProductsRealTimePrices || []
 
-  // Calculate total using real-time prices if available, otherwise catalog prices
+  /**
+   * Calculates the estimated total sum.
+   * Prioritizes real-time prices, then falls back to catalog prices, then 0.
+   */
   const total = state.selectedProducts.reduce((sum, p) => {
     const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
     const unitPrice = rtPrice?.Price ?? p.Price ?? 0
     return sum + unitPrice * p.quantity
   }, 0)
 
+  /**
+   * Proceeds to the next step, saving the pricing data.
+   */
   function handleNext() {
     updateState({ pricingData: prices })
     onNext()

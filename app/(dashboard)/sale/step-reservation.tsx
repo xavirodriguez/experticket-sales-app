@@ -1,22 +1,45 @@
+/**
+ * @module StepReservation
+ * @description Step 5 of the sale process: Create a temporary reservation in the Experticket system.
+ */
+
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, AlertTriangle, Clock, Trash2 } from "lucide-react"
 import type { SaleState } from "./page"
 import type { ReservationResponse } from "@/lib/experticket/types"
 
+/**
+ * Props for the {@link StepReservation} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Function to update the global sale state. */
   updateState: (p: Partial<SaleState>) => void
+  /** Callback to navigate to the next step. */
   onNext: () => void
+  /** Callback to navigate back to the previous step. */
   onBack: () => void
 }
 
+/**
+ * Component for Step 5: Reservation.
+ * Calls the Experticket API to block capacity for a limited time.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Sends a `POST` request to `/api/experticket/reservation` with the products and access date.
+ * - Implements a countdown timer to show when the reservation expires.
+ * - Allows cancelling the reservation via a `DELETE` request.
+ * - Checks for "test mode" in `localStorage`.
+ */
 export function StepReservation({ state, updateState, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(false)
   const [cancelling, setCancelling] = useState(false)
@@ -44,6 +67,9 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
     return () => clearInterval(interval)
   }, [expiresAt])
 
+  /**
+   * Creates a new reservation.
+   */
   async function makeReservation() {
     setLoading(true)
     setError(null)
@@ -101,6 +127,9 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
     }
   }
 
+  /**
+   * Cancels the active reservation.
+   */
   async function cancelReservation() {
     if (!reservation?.ReservationId) return
     setCancelling(true)
@@ -134,6 +163,9 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
     }
   }
 
+  /**
+   * Proceeds to the next step.
+   */
   function handleNext() {
     if (!reservation?.ReservationId) {
       toast.error("You must create a reservation first")
