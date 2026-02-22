@@ -7,23 +7,22 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, QrCode, Copy, Check } from "lucide-react"
 import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import type { AccessCodeTransaction } from "@/lib/experticket/types"
 import { StatusBadge } from "@/components/status-badge"
+import { SearchCard } from "@/components/search-card"
 
 /**
  * Main Access Codes Page component.
  * Allows users to fetch the list of barcodes/QR codes associated with a specific sale.
  */
 export default function AccessCodesPage() {
-  const [txId, setTxId] = useState("")
   const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -38,9 +37,8 @@ export default function AccessCodesPage() {
   /**
    * Trigger a search for the entered Transaction ID.
    */
-  function handleSearch() {
-    if (!txId.trim()) return
-    setSearchedTxId(txId.trim())
+  const handleSearch = (id: string) => {
+    setSearchedTxId(id)
   }
 
   /**
@@ -55,7 +53,7 @@ export default function AccessCodesPage() {
   }
 
   /** Normalizes the access codes into a flat array. */
-  const codes = normalizeApiResponse(data, ["AccessCodes", "Codes"])
+  const codes = normalizeApiResponse<any>(data, ["AccessCodes", "Codes"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -64,30 +62,14 @@ export default function AccessCodesPage() {
         <p className="text-muted-foreground mt-1">Retrieve QR codes and access codes for tickets</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Access Codes</CardTitle>
-          <CardDescription>Enter a Transaction ID to retrieve access codes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-end">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label htmlFor="codeTxId">Transaction ID</Label>
-              <Input
-                id="codeTxId"
-                placeholder="Enter transaction ID..."
-                value={txId}
-                onChange={(e) => setTxId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
-            <Button onClick={handleSearch} disabled={isLoading || !txId.trim()}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Search Access Codes"
+        description="Enter a Transaction ID to retrieve access codes"
+        label="Transaction ID"
+        placeholder="Enter transaction ID..."
+        isLoading={isLoading}
+        onSearch={handleSearch}
+      />
 
       {error && (
         <Alert variant="destructive">
@@ -117,7 +99,7 @@ export default function AccessCodesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {codes.map((code, i) => {
+                {codes.map((code: any, i) => {
                   const codeValue = String(code.Code || code.AccessCode || code.Barcode || `CODE-${i + 1}`)
                   const codeId = String(code.Id || code.CodeId || i)
                   return (

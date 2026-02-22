@@ -15,13 +15,15 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, XCircle, Wifi, Settings2 } from "lucide-react"
 import { toast } from "sonner"
+import { useLocalStorage } from "@/hooks/use-local-storage"
+import { LOCAL_STORAGE_KEYS } from "@/lib/constants"
 
 /**
  * Main Configuration Page component.
  * Provides tools to check the API connection health and toggle "Test Mode".
  */
 export default function ConfigPage() {
-  const [isTest, setIsTest] = useState(false)
+  const [isTest, setIsTest] = useLocalStorage(LOCAL_STORAGE_KEYS.IS_TEST, false)
   const [localPartnerId, setLocalPartnerId] = useState("")
   const [localLanguage, setLocalLanguage] = useState("en")
   const [advancedMode, setAdvancedMode] = useState(false)
@@ -146,9 +148,6 @@ export default function ConfigPage() {
               checked={isTest}
               onCheckedChange={(val) => {
                 setIsTest(val)
-                if (typeof window !== "undefined") {
-                  localStorage.setItem("experticket_is_test", String(val))
-                }
                 toast.info(val ? "Test mode enabled" : "Test mode disabled")
               }}
             />

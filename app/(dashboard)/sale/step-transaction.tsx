@@ -21,6 +21,8 @@ import {
 } from "lucide-react"
 import type { SaleState } from "./page"
 import type { Transaction } from "@/lib/experticket/types"
+import { useLocalStorage } from "@/hooks/use-local-storage"
+import { LOCAL_STORAGE_KEYS } from "@/lib/constants"
 
 /**
  * Props for the {@link StepTransaction} component.
@@ -41,13 +43,14 @@ interface Props {
  * @remarks
  * - Finalizes the sale by calling `/api/experticket/transaction` via POST.
  * - Supports an optional payment reference (`PartnerSaleId`).
- * - Displays a success screen with transaction details and quick actions (documents, access codes).
+ * - Displays a success screen with transaction details and quick actions.
  */
 export function StepTransaction({ state, onReset }: Props) {
   const [loading, setLoading] = useState(false)
   const [transaction, setTransaction] = useState<Transaction | null>(state.transaction)
   const [error, setError] = useState<string | null>(null)
   const [paymentRef, setPaymentRef] = useState("")
+  const [isTest] = useLocalStorage(LOCAL_STORAGE_KEYS.IS_TEST, false)
 
   /**
    * Finalizes the sale by creating the transaction in the Experticket system.
@@ -61,11 +64,6 @@ export function StepTransaction({ state, onReset }: Props) {
     setError(null)
 
     try {
-      const isTest =
-        typeof window !== "undefined"
-          ? localStorage.getItem("experticket_is_test") === "true"
-          : false
-
       const payload: Record<string, unknown> = {
         IsTest: isTest,
         ReservationId: state.reservation.ReservationId,
@@ -88,8 +86,9 @@ export function StepTransaction({ state, onReset }: Props) {
       const data = await res.json()
 
       if (data.Success === false) {
-        setError(data.ErrorMessage || "Transaction creation failed")
-        toast.error(data.ErrorMessage || "Transaction creation failed")
+        const msg = data.ErrorMessage || "Transaction creation failed"
+        setError(msg)
+        toast.error(msg)
         return
       }
 
@@ -105,7 +104,7 @@ export function StepTransaction({ state, onReset }: Props) {
   }
 
   if (transaction) {
-    const saleId = transaction.SaleId || transaction.TransactionId || ""
+    const transactionId = transaction.SaleId || transaction.TransactionId || ""
     return (
       <div className="space-y-6">
         <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
@@ -113,7 +112,7 @@ export function StepTransaction({ state, onReset }: Props) {
             <CheckCircle2 className="h-16 w-16 text-green-600" />
             <h2 className="text-2xl font-bold text-foreground">Sale Complete!</h2>
             <p className="text-muted-foreground">
-              Transaction ID: <span className="font-mono font-semibold">{saleId}</span>
+              Transaction ID: <span className="font-mono font-semibold">{transactionId}</span>
             </p>
             {transaction.TotalPrice != null && (
               <p className="text-lg font-semibold">{transaction.TotalPrice.toFixed(2)} EUR</p>
@@ -169,14 +168,14 @@ export function StepTransaction({ state, onReset }: Props) {
           <CardContent className="flex flex-wrap gap-3">
             <Button
               variant="outline"
-              onClick={() => window.open(`/documents?txId=${saleId}`, "_self")}
+              onClick={() => window.open(`/api/experticket/documents?transactionId=${transactionId}`, "_blank")}
             >
               <FileText className="mr-2 h-4 w-4" />
               View Documents
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.open(`/codes?txId=${saleId}`, "_self")}
+              onClick={() => window.open(`/api/experticket/accesscodes?transactionId=${transactionId}`, "_blank")}
             >
               <QrCode className="mr-2 h-4 w-4" />
               View Access Codes

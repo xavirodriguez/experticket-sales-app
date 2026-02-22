@@ -41,13 +41,6 @@ interface Props {
 /**
  * Component for Step 1: Selection.
  * Handles fetching the catalog and managing the shopping cart.
- *
- * @param props - {@link Props}
- *
- * @remarks
- * - Fetches available languages and the product catalog based on the selected language.
- * - Allows users to add/remove products to a local cart state.
- * - Validates that a provider, products, and a date are selected before proceeding.
  */
 export function StepSelection({ state, updateState, onNext }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
@@ -67,9 +60,7 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     fetcher
   )
 
-  /**
-   * List of languages, falling back to defaults if the API call fails or is empty.
-   */
+  /** Fallback languages if API fails. */
   const languages = langData?.Languages?.length
     ? langData.Languages
     : [
@@ -79,14 +70,12 @@ export function StepSelection({ state, updateState, onNext }: Props) {
         { Code: "it", EnglishName: "Italian", NativeName: "Italiano" },
       ]
 
-  /** List of providers from the catalog response. */
   const providers = catalogData?.Providers || []
 
   /**
-   * Adds a product to the cart or increments its quantity if already present.
-   * @param product - The product to add.
+   * Adds a product to the cart.
    */
-  function addToCart(product: CatalogProduct) {
+  const addToCart = (product: CatalogProduct) => {
     setCart((prev) => {
       const existing = prev.find((p) => p.ProductId === product.ProductId)
       if (existing) {
@@ -99,10 +88,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
   }
 
   /**
-   * Decrements a product's quantity in the cart or removes it if quantity reaches zero.
-   * @param productId - ID of the product to remove.
+   * Removes a product from the cart.
    */
-  function removeFromCart(productId: string) {
+  const removeFromCart = (productId: string) => {
     setCart((prev) => {
       const existing = prev.find((p) => p.ProductId === productId)
       if (existing && existing.quantity > 1) {
@@ -115,9 +103,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
   }
 
   /**
-   * Validates selections and saves them to the global state before moving to the next step.
+   * Proceeds to the next step after validation.
    */
-  function handleNext() {
+  const handleNext = () => {
     if (!selectedProvider) {
       toast.error("Please select a provider")
       return
@@ -144,7 +132,6 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     setCart([])
   }, [selectedProvider?.ProviderId])
 
-  /** Flat list of products for the currently selected provider. */
   const products =
     selectedProvider?.ProductBases?.flatMap((pb) => pb.Products || []) || []
 
@@ -159,9 +146,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {languages.map((l) => (
-                <SelectItem key={l.Code} value={l.Code}>
-                  {l.EnglishName} ({l.Code})
+              {languages.map((lang) => (
+                <SelectItem key={lang.Code} value={lang.Code}>
+                  {lang.EnglishName} ({lang.Code})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -213,9 +200,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
                       </span>
                       {prov.Tags && prov.Tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {prov.Tags.map((t) => (
-                            <Badge key={t} variant="outline" className="text-[10px]">
-                              {t}
+                          {prov.Tags.map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-[10px]">
+                              {tag}
                             </Badge>
                           ))}
                         </div>
@@ -304,7 +291,7 @@ export function StepSelection({ state, updateState, onNext }: Props) {
       {cart.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Cart ({cart.reduce((a, c) => a + c.quantity, 0)} items)</CardTitle>
+            <CardTitle>Cart ({cart.reduce((acc, curr) => acc + curr.quantity, 0)} items)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1">

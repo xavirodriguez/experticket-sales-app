@@ -6,34 +6,13 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { AlertCircle, Loader2, Search, XCircle, CheckCircle2, Info } from "lucide-react"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
-import { StatusBadge } from "@/components/status-badge"
-
-/**
- * Result of a cancellation eligibility check.
- */
-interface CancellationCheckResult {
-  /** Whether the transaction is technically eligible for cancellation. */
-  IsCancellable?: boolean
-  /** Alias for IsCancellable. */
-  Cancellable?: boolean
-  /** The amount to be refunded. */
-  Amount?: number
-  /** Currency of the refund amount. */
-  Currency?: string
-  /** Status message from the API. */
-  Message?: string
-  /** Detailed cancellation policies applicable to this transaction. */
-  Policies?: Record<string, unknown>[]
-}
+import { SearchCard } from "@/components/search-card"
+import { CancellationResultCard } from "./cancellation-result-card"
+import { CANCELLATION_REASONS } from "@/lib/constants"
 
 /**
  * Main Cancellations Page component.
@@ -43,16 +22,15 @@ export default function CancellationsPage() {
   const [txId, setTxId] = useState("")
   const [checking, setChecking] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [checkResult, setCheckResult] = useState<CancellationCheckResult | null>(null)
+  const [checkResult, setCheckResult] = useState<any>(null)
   const [cancelComplete, setCancelComplete] = useState(false)
-  const [reason, setReason] = useState("0")
   const [error, setError] = useState<string | null>(null)
 
   /**
    * Checks if the transaction can be cancelled and retrieves the refund amount.
    */
-  async function handleCheck() {
-    if (!txId.trim()) return
+  async function handleCheck(id: string) {
+    setTxId(id)
     setChecking(true)
     setError(null)
     setCheckResult(null)
@@ -63,13 +41,13 @@ export default function CancellationsPage() {
         method: "POST",
         body: JSON.stringify({
           action: "check",
-          saleId: txId.trim(),
+          saleId: id,
         }),
       })
 
       if (!res.ok) {
         const errData = await res.json()
-        throw new Error(errData.error || "Failed to check cancellation eligibility")
+        throw new Error(errData.ErrorMessage || "Failed to check cancellation eligibility")
       }
 
       const data = await res.json()
@@ -85,7 +63,7 @@ export default function CancellationsPage() {
    * Finalizes the cancellation and processes the refund.
    */
   async function handleConfirmCancel() {
-    if (!txId.trim()) return
+    if (!txId) return
     setCancelling(true)
     setError(null)
 
@@ -94,14 +72,14 @@ export default function CancellationsPage() {
         method: "POST",
         body: JSON.stringify({
           action: "confirm",
-          saleId: txId.trim(),
-          reason: parseInt(reason, 10),
+          saleId: txId,
+          reason: CANCELLATION_REASONS.DEFAULT,
         }),
       })
 
       if (!res.ok) {
         const errData = await res.json()
-        throw new Error(errData.error || "Failed to process cancellation")
+        throw new Error(errData.ErrorMessage || "Failed to process cancellation")
       }
 
       setCancelComplete(true)
@@ -113,8 +91,6 @@ export default function CancellationsPage() {
     }
   }
 
-  const isCancellable = checkResult?.IsCancellable || checkResult?.Cancellable
-
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
       <div>
@@ -122,32 +98,14 @@ export default function CancellationsPage() {
         <p className="text-muted-foreground mt-1">Check eligibility and process transaction cancellations</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Check Cancellation Eligibility</CardTitle>
-          <CardDescription>
-            Enter a Transaction ID to check if it can be cancelled and what the refund policy is
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3 items-end">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label htmlFor="cancelTxId">Transaction ID</Label>
-              <Input
-                id="cancelTxId"
-                placeholder="Enter transaction ID..."
-                value={txId}
-                onChange={(e) => setTxId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-              />
-            </div>
-            <Button onClick={handleCheck} disabled={checking || !txId.trim()}>
-              {checking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Check
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Check Cancellation Eligibility"
+        description="Enter a Transaction ID to check if it can be cancelled"
+        label="Transaction ID"
+        placeholder="Enter transaction ID..."
+        isLoading={checking}
+        onSearch={handleCheck}
+      />
 
       {error && (
         <Alert variant="destructive">
@@ -169,70 +127,11 @@ export default function CancellationsPage() {
       )}
 
       {checkResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <StatusBadge status={isCancellable ? "Cancellable" : "Not Cancellable"} />
-              <span>Cancellation Check Result</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {checkResult.Message && (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>{checkResult.Message}</AlertDescription>
-              </Alert>
-            )}
-
-            {checkResult.Amount !== undefined && (
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">Refund Amount:</span>
-                <span className="text-xl font-bold">
-                  {checkResult.Amount.toFixed(2)} {checkResult.Currency || "EUR"}
-                </span>
-              </div>
-            )}
-
-            {checkResult.Policies && checkResult.Policies.length > 0 && (
-              <>
-                <Separator />
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    Cancellation Policies
-                  </h3>
-                  <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 font-mono">
-                    {JSON.stringify(checkResult.Policies, null, 2)}
-                  </pre>
-                </div>
-              </>
-            )}
-
-            {isCancellable && (
-              <>
-                <Separator />
-                <div className="flex justify-end">
-                  <Button
-                    variant="destructive"
-                    onClick={handleConfirmCancel}
-                    disabled={cancelling}
-                  >
-                    {cancelling ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="mr-2 h-4 w-4" />
-                        Confirm Cancellation
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <CancellationResultCard
+          checkResult={checkResult}
+          cancelling={cancelling}
+          onConfirm={handleConfirmCancel}
+        />
       )}
     </div>
   )

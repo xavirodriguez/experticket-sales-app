@@ -5,7 +5,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +13,9 @@ import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, AlertTriangle, Clock, Trash2 } from "lucide-react"
 import type { SaleState } from "./page"
 import type { ReservationResponse } from "@/lib/experticket/types"
+import { useCountdown } from "@/hooks/use-countdown"
+import { useLocalStorage } from "@/hooks/use-local-storage"
+import { LOCAL_STORAGE_KEYS } from "@/lib/constants"
 
 /**
  * Props for the {@link StepReservation} component.
@@ -38,7 +41,6 @@ interface Props {
  * - Sends a `POST` request to `/api/experticket/reservation` with the products and access date.
  * - Implements a countdown timer to show when the reservation expires.
  * - Allows cancelling the reservation via a `DELETE` request.
- * - Checks for "test mode" in `localStorage`.
  */
 export function StepReservation({ state, updateState, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(false)
@@ -46,26 +48,9 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
   const [reservation, setReservation] = useState<ReservationResponse | null>(state.reservation)
   const [error, setError] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(state.reservationExpiry)
-  const [timeLeft, setTimeLeft] = useState<string>("")
-  const [expired, setExpired] = useState(false)
+  const [isTest] = useLocalStorage(LOCAL_STORAGE_KEYS.IS_TEST, false)
 
-  // Countdown timer
-  useEffect(() => {
-    if (!expiresAt) return
-    const interval = setInterval(() => {
-      const diff = expiresAt - Date.now()
-      if (diff <= 0) {
-        setExpired(true)
-        setTimeLeft("Expired")
-        clearInterval(interval)
-      } else {
-        const mins = Math.floor(diff / 60000)
-        const secs = Math.floor((diff % 60000) / 1000)
-        setTimeLeft(`${mins}m ${secs}s`)
-      }
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [expiresAt])
+  const { timeLeft, isExpired } = useCountdown(expiresAt)
 
   /**
    * Creates a new reservation.
@@ -73,13 +58,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
   async function makeReservation() {
     setLoading(true)
     setError(null)
-    setExpired(false)
     try {
-      const isTest =
-        typeof window !== "undefined"
-          ? localStorage.getItem("experticket_is_test") === "true"
-          : false
-
       const payload = {
         IsTest: isTest,
         AccessDateTime: `${state.accessDate}T00:00:00`,
@@ -134,11 +113,6 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
     if (!reservation?.ReservationId) return
     setCancelling(true)
     try {
-      const isTest =
-        typeof window !== "undefined"
-          ? localStorage.getItem("experticket_is_test") === "true"
-          : false
-
       const res = await fetch("/api/experticket/reservation", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -171,7 +145,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
       toast.error("You must create a reservation first")
       return
     }
-    if (expired) {
+    if (isExpired) {
       toast.error("Reservation has expired. Please create a new one.")
       return
     }
@@ -236,7 +210,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
               {expiresAt && (
                 <div
                   className={`rounded-md border p-3 ${
-                    expired ? "border-destructive/50 bg-destructive/10" : "border-border"
+                    isExpired ? "border-destructive/50 bg-destructive/10" : "border-border"
                   }`}
                 >
                   <p className="text-xs text-muted-foreground">Time Remaining</p>
@@ -279,7 +253,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
               {cancelling ? "Cancelling..." : "Cancel Reservation"}
             </Button>
 
-            {expired && (
+            {isExpired && (
               <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
@@ -294,7 +268,6 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
                     onClick={() => {
                       setReservation(null)
                       setExpiresAt(null)
-                      setExpired(false)
                       updateState({ reservation: null, reservationExpiry: null })
                     }}
                   >
@@ -311,7 +284,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
         <Button variant="outline" onClick={onBack}>
           <ChevronLeft className="mr-1 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handleNext} disabled={!reservation || expired}>
+        <Button onClick={handleNext} disabled={!reservation || isExpired}>
           Next: Create Transaction
           <ChevronRight className="ml-1 h-4 w-4" />
         </Button>

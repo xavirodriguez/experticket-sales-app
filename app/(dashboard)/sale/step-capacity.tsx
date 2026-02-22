@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react"
 import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "./page"
@@ -35,13 +34,6 @@ interface Props {
 /**
  * Component for Step 2: Capacity.
  * Checks for availability restrictions on the selected products.
- *
- * @param props - {@link Props}
- *
- * @remarks
- * - Fetches capacity data from the `/api/experticket/capacity` proxy.
- * - Displays a table with availability for Product Bases, Products, and Sessions.
- * - Prevents the user from proceeding if any selected item has zero available capacity, unless manually acknowledged (logic simplified for this version).
  */
 export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
   const productIds = state.selectedProducts.map((p) => p.ProductId).join(",")
@@ -62,7 +54,7 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
   const [acknowledged, setAcknowledged] = useState(false)
 
   /**
-   * Combined list of capacity items from different levels (ProductBases, Products, Sessions).
+   * Combined list of capacity items.
    */
   const capacityItems = [
     ...(data?.ProductBases || []),
@@ -74,7 +66,7 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
    * Determines if all items have available capacity.
    */
   const hasCapacity = capacityItems.length === 0 || capacityItems.some(
-    (c) => c.AvailableCapacity === undefined || c.AvailableCapacity > 0
+    (item) => item.AvailableCapacity === undefined || item.AvailableCapacity > 0
   )
 
   /**

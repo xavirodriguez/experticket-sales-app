@@ -55,19 +55,34 @@ export async function apiFetch(
  * const transactions = normalizeApiResponse<Transaction>(txData, ['Transactions']);
  * ```
  */
-export function normalizeApiResponse<T = Record<string, unknown>>(
+/**
+ * Normalizes an API response that might be a single object, an array, or an object containing a list.
+ *
+ * @param data - The raw data from the API response.
+ * @param listKeys - Priority keys to look for if the data is an object.
+ * @returns An array of items of type T.
+ */
+export function normalizeApiResponse<T>(
   data: unknown,
   listKeys: string[] = []
 ): T[] {
   if (!data) return []
   if (Array.isArray(data)) return data as T[]
 
-  if (typeof data === "object") {
+  if (typeof data === "object" && data !== null) {
     for (const key of listKeys) {
-      const list = (data as any)[key]
+      const list = (data as Record<string, unknown>)[key]
       if (Array.isArray(list)) return list as T[]
     }
-    return [data as T]
+    // If it has Success property but isn't an array, it might be a single response object
+    if ("Success" in data && Object.keys(data).length > 2) {
+        return [data as T]
+    }
+
+    // If it doesn't look like a wrapper, return it as the only element
+    if (!("Success" in data)) {
+        return [data as T]
+    }
   }
 
   return []

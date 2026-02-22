@@ -38,7 +38,6 @@ interface Props {
  * @remarks
  * - Users must trigger the price fetch manually or proceed with previously cached/catalog prices.
  * - The component calculates a subtotal for each product and an estimated total for the entire sale.
- * - Uses the `/api/experticket/prices` proxy endpoint.
  */
 export function StepPricing({ state, updateState, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(false)
@@ -74,17 +73,16 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
     }
   }
 
-  /** List of real-time prices returned by the API. */
   const prices = data?.ProductsRealTimePrices || []
 
   /**
    * Calculates the estimated total sum.
-   * Prioritizes real-time prices, then falls back to catalog prices, then 0.
+   * Prioritizes real-time prices, then falls back to catalog prices.
    */
-  const total = state.selectedProducts.reduce((sum, p) => {
-    const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-    const unitPrice = rtPrice?.Price ?? p.Price ?? 0
-    return sum + unitPrice * p.quantity
+  const total = state.selectedProducts.reduce((sum, product) => {
+    const rtPrice = prices.find((priceItem) => priceItem.ProductId === product.ProductId)
+    const unitPrice = rtPrice?.Price ?? product.Price ?? 0
+    return sum + unitPrice * product.quantity
   }, 0)
 
   /**
@@ -135,16 +133,16 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {state.selectedProducts.map((p) => {
-                const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-                const unitPrice = rtPrice?.Price ?? p.Price ?? 0
+              {state.selectedProducts.map((product) => {
+                const rtPrice = prices.find((priceItem) => priceItem.ProductId === product.ProductId)
+                const unitPrice = rtPrice?.Price ?? product.Price ?? 0
                 return (
-                  <TableRow key={p.ProductId}>
-                    <TableCell>{p.ProductName || p.ProductId}</TableCell>
-                    <TableCell>{p.quantity}</TableCell>
+                  <TableRow key={product.ProductId}>
+                    <TableCell>{product.ProductName || product.ProductId}</TableCell>
+                    <TableCell>{product.quantity}</TableCell>
                     <TableCell>{unitPrice.toFixed(2)} EUR</TableCell>
                     <TableCell className="font-medium">
-                      {(unitPrice * p.quantity).toFixed(2)} EUR
+                      {(unitPrice * product.quantity).toFixed(2)} EUR
                     </TableCell>
                   </TableRow>
                 )
