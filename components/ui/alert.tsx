@@ -1,3 +1,8 @@
+/**
+ * @module Alert
+ * @description A component for displaying important messages or feedback to the user.
+ */
+
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -19,6 +24,18 @@ const alertVariants = cva(
   },
 )
 
+/**
+ * Main container for an alert message.
+ *
+ * @param props - React div props and {@link alertVariants} props.
+ * @example
+ * ```tsx
+ * <Alert variant="destructive">
+ *   <AlertTitle>Error</AlertTitle>
+ *   <AlertDescription>Something went wrong.</AlertDescription>
+ * </Alert>
+ * ```
+ */
 function Alert({
   className,
   variant,
@@ -34,6 +51,10 @@ function Alert({
   )
 }
 
+/**
+ * Title of the alert.
+ * @param props - React div props.
+ */
 function AlertTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -47,6 +68,10 @@ function AlertTitle({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+/**
+ * Description or body text of the alert.
+ * @param props - React div props.
+ */
 function AlertDescription({
   className,
   ...props

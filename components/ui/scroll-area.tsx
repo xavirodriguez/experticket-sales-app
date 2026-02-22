@@ -1,3 +1,8 @@
+/**
+ * @module ScrollArea
+ * @description A customizable scroll area component, powered by Radix UI.
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -5,6 +10,18 @@ import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Custom scrollable area.
+ *
+ * @param props - Radix UI ScrollArea Root props.
+ *
+ * @example
+ * ```tsx
+ * <ScrollArea className="h-40 w-full">
+ *   <div>Lots of content here...</div>
+ * </ScrollArea>
+ * ```
+ */
 function ScrollArea({
   className,
   children,
@@ -28,6 +45,10 @@ function ScrollArea({
   )
 }
 
+/**
+ * Scrollbar for the {@link ScrollArea}.
+ * @param props - Radix UI Scrollbar props.
+ */
 function ScrollBar({
   className,
   orientation = 'vertical',

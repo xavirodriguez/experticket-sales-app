@@ -1,3 +1,8 @@
+/**
+ * @module StepSelection
+ * @description Step 1 of the sale process: Select language, date, provider, and products.
+ */
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -12,6 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
 import { Plus, Minus, ChevronRight } from "lucide-react"
+import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "./page"
 import type {
   CatalogResponse,
@@ -20,14 +26,29 @@ import type {
   LanguagesResponse,
 } from "@/lib/experticket/types"
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
-
+/**
+ * Props for the {@link StepSelection} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Function to update the global sale state. */
   updateState: (p: Partial<SaleState>) => void
+  /** Callback to navigate to the next step. */
   onNext: () => void
 }
 
+/**
+ * Component for Step 1: Selection.
+ * Handles fetching the catalog and managing the shopping cart.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Fetches available languages and the product catalog based on the selected language.
+ * - Allows users to add/remove products to a local cart state.
+ * - Validates that a provider, products, and a date are selected before proceeding.
+ */
 export function StepSelection({ state, updateState, onNext }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
   const [cart, setCart] = useState<(CatalogProduct & { quantity: number })[]>(state.selectedProducts)
@@ -46,6 +67,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     fetcher
   )
 
+  /**
+   * List of languages, falling back to defaults if the API call fails or is empty.
+   */
   const languages = langData?.Languages?.length
     ? langData.Languages
     : [
@@ -55,8 +79,13 @@ export function StepSelection({ state, updateState, onNext }: Props) {
         { Code: "it", EnglishName: "Italian", NativeName: "Italiano" },
       ]
 
+  /** List of providers from the catalog response. */
   const providers = catalogData?.Providers || []
 
+  /**
+   * Adds a product to the cart or increments its quantity if already present.
+   * @param product - The product to add.
+   */
   function addToCart(product: CatalogProduct) {
     setCart((prev) => {
       const existing = prev.find((p) => p.ProductId === product.ProductId)
@@ -69,6 +98,10 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     })
   }
 
+  /**
+   * Decrements a product's quantity in the cart or removes it if quantity reaches zero.
+   * @param productId - ID of the product to remove.
+   */
   function removeFromCart(productId: string) {
     setCart((prev) => {
       const existing = prev.find((p) => p.ProductId === productId)
@@ -81,6 +114,9 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     })
   }
 
+  /**
+   * Validates selections and saves them to the global state before moving to the next step.
+   */
   function handleNext() {
     if (!selectedProvider) {
       toast.error("Please select a provider")
@@ -108,6 +144,7 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     setCart([])
   }, [selectedProvider?.ProviderId])
 
+  /** Flat list of products for the currently selected provider. */
   const products =
     selectedProvider?.ProductBases?.flatMap((pb) => pb.Products || []) || []
 

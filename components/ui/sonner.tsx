@@ -1,8 +1,24 @@
+/**
+ * @module Sonner
+ * @description A wrapper around the `sonner` library for displaying toast notifications.
+ */
+
 'use client'
 
 import { useTheme } from 'next-themes'
 import { Toaster as Sonner, ToasterProps } from 'sonner'
 
+/**
+ * Toaster component for displaying notifications.
+ *
+ * @param props - `sonner` ToasterProps.
+ *
+ * @example
+ * ```tsx
+ * // In your root layout:
+ * <Toaster />
+ * ```
+ */
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = 'system' } = useTheme()
 

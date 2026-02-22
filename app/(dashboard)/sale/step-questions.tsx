@@ -1,3 +1,8 @@
+/**
+ * @module StepQuestions
+ * @description Step 4 of the sale process: Collect mandatory ticket information.
+ */
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -12,13 +17,32 @@ import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react"
 import type { SaleState } from "./page"
 import type { TicketQuestionsResponse, TicketQuestion } from "@/lib/experticket/types"
 
+/**
+ * Props for the {@link StepQuestions} component.
+ */
 interface Props {
+  /** Current global sale state. */
   state: SaleState
+  /** Function to update the global sale state. */
   updateState: (p: Partial<SaleState>) => void
+  /** Callback to navigate to the next step. */
   onNext: () => void
+  /** Callback to navigate back to the previous step. */
   onBack: () => void
 }
 
+/**
+ * Component for Step 4: Questions.
+ * Renders dynamic form fields based on the questions required by the selected products.
+ *
+ * @param props - {@link Props}
+ *
+ * @remarks
+ * - Fetches question definitions from `/api/experticket/questions` via POST.
+ * - Manages local form state for all question answers.
+ * - Validates that all "Required" questions are answered before proceeding.
+ * - Supports different question types including text, date, and dropdowns.
+ */
 export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(true)
   const [questions, setQuestions] = useState<TicketQuestion[]>([])
@@ -29,6 +53,9 @@ export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    /**
+     * Checks which questions are needed for the selected products and fetches them.
+     */
     async function check() {
       try {
         // Collect all TicketQuestionsProfileIds from products
@@ -77,6 +104,9 @@ export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
     check()
   }, [state.selectedProducts, state.language])
 
+  /**
+   * Validates mandatory questions and proceeds.
+   */
   function handleNext() {
     // Validate required questions
     const missing = questions.filter((q) => q.Required && !answers[q.Id])

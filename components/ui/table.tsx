@@ -1,9 +1,18 @@
+/**
+ * @module Table
+ * @description A set of components for building accessible and styled tables.
+ */
+
 'use client'
 
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Main table container and table element.
+ * @param props - React table props.
+ */
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
     <div
@@ -19,6 +28,10 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
   )
 }
 
+/**
+ * Table header container (thead).
+ * @param props - React thead props.
+ */
 function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return (
     <thead
@@ -29,6 +42,10 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   )
 }
 
+/**
+ * Table body container (tbody).
+ * @param props - React tbody props.
+ */
 function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
     <tbody
@@ -39,6 +56,10 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   )
 }
 
+/**
+ * Table footer container (tfoot).
+ * @param props - React tfoot props.
+ */
 function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   return (
     <tfoot
@@ -52,6 +73,10 @@ function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   )
 }
 
+/**
+ * Table row (tr).
+ * @param props - React tr props.
+ */
 function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
   return (
     <tr
@@ -65,6 +90,10 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
   )
 }
 
+/**
+ * Table head cell (th).
+ * @param props - React th props.
+ */
 function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
@@ -78,6 +107,10 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   )
 }
 
+/**
+ * Table data cell (td).
+ * @param props - React td props.
+ */
 function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
@@ -91,6 +124,10 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   )
 }
 
+/**
+ * Table caption.
+ * @param props - React caption props.
+ */
 function TableCaption({
   className,
   ...props

@@ -1,7 +1,22 @@
+/**
+ * @module Input
+ * @description A basic text input component.
+ */
+
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Standard input field component.
+ *
+ * @param props - Standard React input props.
+ *
+ * @example
+ * ```tsx
+ * <Input type="text" placeholder="Enter your name" />
+ * ```
+ */
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <input

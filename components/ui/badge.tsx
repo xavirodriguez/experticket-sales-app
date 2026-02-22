@@ -1,3 +1,8 @@
+/**
+ * @module Badge
+ * @description A small visual element used to highlight a status or tag.
+ */
+
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -25,6 +30,16 @@ const badgeVariants = cva(
   },
 )
 
+/**
+ * A badge component for displaying small bits of information.
+ *
+ * @param props - React span props, {@link badgeVariants} props, and an optional `asChild` prop.
+ *
+ * @example
+ * ```tsx
+ * <Badge variant="secondary">Active</Badge>
+ * ```
+ */
 function Badge({
   className,
   variant,
