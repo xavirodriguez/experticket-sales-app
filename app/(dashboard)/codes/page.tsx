@@ -13,8 +13,11 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
-import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { fetcher } from "@/lib/experticket/client"
+import { normalizeApiResponse } from "@/lib/experticket/utils"
 import { StatusBadge } from "@/components/status-badge"
+import { SearchCard } from "@/components/experticket/SearchCard"
+import { toast } from "sonner"
 
 /**
  * Main Access Codes Page component.
