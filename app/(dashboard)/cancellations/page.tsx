@@ -7,9 +7,17 @@
 
 import { useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { AlertCircle, Info, Loader2, XCircle } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
 import { StatusBadge } from "@/components/status-badge"
+import { SearchCard } from "@/components/experticket/SearchCard"
+import { PageHeader } from "@/components/experticket/PageHeader"
+import { ErrorAlert } from "@/components/experticket/ErrorAlert"
+import { CancellationSuccessDisplay } from "./components/CancellationSuccessDisplay"
+import { DEFAULT_CANCELLATION_REASON } from "@/lib/experticket/constants"
 
 /**
  * Result of a cancellation eligibility check.
@@ -40,6 +48,8 @@ export default function CancellationsPage() {
   const [checkResult, setCheckResult] = useState<CancellationCheckResult | null>(null)
   const [cancelComplete, setCancelComplete] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const isCancellable = Boolean(checkResult?.IsCancellable || checkResult?.Cancellable)
 
   /**
    * Checks if the transaction can be cancelled and retrieves the refund amount.
@@ -105,7 +115,7 @@ export default function CancellationsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
-      <CancellationsHeader
+      <PageHeader
         title="Cancellations"
         description="Check eligibility and process transaction cancellations"
       />
@@ -195,20 +205,3 @@ export default function CancellationsPage() {
   )
 }
 
-function CancellationsHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-      <p className="text-muted-foreground mt-1">{description}</p>
-    </div>
-  )
-}
-
-function ErrorAlert({ message }: { message: string }) {
-  return (
-    <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
-      <AlertDescription>{message}</AlertDescription>
-    </Alert>
-  )
-}

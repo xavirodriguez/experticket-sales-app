@@ -7,12 +7,19 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, Loader2, AlertCircle, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
-import { apiFetch, fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { Card, CardContent } from "@/components/ui/card"
+import { Search, Loader2, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
+import { apiFetch, fetcher } from "@/lib/experticket/client"
+import { normalizeApiResponse } from "@/lib/experticket/utils"
 import { StatusBadge } from "@/components/status-badge"
+import { PageHeader } from "@/components/experticket/PageHeader"
+import { ErrorAlert } from "@/components/experticket/ErrorAlert"
+import { TransactionSearch } from "./components/TransactionSearch"
+import { TransactionDetailsView } from "./components/TransactionDetailsView"
+import { TransactionResultsTable } from "./components/TransactionResultsTable"
+import type { Transaction } from "@/lib/experticket/types"
 
 /**
  * Main Transactions Page component.
@@ -28,7 +35,7 @@ export default function TransactionsPage() {
    * Fetches transaction data when a search ID is provided.
    */
   const { data: txData, isLoading } = useSWR(
-    searchedId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedId)}` : null,
+    searchedTxId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}` : null,
     fetcher
   )
 
@@ -36,7 +43,7 @@ export default function TransactionsPage() {
    * Handles the search action.
    */
   function handleSearch() {
-    if (!searchId.trim()) return
+    if (!txIdSearch.trim()) return
     setError(null)
     setSelectedTx(null)
     setSearchedTxId(txIdSearch.trim())
@@ -45,11 +52,11 @@ export default function TransactionsPage() {
   /**
    * Normalizes the API response into an array of transactions.
    */
-  const transactions = normalizeApiResponse(txData, ["Transactions"])
+  const transactions = normalizeApiResponse<Transaction>(txData, "Transactions")
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
-      <TransactionsHeader
+      <PageHeader
         title="Transactions"
         description="Search and manage completed transactions"
       />
