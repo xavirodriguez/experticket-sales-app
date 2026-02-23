@@ -7,14 +7,33 @@
 
 import { useState } from "react"
 import useSWR from "swr"
+import { toast } from "sonner"
+import { QrCode, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
 import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
 import { StatusBadge } from "@/components/status-badge"
+import { SearchCard } from "@/components/experticket/SearchCard"
+import { PageHeader } from "@/components/experticket/PageHeader"
+import { ErrorAlert } from "@/components/experticket/ErrorAlert"
+
+/**
+ * Shape of an access code item for display purposes.
+ */
+interface AccessCodeDisplayItem {
+  Id?: string | number
+  CodeId?: string | number
+  Code?: string
+  AccessCode?: string
+  Barcode?: string
+  ProductName?: string
+  Product?: string
+  Type?: string
+  CodeType?: string
+  Status?: string
+}
 
 /**
  * Main Access Codes Page component.
@@ -54,14 +73,14 @@ export default function AccessCodesPage() {
   }
 
   /** Normalizes the access codes into a flat array. */
-  const codes = normalizeApiResponse(data, ["AccessCodes", "Codes"])
+  const codes = normalizeApiResponse<AccessCodeDisplayItem>(data, ["AccessCodes", "Codes"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Access Codes</h1>
-        <p className="text-muted-foreground mt-1">Retrieve and manage access codes for valid transactions</p>
-      </div>
+      <PageHeader
+        title="Access Codes"
+        description="Retrieve and manage access codes for valid transactions"
+      />
 
       <SearchCard
         title="Search Access Codes"
@@ -75,10 +94,7 @@ export default function AccessCodesPage() {
       />
 
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Failed to fetch access codes. Please check the Transaction ID.</AlertDescription>
-        </Alert>
+        <ErrorAlert message="Failed to fetch access codes. Please check the Transaction ID." />
       )}
 
       {codes.length > 0 && (

@@ -7,12 +7,15 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, Loader2, AlertCircle, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
-import { apiFetch, fetcher, normalizeApiResponse } from "@/lib/experticket/client"
-import { StatusBadge } from "@/components/status-badge"
+import { Search } from "lucide-react"
+import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
+import { PageHeader } from "@/components/experticket/PageHeader"
+import { ErrorAlert } from "@/components/experticket/ErrorAlert"
+import { Card, CardContent } from "@/components/ui/card"
+import { TransactionSearch } from "./components/TransactionSearch"
+import { TransactionResultsTable } from "./components/TransactionResultsTable"
+import { TransactionDetailsView } from "./components/TransactionDetailsView"
+import type { Transaction } from "@/lib/experticket/types"
 
 /**
  * Main Transactions Page component.
@@ -28,7 +31,7 @@ export default function TransactionsPage() {
    * Fetches transaction data when a search ID is provided.
    */
   const { data: txData, isLoading } = useSWR(
-    searchedId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedId)}` : null,
+    searchedTxId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}` : null,
     fetcher
   )
 
@@ -36,7 +39,7 @@ export default function TransactionsPage() {
    * Handles the search action.
    */
   function handleSearch() {
-    if (!searchId.trim()) return
+    if (!txIdSearch.trim()) return
     setError(null)
     setSelectedTx(null)
     setSearchedTxId(txIdSearch.trim())
@@ -45,11 +48,11 @@ export default function TransactionsPage() {
   /**
    * Normalizes the API response into an array of transactions.
    */
-  const transactions = normalizeApiResponse(txData, ["Transactions"])
+  const transactions = normalizeApiResponse<Transaction>(txData, ["Transactions"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
-      <TransactionsHeader
+      <PageHeader
         title="Transactions"
         description="Search and manage completed transactions"
       />
@@ -74,70 +77,6 @@ export default function TransactionsPage() {
 
       {searchedTxId && !isLoading && transactions.length === 0 && !error && <NoResultsFound />}
     </div>
-  )
-}
-
-/**
- * Props for the {@link TransactionDetail} component.
- */
-interface TransactionDetailProps {
-  /** The transaction data object. */
-  transaction: Record<string, unknown>
-  /** Callback to return to the search results. */
-  onBack: () => void
-}
-
-/**
- * Component for displaying the full details of a single transaction.
- */
-function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
-  const [cancelDialog, setCancelDialog] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelResult, setCancelResult] = useState<string | null>(null)
-
-  const txId = String(transaction.SaleId || transaction.TransactionId || transaction.Id || "")
-
-  /**
-   * Initiates the cancellation process for this transaction.
-   */
-  async function handleCancel() {
-    setCancelling(true)
-    try {
-      const res = await apiFetch("/api/experticket/cancellation", {
-        method: "POST",
-        body: JSON.stringify({
-          action: "check",
-          transactionId: txId,
-        }),
-      })
-      const data = await res.json()
-      if (data.IsCancellable || data.Cancellable) {
-        const confirmRes = await apiFetch("/api/experticket/cancellation", {
-          method: "POST",
-          body: JSON.stringify({
-            action: "confirm",
-            transactionId: txId,
-          }),
-        })
-        const confirmData = await confirmRes.json()
-        setCancelResult(confirmData.Message || "Cancellation processed successfully.")
-      } else {
-        setCancelResult(data.Message || "This transaction cannot be cancelled.")
-      }
-    } catch {
-      setCancelResult("Failed to process cancellation request.")
-    } finally {
-      setCancelling(false)
-    }
-  }
-
-  /** Filter top-level flat fields for display. */
-  const entries = Object.entries(transaction).filter(
-    ([, v]) => typeof v !== "object" || v === null
-  )
-  /** Filter nested object/array fields for display. */
-  const nestedEntries = Object.entries(transaction).filter(
-    ([, v]) => typeof v === "object" && v !== null
   )
 }
 

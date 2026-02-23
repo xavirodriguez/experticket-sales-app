@@ -7,14 +7,32 @@
 
 import { useState } from "react"
 import useSWR from "swr"
+import { FileText, Download, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, FileText, Download, ExternalLink } from "lucide-react"
 import { fetcher, normalizeApiResponse } from "@/lib/experticket/client"
 import { StatusBadge } from "@/components/status-badge"
+import { SearchCard } from "@/components/experticket/SearchCard"
+import { PageHeader } from "@/components/experticket/PageHeader"
+import { ErrorAlert } from "@/components/experticket/ErrorAlert"
+
+/**
+ * Shape of a document item for display purposes.
+ */
+interface DocumentDisplayItem {
+  Id?: string | number
+  DocumentId?: string | number
+  Type?: string
+  DocumentType?: string
+  ProductName?: string
+  Product?: string
+  Status?: string
+  Url?: string
+  DownloadUrl?: string
+  ViewUrl?: string
+}
 
 /**
  * Main Documents Page component.
@@ -41,14 +59,14 @@ export default function DocumentsPage() {
   }
 
   /** Normalizes the response into an array of document records. */
-  const documents = normalizeApiResponse(data, ["Documents"])
+  const documents = normalizeApiResponse<DocumentDisplayItem>(data, ["Documents"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Documents</h1>
-        <p className="text-muted-foreground mt-1">Retrieve tickets, vouchers, and documents for a transaction</p>
-      </div>
+      <PageHeader
+        title="Documents"
+        description="Retrieve tickets, vouchers, and documents for a transaction"
+      />
 
       <SearchCard
         title="Search Documents"
@@ -62,10 +80,7 @@ export default function DocumentsPage() {
       />
 
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Failed to fetch documents. Please check the Transaction ID.</AlertDescription>
-        </Alert>
+        <ErrorAlert message="Failed to fetch documents. Please check the Transaction ID." />
       )}
 
       {documents.length > 0 && (
