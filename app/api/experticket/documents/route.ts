@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getEncodedApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionDocumentsResponse } from "@/lib/experticket/types"
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const sp = request.nextUrl.searchParams
     const data = await experticketFetch<TransactionDocumentsResponse>("/transactiondocuments", {
       params: {
-        ApiKey: getEncodedApiKey(),
+        ApiKey: getApiKey(),
         id: sp.get("id") || sp.get("SaleId") || sp.get("transactionId") || "",
         IncludeTransactionDocumentsLanguages:
           sp.get("IncludeTransactionDocumentsLanguages") || "true",

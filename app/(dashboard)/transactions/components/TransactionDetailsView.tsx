@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
-import { getTransactionId } from "@/lib/experticket/utils"
+import { resolveTransactionId } from "@/lib/experticket/utils"
 import type { Transaction } from "@/lib/experticket/types"
 
 /**
@@ -39,7 +39,7 @@ export function TransactionDetailsView({ transaction, onBack }: TransactionDetai
   const [cancelling, setCancelling] = useState(false)
   const [cancelResult, setCancelResult] = useState<string | null>(null)
 
-  const txId = getTransactionId(transaction)
+  const txId = resolveTransactionId(transaction)
 
   async function handleCancel() {
     setCancelling(true)

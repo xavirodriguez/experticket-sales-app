@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
   experticketFetch,
-  getRawApiKey,
-  getEncodedApiKey,
+  getApiKey,
 } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type {
@@ -37,7 +36,7 @@ export async function GET(request: NextRequest) {
     const sp = request.nextUrl.searchParams
     const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
       params: {
-        ApiKey: getEncodedApiKey(),
+        ApiKey: getApiKey(),
         SaleId: sp.get("SaleId") || undefined,
         FromCreatedDateTime: sp.get("FromCreatedDateTime") || undefined,
         ToCreatedDateTime: sp.get("ToCreatedDateTime") || undefined,
@@ -61,7 +60,7 @@ export async function GET(request: NextRequest) {
 async function checkCancellation(saleId: string) {
   const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
     params: {
-      ApiKey: getEncodedApiKey(),
+      ApiKey: getApiKey(),
       SaleId: saleId,
       PageSize: "10",
       Page: "1",
@@ -81,7 +80,7 @@ async function createCancellationRequest(
   rest: Partial<CancellationRequest>
 ) {
   const payload = {
-    ApiKey: getRawApiKey(),
+    ApiKey: getApiKey(),
     SaleId: saleId,
     Reason: reason ?? 0,
     ReasonComments: reasonComments || undefined,

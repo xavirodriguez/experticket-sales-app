@@ -1,46 +1,57 @@
 /**
  * @module experticket-utils
- * @description Shared utility functions for Experticket data processing.
+ * @description Shared utility functions for Experticket data processing and normalization.
  */
 
 import type { Transaction } from "./types"
 
 /**
- * Extracts a unique transaction or sale identifier from a transaction object.
- * Checks multiple common keys used by the Experticket API.
+ * Resolves a unique identifier for a transaction or sale.
+ * Iterates through common Experticket API identifier keys (SaleId, TransactionId, Id).
  *
- * @param transaction - The transaction object.
- * @returns The extracted ID string, or "N/A" if not found.
+ * @param transaction - The transaction-like object to resolve the ID from.
+ * @returns The resolved identifier as a string, or "N/A" if no identifier is found.
+ *
+ * @example
+ * ```typescript
+ * const id = resolveTransactionId(transaction);
+ * ```
  */
-export function getTransactionId(transaction: Transaction): string {
+export function resolveTransactionId(transaction: Transaction): string {
   const id = transaction.SaleId || transaction.TransactionId || transaction.Id
   return id ? String(id) : "N/A"
 }
 
 /**
- * Formats a transaction price or amount with a currency symbol.
+ * Formats a numeric price into a human-readable currency string.
  *
- * @param transaction - The transaction object containing price fields.
+ * @param amount - The numeric price amount. If undefined or null, returns "N/A".
+ * @param currency - The currency symbol or code (defaults to "EUR").
  * @returns A formatted currency string (e.g., "123.45 EUR").
+ *
+ * @example
+ * ```typescript
+ * const price = formatPrice(123.456, "USD"); // "123.46 USD"
+ * ```
  */
-export function formatCurrency(transaction: Transaction): string {
-  const price = transaction.TotalPrice ?? transaction.TotalAmount ?? transaction.Price
-  const currency = (transaction.Currency as string) || "EUR"
-
-  if (price === undefined || price === null) {
+export function formatPrice(
+  amount: number | undefined | null,
+  currency: string = "EUR"
+): string {
+  if (amount === undefined || amount === null) {
     return "N/A"
   }
 
-  return `${Number(price).toFixed(2)} ${currency}`
+  return `${Number(amount).toFixed(2)} ${currency}`
 }
 
 /**
  * Normalizes an API response that might contain a single object, an array,
  * or an object with a named array property into a consistent array of T.
  *
- * @param response - The raw API response.
- * @param listKeys - The key(s) to look for if the response is an object.
- * @returns An array of entities.
+ * @param response - The raw API response to normalize.
+ * @param listKeys - Optional key or list of keys to look for in the response object.
+ * @returns A guaranteed array of entities of type T. Returns an empty array if normalization fails.
  *
  * @example
  * ```typescript
@@ -50,31 +61,45 @@ export function formatCurrency(transaction: Transaction): string {
 export function normalizeApiResponse<T = Record<string, unknown>>(
   response: unknown,
   listKeys?: string | string[]
-): T[] {
-  if (!response || typeof response !== "object") return []
+): readonly T[] {
+  if (!response || typeof response !== "object") {
+    return []
+  }
 
   const resp = response as Record<string, unknown>
 
   // Ensure we're not treating an error response as a data list
-  if (resp.Success === false) return []
+  if (resp.Success === false) {
+    return []
+  }
 
-  if (Array.isArray(response)) return response as T[]
+  if (Array.isArray(response)) {
+    return response as T[]
+  }
 
   // Check provided keys
   if (listKeys) {
     const keys = Array.isArray(listKeys) ? listKeys : [listKeys]
     for (const key of keys) {
-      if (Array.isArray(resp[key])) {
-        return resp[key] as T[]
+      const value = resp[key]
+      if (Array.isArray(value)) {
+        return value as T[]
       }
     }
   }
 
   // Common fallbacks if no listKeys provided or not found
-  const fallbacks = ["Transactions", "Documents", "AccessCodes", "Codes", "CancellationRequests"]
+  const fallbacks = [
+    "Transactions",
+    "Documents",
+    "AccessCodes",
+    "Codes",
+    "CancellationRequests",
+  ]
   for (const key of fallbacks) {
-    if (Array.isArray(resp[key])) {
-      return resp[key] as T[]
+    const value = resp[key]
+    if (Array.isArray(value)) {
+      return value as T[]
     }
   }
 

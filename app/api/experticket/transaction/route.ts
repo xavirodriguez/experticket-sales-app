@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
   experticketFetch,
-  getRawApiKey,
-  getEncodedApiKey,
+  getApiKey,
 } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionListResponse } from "@/lib/experticket/types"
@@ -13,7 +12,7 @@ import type { TransactionListResponse } from "@/lib/experticket/types"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = { ...body, ApiKey: getRawApiKey() }
+    const payload = { ...body, ApiKey: getApiKey() }
     const data = await experticketFetch("/transaction", {
       method: "POST",
       body: payload,
@@ -45,7 +44,7 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToExperticketParams(sp: URLSearchParams) {
   return {
-    ApiKey: getEncodedApiKey(),
+    ApiKey: getApiKey(),
     SaleId: sp.get("SaleId") || undefined,
     ReservationId: sp.get("ReservationId") || undefined,
     PartnerSaleId: sp.get("PartnerSaleId") || undefined,

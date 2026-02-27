@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { experticketFetch, getEncodedApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { LanguagesResponse } from "@/lib/experticket/types"
 
@@ -9,7 +9,7 @@ import type { LanguagesResponse } from "@/lib/experticket/types"
 export async function GET() {
   try {
     const data = await experticketFetch<LanguagesResponse>("/languages", {
-      params: { ApiKey: getEncodedApiKey() },
+      params: { ApiKey: getApiKey() },
       retries: 1,
     })
     return NextResponse.json(data)

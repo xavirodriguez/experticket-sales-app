@@ -4,7 +4,7 @@
  *
  * @remarks
  * This module should ONLY be imported from API route handlers or server-side functions.
- * It uses environment variables for configuration.
+ * It uses environment variables for configuration and handles authentication, timeouts, and retries.
  */
 
 import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
@@ -18,7 +18,7 @@ const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
  * Retrieves the Partner ID from environment variables.
  * @returns The Partner ID string.
  */
-export function getPartnerId() {
+export function getPartnerId(): string {
   return PARTNER_ID
 }
 
@@ -26,35 +26,27 @@ export function getPartnerId() {
  * Retrieves the default language code from environment variables.
  * @returns The default language code (e.g., "en", "es").
  */
-export function getDefaultLanguage() {
+export function getDefaultLanguage(): string {
   return DEFAULT_LANG
-}
-
-/**
- * Retrieves the API Key from environment variables and encodes it for URL safety.
- * @returns The URI-encoded API Key.
- */
-export function getEncodedApiKey() {
-  return encodeURIComponent(API_KEY)
 }
 
 /**
  * Retrieves the raw API Key from environment variables.
  * @returns The plain API Key string.
  */
-export function getRawApiKey() {
+export function getApiKey(): string {
   return API_KEY
 }
 
 /**
  * Options for the {@link experticketFetch} function.
  */
-interface FetchOptions {
+export interface FetchOptions {
   /** HTTP method to use. Defaults to "GET". */
   method?: "GET" | "POST" | "DELETE"
   /** Request body for POST or DELETE requests. Can be an object or string. */
   body?: unknown
-  /** Query parameters to be appended to the URL. */
+  /** Query parameters to be appended to the URL. Values are automatically encoded. */
   params?: Record<string, string | number | boolean | undefined>
   /** Timeout in milliseconds before the request is aborted. Defaults to 15000ms. */
   timeout?: number
@@ -67,7 +59,7 @@ interface FetchOptions {
  * Handles URL building, timeouts, retries (for GET), and JSON parsing.
  *
  * @param path - The API endpoint path relative to the BASE_URL.
- * @param options - Configuration for the request (method, body, params, etc.).
+ * @param options - Configuration for the request.
  * @returns A promise that resolves to the parsed JSON response of type T.
  *
  * @throws {Error} If the API response is not OK or if a network/timeout error occurs.
@@ -90,12 +82,13 @@ export async function experticketFetch<T = unknown>(
     timeout = DEFAULT_FETCH_TIMEOUT,
     retries = DEFAULT_FETCH_RETRIES,
   } = options
+
   const url = buildUrl(path, params)
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
 
   try {
-    const fetchOptions = getFetchOptions(method, body, controller.signal)
+    const fetchOptions = prepareFetchOptions(method, body, controller.signal)
     return await executeFetchWithRetry<T>(url.toString(), fetchOptions, retries)
   } finally {
     clearTimeout(timer)
@@ -103,22 +96,26 @@ export async function experticketFetch<T = unknown>(
 }
 
 /**
- * Builds a URL with query parameters.
+ * Builds a full URL with query parameters from a path and params object.
  */
 function buildUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== "") {
-      url.searchParams.set(k, String(v))
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      url.searchParams.set(key, String(value))
     }
   })
   return url
 }
 
 /**
- * Configures fetch options including headers and body.
+ * Prepares the RequestInit options for the fetch call.
  */
-function getFetchOptions(method: string, body: unknown, signal: AbortSignal): RequestInit {
+function prepareFetchOptions(
+  method: string,
+  body: unknown,
+  signal: AbortSignal
+): RequestInit {
   const options: RequestInit = {
     method,
     headers: {
@@ -137,7 +134,7 @@ function getFetchOptions(method: string, body: unknown, signal: AbortSignal): Re
 }
 
 /**
- * Executes fetch with retry logic for idempotent GET requests.
+ * Executes a fetch request with optional retry logic for GET requests.
  */
 async function executeFetchWithRetry<T>(
   url: string,
@@ -145,32 +142,38 @@ async function executeFetchWithRetry<T>(
   retries: number
 ): Promise<T> {
   let lastError: unknown
-  const attempts = 1 + (options.method === "GET" ? retries : 0)
+  const maxAttempts = 1 + (options.method === "GET" ? retries : 0)
 
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const res = await fetch(url, options)
-      return await handleResponse<T>(res)
-    } catch (err) {
-      lastError = err
-      if (attempt < attempts - 1) await delay(500 * (attempt + 1))
+      const response = await fetch(url, options)
+      return await processResponse<T>(response)
+    } catch (error) {
+      lastError = error
+      if (attempt < maxAttempts - 1) {
+        await backoff(attempt)
+      }
     }
   }
+
   throw lastError
 }
 
 /**
- * Handles the fetch response and parses JSON.
+ * Processes the fetch response, handling errors and parsing JSON.
  */
-async function handleResponse<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`Experticket API error ${res.status}: ${text}`)
+async function processResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => "No error body")
+    throw new Error(`Experticket API error ${response.status}: ${errorBody}`)
   }
-  return (await res.json()) as T
+  return (await response.json()) as T
 }
 
 /**
- * Simple delay helper.
+ * Simple exponential backoff helper.
  */
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+async function backoff(attempt: number): Promise<void> {
+  const delay = 500 * (attempt + 1)
+  return new Promise((resolve) => setTimeout(resolve, delay))
+}
