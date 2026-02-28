@@ -2,7 +2,13 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -15,7 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
-import { getTransactionId } from "@/lib/experticket/utils"
+import { resolveTransactionId } from "@/lib/experticket/utils"
 import type { Transaction } from "@/lib/experticket/types"
 
 /**
@@ -34,12 +40,15 @@ interface TransactionDetailsViewProps {
  * @param props - Component props.
  * @returns The rendered transaction details view.
  */
-export function TransactionDetailsView({ transaction, onBack }: TransactionDetailsViewProps) {
+export function TransactionDetailsView({
+  transaction,
+  onBack,
+}: TransactionDetailsViewProps) {
   const [cancelDialog, setCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [cancelResult, setCancelResult] = useState<string | null>(null)
 
-  const txId = getTransactionId(transaction)
+  const txId = resolveTransactionId(transaction)
 
   async function handleCancel() {
     setCancelling(true)
@@ -56,7 +65,9 @@ export function TransactionDetailsView({ transaction, onBack }: TransactionDetai
     }
   }
 
-  const entries = Object.entries(transaction).filter(([, v]) => typeof v !== "object" || v === null)
+  const entries = Object.entries(transaction).filter(
+    ([, v]) => typeof v !== "object" || v === null
+  )
   const nestedEntries = Object.entries(transaction).filter(
     ([, v]) => typeof v === "object" && v !== null
   )
@@ -131,7 +142,11 @@ function TransactionBasicFields({ entries }: { entries: [string, unknown][] }) {
 /**
  * Renders the nested (object) fields of a transaction as JSON.
  */
-function TransactionNestedFields({ nestedEntries }: { nestedEntries: [string, unknown][] }) {
+function TransactionNestedFields({
+  nestedEntries,
+}: {
+  nestedEntries: [string, unknown][]
+}) {
   if (nestedEntries.length === 0) return null
 
   return (
@@ -179,7 +194,9 @@ function TransactionDetailsHeader({
         <ActionButton
           icon={<FileText className="mr-1 h-3 w-3" />}
           label="Documents"
-          onClick={() => window.open(`/api/experticket/documents?transactionId=${txId}`, "_blank")}
+          onClick={() =>
+            window.open(`/api/experticket/documents?transactionId=${txId}`, "_blank")
+          }
         />
         <ActionButton
           icon={<QrCode className="mr-1 h-3 w-3" />}
@@ -245,7 +262,8 @@ function CancelDialog({
         <DialogHeader>
           <DialogTitle>Cancel Transaction</DialogTitle>
           <DialogDescription>
-            Are you sure you want to cancel transaction {txId}? This action may not be reversible.
+            Are you sure you want to cancel transaction {txId}? This action may not
+            be reversible.
           </DialogDescription>
         </DialogHeader>
         {result ? (

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  experticketFetch,
-  getRawApiKey,
-} from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { ReservationResponse } from "@/lib/experticket/types"
 
@@ -14,7 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const payload = {
       ...body,
-      ApiKey: getRawApiKey(),
+      ApiKey: getApiKey(),
     }
 
     const data = await experticketFetch<ReservationResponse>("/reservation", {
@@ -28,14 +25,14 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handles DELETE requests to cancel a reservation.
+ * Handles DELETE requests to cancel an existing reservation.
  */
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
     const payload = {
       ...body,
-      ApiKey: getRawApiKey(),
+      ApiKey: getApiKey(),
     }
 
     const data = await experticketFetch("/reservation", {

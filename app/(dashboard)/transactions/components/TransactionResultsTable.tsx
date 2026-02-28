@@ -1,11 +1,24 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
-import { getTransactionId, formatCurrency } from "@/lib/experticket/utils"
+import { resolveTransactionId, formatPrice } from "@/lib/experticket/utils"
 import type { Transaction } from "@/lib/experticket/types"
 
 /**
@@ -48,22 +61,40 @@ export function TransactionResultsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((tx, i) => (
-              <TableRow key={getTransactionId(tx) + i}>
-                <TableCell className="font-mono text-sm">{getTransactionId(tx)}</TableCell>
-                <TableCell>{String(tx.TransactionDateTime || tx.DateTime || tx.Date || "N/A")}</TableCell>
-                <TableCell>
-                  <StatusBadge status={String(tx.Status || tx.TransactionStatus || "Unknown")} />
-                </TableCell>
-                <TableCell>{formatCurrency(tx)}</TableCell>
-                <TableCell className="text-right">
-                  <Button size="sm" variant="outline" onClick={() => onSelectTransaction(tx)}>
-                    <Eye className="mr-1 h-3 w-3" />
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {transactions.map((tx, i) => {
+              const txId = resolveTransactionId(tx)
+              const rawAmount = tx.TotalPrice ?? tx.TotalAmount ?? tx.Price
+              const amount = rawAmount !== null && rawAmount !== undefined ? Number(rawAmount) : null
+              return (
+                <TableRow key={txId + i}>
+                  <TableCell className="font-mono text-sm">{txId}</TableCell>
+                  <TableCell>
+                    {String(tx.TransactionDateTime || tx.DateTime || tx.Date || "N/A")}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={String(tx.Status || tx.TransactionStatus || "Unknown")}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {formatPrice(
+                      !isNaN(amount as number) ? amount : null,
+                      (tx.Currency as string) || "EUR"
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onSelectTransaction(tx)}
+                    >
+                      <Eye className="mr-1 h-3 w-3" />
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>
@@ -76,7 +107,11 @@ export function TransactionResultsTable({
  */
 function StatusBadge({ status }: { status: string }) {
   const lower = status.toLowerCase()
-  if (lower.includes("confirm") || lower.includes("complete") || lower.includes("ok")) {
+  if (
+    lower.includes("confirm") ||
+    lower.includes("complete") ||
+    lower.includes("ok")
+  ) {
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
         {status}

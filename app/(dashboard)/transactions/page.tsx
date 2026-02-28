@@ -7,13 +7,10 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, Loader2, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
-import { apiFetch, fetcher } from "@/lib/experticket/client"
+import { Search } from "lucide-react"
+import { fetcher } from "@/lib/experticket/client"
 import { normalizeApiResponse } from "@/lib/experticket/utils"
-import { StatusBadge } from "@/components/status-badge"
 import { PageHeader } from "@/components/experticket/PageHeader"
 import { ErrorAlert } from "@/components/experticket/ErrorAlert"
 import { TransactionSearch } from "./components/TransactionSearch"
@@ -35,7 +32,9 @@ export default function TransactionsPage() {
    * Fetches transaction data when a search ID is provided.
    */
   const { data: txData, isLoading } = useSWR(
-    searchedTxId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}` : null,
+    searchedTxId
+      ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}`
+      : null,
     fetcher
   )
 
@@ -71,7 +70,10 @@ export default function TransactionsPage() {
       {error && <ErrorAlert message={error} />}
 
       {selectedTx ? (
-        <TransactionDetailsView transaction={selectedTx} onBack={() => setSelectedTx(null)} />
+        <TransactionDetailsView
+          transaction={selectedTx}
+          onBack={() => setSelectedTx(null)}
+        />
       ) : (
         <TransactionResultsTable
           transactions={transactions}
@@ -79,72 +81,11 @@ export default function TransactionsPage() {
         />
       )}
 
-      {searchedTxId && !isLoading && transactions.length === 0 && !error && <NoResultsFound />}
+      {searchedTxId &&
+        !isLoading &&
+        transactions.length === 0 &&
+        !error && <NoResultsFound />}
     </div>
-  )
-}
-
-/**
- * Props for the {@link TransactionDetail} component.
- */
-interface TransactionDetailProps {
-  /** The transaction data object. */
-  transaction: Record<string, unknown>
-  /** Callback to return to the search results. */
-  onBack: () => void
-}
-
-/**
- * Component for displaying the full details of a single transaction.
- */
-function TransactionDetail({ transaction, onBack }: TransactionDetailProps) {
-  const [cancelDialog, setCancelDialog] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelResult, setCancelResult] = useState<string | null>(null)
-
-  const txId = String(transaction.SaleId || transaction.TransactionId || transaction.Id || "")
-
-  /**
-   * Initiates the cancellation process for this transaction.
-   */
-  async function handleCancel() {
-    setCancelling(true)
-    try {
-      const res = await apiFetch("/api/experticket/cancellation", {
-        method: "POST",
-        body: JSON.stringify({
-          action: "check",
-          transactionId: txId,
-        }),
-      })
-      const data = await res.json()
-      if (data.IsCancellable || data.Cancellable) {
-        const confirmRes = await apiFetch("/api/experticket/cancellation", {
-          method: "POST",
-          body: JSON.stringify({
-            action: "confirm",
-            transactionId: txId,
-          }),
-        })
-        const confirmData = await confirmRes.json()
-        setCancelResult(confirmData.Message || "Cancellation processed successfully.")
-      } else {
-        setCancelResult(data.Message || "This transaction cannot be cancelled.")
-      }
-    } catch {
-      setCancelResult("Failed to process cancellation request.")
-    } finally {
-      setCancelling(false)
-    }
-  }
-
-  /** Filter top-level flat fields for display. */
-  const entries = Object.entries(transaction).filter(
-    ([, v]) => typeof v !== "object" || v === null
-  )
-  /** Filter nested object/array fields for display. */
-  const nestedEntries = Object.entries(transaction).filter(
-    ([, v]) => typeof v === "object" && v !== null
   )
 }
 
@@ -156,7 +97,9 @@ function NoResultsFound() {
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-12">
         <Search className="h-12 w-12 text-muted-foreground/40" />
-        <p className="text-muted-foreground">No transactions found for the given ID.</p>
+        <p className="text-muted-foreground">
+          No transactions found for the given ID.
+        </p>
       </CardContent>
     </Card>
   )

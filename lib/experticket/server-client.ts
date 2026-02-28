@@ -18,7 +18,7 @@ const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
  * Retrieves the Partner ID from environment variables.
  * @returns The Partner ID string.
  */
-export function getPartnerId() {
+export function getPartnerId(): string {
   return PARTNER_ID
 }
 
@@ -26,30 +26,22 @@ export function getPartnerId() {
  * Retrieves the default language code from environment variables.
  * @returns The default language code (e.g., "en", "es").
  */
-export function getDefaultLanguage() {
+export function getDefaultLanguage(): string {
   return DEFAULT_LANG
-}
-
-/**
- * Retrieves the API Key from environment variables and encodes it for URL safety.
- * @returns The URI-encoded API Key.
- */
-export function getEncodedApiKey() {
-  return encodeURIComponent(API_KEY)
 }
 
 /**
  * Retrieves the raw API Key from environment variables.
  * @returns The plain API Key string.
  */
-export function getRawApiKey() {
+export function getApiKey(): string {
   return API_KEY
 }
 
 /**
  * Options for the {@link experticketFetch} function.
  */
-interface FetchOptions {
+export interface FetchOptions {
   /** HTTP method to use. Defaults to "GET". */
   method?: "GET" | "POST" | "DELETE"
   /** Request body for POST or DELETE requests. Can be an object or string. */
@@ -90,6 +82,7 @@ export async function experticketFetch<T = unknown>(
     timeout = DEFAULT_FETCH_TIMEOUT,
     retries = DEFAULT_FETCH_RETRIES,
   } = options
+
   const url = buildUrl(path, params)
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
@@ -104,6 +97,7 @@ export async function experticketFetch<T = unknown>(
 
 /**
  * Builds a URL with query parameters.
+ * @internal
  */
 function buildUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
@@ -117,8 +111,13 @@ function buildUrl(path: string, params: Record<string, unknown>): URL {
 
 /**
  * Configures fetch options including headers and body.
+ * @internal
  */
-function getFetchOptions(method: string, body: unknown, signal: AbortSignal): RequestInit {
+function getFetchOptions(
+  method: string,
+  body: unknown,
+  signal: AbortSignal
+): RequestInit {
   const options: RequestInit = {
     method,
     headers: {
@@ -138,6 +137,7 @@ function getFetchOptions(method: string, body: unknown, signal: AbortSignal): Re
 
 /**
  * Executes fetch with retry logic for idempotent GET requests.
+ * @internal
  */
 async function executeFetchWithRetry<T>(
   url: string,
@@ -153,7 +153,9 @@ async function executeFetchWithRetry<T>(
       return await handleResponse<T>(res)
     } catch (err) {
       lastError = err
-      if (attempt < attempts - 1) await delay(500 * (attempt + 1))
+      if (attempt < attempts - 1) {
+        await delay(500 * (attempt + 1))
+      }
     }
   }
   throw lastError
@@ -161,6 +163,7 @@ async function executeFetchWithRetry<T>(
 
 /**
  * Handles the fetch response and parses JSON.
+ * @internal
  */
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -172,5 +175,6 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 /**
  * Simple delay helper.
+ * @internal
  */
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
