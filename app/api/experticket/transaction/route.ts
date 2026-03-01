@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  experticketFetch,
-  getRawApiKey,
-  getEncodedApiKey,
-} from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionListResponse } from "@/lib/experticket/types"
 
 /**
- * Handles POST requests to create or update a transaction.
+ * Handles POST requests to create a new transaction.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = { ...body, ApiKey: getRawApiKey() }
+    const payload = {
+      ...body,
+      ApiKey: getApiKey(),
+    }
+
     const data = await experticketFetch("/transaction", {
       method: "POST",
       body: payload,
@@ -25,11 +25,13 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handles GET requests to search for transactions.
+ * Handles GET requests to search or list transactions.
  */
 export async function GET(request: NextRequest) {
   try {
-    const params = mapSearchParamsToExperticketParams(request.nextUrl.searchParams)
+    const sp = request.nextUrl.searchParams
+    const params = mapSearchParamsToTransactionParams(sp)
+
     const data = await experticketFetch<TransactionListResponse>("/transaction", {
       params,
       retries: 1,
@@ -41,11 +43,11 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Maps incoming search parameters to Experticket API parameters.
+ * Maps URL search parameters to Experticket transaction query parameters.
  */
-function mapSearchParamsToExperticketParams(sp: URLSearchParams) {
+function mapSearchParamsToTransactionParams(sp: URLSearchParams) {
   return {
-    ApiKey: getEncodedApiKey(),
+    ApiKey: getApiKey(),
     SaleId: sp.get("SaleId") || undefined,
     ReservationId: sp.get("ReservationId") || undefined,
     PartnerSaleId: sp.get("PartnerSaleId") || undefined,

@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { RealTimePricesResponse } from "@/lib/experticket/types"
 
 /**
- * Handles POST requests to calculate real-time prices.
+ * Handles GET requests to retrieve real-time pricing information.
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json()
-    const payload = {
-      PartnerId: getPartnerId(),
-      ...body,
-    }
-
-    const data = await experticketFetch<RealTimePricesResponse>("/RealTimePrices", {
-      method: "POST",
-      body: payload,
+    const sp = request.nextUrl.searchParams
+    const data = await experticketFetch<RealTimePricesResponse>("/productsrealtimeprice", {
+      params: {
+        ApiKey: getApiKey(),
+        AccessDateTime: sp.get("AccessDateTime") || "",
+        Products: sp.get("Products") || "",
+        LanguageCode: sp.get("LanguageCode") || undefined,
+      },
+      retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {

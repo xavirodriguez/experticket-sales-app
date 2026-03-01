@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey, getPartnerId } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AvailableCapacityResponse } from "@/lib/experticket/types"
 
@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams
     const params: Record<string, string | undefined> = {
+      ApiKey: getApiKey(),
       PartnerId: getPartnerId(),
       ProductBaseIds: sp.get("ProductBaseIds") || undefined,
       ProductIds: sp.get("ProductIds") || undefined,

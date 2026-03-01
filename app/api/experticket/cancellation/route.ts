@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  experticketFetch,
-  getRawApiKey,
-  getEncodedApiKey,
-} from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type {
-  CancellationRequestResponse,
   CancellationListResponse,
-  CancellationRequest,
+  CancellationRequestResponse,
 } from "@/lib/experticket/types"
 
 /**
- * Handles POST requests to create or check a cancellation request.
+ * Handles POST requests to create or check cancellation requests.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +15,7 @@ export async function POST(request: NextRequest) {
     const { action, saleId, reason, reasonComments, ...rest } = body
 
     if (action === "check") {
-      return await checkCancellation(saleId)
+      return await checkCancellationStatus(saleId)
     }
 
     return await createCancellationRequest(saleId, reason, reasonComments, rest)
@@ -37,7 +32,7 @@ export async function GET(request: NextRequest) {
     const sp = request.nextUrl.searchParams
     const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
       params: {
-        ApiKey: getEncodedApiKey(),
+        ApiKey: getApiKey(),
         SaleId: sp.get("SaleId") || undefined,
         FromCreatedDateTime: sp.get("FromCreatedDateTime") || undefined,
         ToCreatedDateTime: sp.get("ToCreatedDateTime") || undefined,
@@ -56,12 +51,12 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Checks the cancellation status for a specific sale.
+ * Internal helper to check cancellation status.
  */
-async function checkCancellation(saleId: string) {
+async function checkCancellationStatus(saleId: string) {
   const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
     params: {
-      ApiKey: getEncodedApiKey(),
+      ApiKey: getApiKey(),
       SaleId: saleId,
       PageSize: "10",
       Page: "1",
@@ -72,16 +67,16 @@ async function checkCancellation(saleId: string) {
 }
 
 /**
- * Creates a new cancellation request.
+ * Internal helper to create a cancellation request.
  */
 async function createCancellationRequest(
   saleId: string,
   reason: number,
   reasonComments: string,
-  rest: Partial<CancellationRequest>
+  rest: Record<string, unknown>
 ) {
   const payload = {
-    ApiKey: getRawApiKey(),
+    ApiKey: getApiKey(),
     SaleId: saleId,
     Reason: reason ?? 0,
     ReasonComments: reasonComments || undefined,
