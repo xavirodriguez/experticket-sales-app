@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
-import { getTransactionId } from "@/lib/experticket/utils"
+import { resolveTransactionId } from "@/lib/experticket/utils"
 import type { Transaction } from "@/lib/experticket/types"
 
 /**
@@ -39,7 +39,7 @@ export function TransactionDetailsView({ transaction, onBack }: TransactionDetai
   const [cancelling, setCancelling] = useState(false)
   const [cancelResult, setCancelResult] = useState<string | null>(null)
 
-  const txId = getTransactionId(transaction)
+  const txId = resolveTransactionId(transaction)
 
   async function handleCancel() {
     setCancelling(true)
@@ -179,14 +179,12 @@ function TransactionDetailsHeader({
         <ActionButton
           icon={<FileText className="mr-1 h-3 w-3" />}
           label="Documents"
-          onClick={() => window.open(`/api/experticket/documents?transactionId=${txId}`, "_blank")}
+          onClick={() => window.open(`/api/experticket/documents?id=${txId}`, "_blank")}
         />
         <ActionButton
           icon={<QrCode className="mr-1 h-3 w-3" />}
           label="Access Codes"
-          onClick={() =>
-            window.open(`/api/experticket/accesscodes?transactionId=${txId}`, "_blank")
-          }
+          onClick={() => window.open(`/api/experticket/accesscodes?SaleId=${txId}`, "_blank")}
         />
         <CancelDialog
           txId={txId}

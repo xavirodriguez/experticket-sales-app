@@ -18,7 +18,7 @@ const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
  * Retrieves the Partner ID from environment variables.
  * @returns The Partner ID string.
  */
-export function getPartnerId() {
+export function getPartnerId(): string {
   return PARTNER_ID
 }
 
@@ -26,23 +26,15 @@ export function getPartnerId() {
  * Retrieves the default language code from environment variables.
  * @returns The default language code (e.g., "en", "es").
  */
-export function getDefaultLanguage() {
+export function getDefaultLanguage(): string {
   return DEFAULT_LANG
-}
-
-/**
- * Retrieves the API Key from environment variables and encodes it for URL safety.
- * @returns The URI-encoded API Key.
- */
-export function getEncodedApiKey() {
-  return encodeURIComponent(API_KEY)
 }
 
 /**
  * Retrieves the raw API Key from environment variables.
  * @returns The plain API Key string.
  */
-export function getRawApiKey() {
+export function getApiKey(): string {
   return API_KEY
 }
 
@@ -52,7 +44,7 @@ export function getRawApiKey() {
 interface FetchOptions {
   /** HTTP method to use. Defaults to "GET". */
   method?: "GET" | "POST" | "DELETE"
-  /** Request body for POST or DELETE requests. Can be an object or string. */
+  /** Request body for POST or DELETE requests. */
   body?: unknown
   /** Query parameters to be appended to the URL. */
   params?: Record<string, string | number | boolean | undefined>
@@ -90,13 +82,14 @@ export async function experticketFetch<T = unknown>(
     timeout = DEFAULT_FETCH_TIMEOUT,
     retries = DEFAULT_FETCH_RETRIES,
   } = options
+
   const url = buildUrl(path, params)
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
 
   try {
     const fetchOptions = getFetchOptions(method, body, controller.signal)
-    return await executeFetchWithRetry<T>(url.toString(), fetchOptions, retries)
+    return await executeWithRetry<T>(url.toString(), fetchOptions, retries)
   } finally {
     clearTimeout(timer)
   }
@@ -107,9 +100,9 @@ export async function experticketFetch<T = unknown>(
  */
 function buildUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== "") {
-      url.searchParams.set(k, String(v))
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      url.searchParams.set(key, String(value))
     }
   })
   return url
@@ -139,21 +132,23 @@ function getFetchOptions(method: string, body: unknown, signal: AbortSignal): Re
 /**
  * Executes fetch with retry logic for idempotent GET requests.
  */
-async function executeFetchWithRetry<T>(
+async function executeWithRetry<T>(
   url: string,
   options: RequestInit,
   retries: number
 ): Promise<T> {
   let lastError: unknown
-  const attempts = 1 + (options.method === "GET" ? retries : 0)
+  const attempts = options.method === "GET" ? 1 + retries : 1
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await fetch(url, options)
-      return await handleResponse<T>(res)
-    } catch (err) {
-      lastError = err
-      if (attempt < attempts - 1) await delay(500 * (attempt + 1))
+      const response = await fetch(url, options)
+      return await parseResponse<T>(response)
+    } catch (error) {
+      lastError = error
+      if (attempt < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+      }
     }
   }
   throw lastError
@@ -162,15 +157,10 @@ async function executeFetchWithRetry<T>(
 /**
  * Handles the fetch response and parses JSON.
  */
-async function handleResponse<T>(res: Response): Promise<T> {
+async function parseResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text().catch(() => "")
     throw new Error(`Experticket API error ${res.status}: ${text}`)
   }
   return (await res.json()) as T
 }
-
-/**
- * Simple delay helper.
- */
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
   experticketFetch,
-  getPartnerId,
+  getApiKey,
   getDefaultLanguage,
+  getPartnerId,
 } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { CatalogResponse } from "@/lib/experticket/types"
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
 
     const data = await experticketFetch<CatalogResponse>("/catalog", {
       params: {
+        ApiKey: getApiKey(),
         PartnerId: getPartnerId(),
         LanguageCode: lang,
       },

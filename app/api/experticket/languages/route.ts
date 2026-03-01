@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server"
-import { experticketFetch, getEncodedApiKey } from "@/lib/experticket/server-client"
+import { NextRequest, NextResponse } from "next/server"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { LanguagesResponse } from "@/lib/experticket/types"
 
 /**
- * Handles GET requests to retrieve supported languages.
+ * Handles GET requests to list supported languages.
  */
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
     const data = await experticketFetch<LanguagesResponse>("/languages", {
-      params: { ApiKey: getEncodedApiKey() },
+      params: { ApiKey: getApiKey() },
       retries: 1,
     })
     return NextResponse.json(data)

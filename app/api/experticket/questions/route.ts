@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getPartnerId } from "@/lib/experticket/server-client"
+import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TicketQuestionsResponse } from "@/lib/experticket/types"
 
 /**
- * Handles POST requests to retrieve ticket questions for specific products.
+ * Handles GET requests to retrieve required ticket questions.
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json()
-    const payload = {
-      PartnerId: getPartnerId(),
-      ...body,
-    }
-
+    const sp = request.nextUrl.searchParams
     const data = await experticketFetch<TicketQuestionsResponse>("/ticketquestions", {
-      method: "POST",
-      body: payload,
+      params: {
+        ApiKey: getApiKey(),
+        Tickets: sp.get("Tickets") || "",
+        LanguageCode: sp.get("LanguageCode") || undefined,
+      },
+      retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
