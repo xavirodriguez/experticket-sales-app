@@ -8,17 +8,26 @@ import type { AccessCodesResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToAccessCodesParams(searchParams)
+
     const data = await experticketFetch<AccessCodesResponse>("/transactionaccesscodes", {
-      params: {
-        ApiKey: getApiKey(),
-        SaleId: sp.get("SaleId") || "",
-        InternalCodes: sp.get("InternalCodes") || undefined,
-      },
+      params,
       retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
+  }
+}
+
+/**
+ * Maps URL search parameters to Experticket access codes query parameters.
+ */
+function mapSearchParamsToAccessCodesParams(searchParams: URLSearchParams) {
+  return {
+    ApiKey: getApiKey(),
+    SaleId: searchParams.get("SaleId") || "",
+    InternalCodes: searchParams.get("InternalCodes") || undefined,
   }
 }

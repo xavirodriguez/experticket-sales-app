@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
-    const params = mapSearchParamsToTransactionParams(sp)
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToTransactionParams(searchParams)
 
     const data = await experticketFetch<TransactionListResponse>("/transaction", {
       params,
@@ -45,21 +45,21 @@ export async function GET(request: NextRequest) {
 /**
  * Maps URL search parameters to Experticket transaction query parameters.
  */
-function mapSearchParamsToTransactionParams(sp: URLSearchParams) {
+function mapSearchParamsToTransactionParams(searchParams: URLSearchParams) {
   return {
     ApiKey: getApiKey(),
-    SaleId: sp.get("SaleId") || undefined,
-    ReservationId: sp.get("ReservationId") || undefined,
-    PartnerSaleId: sp.get("PartnerSaleId") || undefined,
-    PointOfSaleId: sp.get("PointOfSaleId") || undefined,
-    FromTransactionDateTime: sp.get("FromTransactionDateTime") || undefined,
-    ToTransactionDateTime: sp.get("ToTransactionDateTime") || undefined,
-    FromAccessDateTime: sp.get("FromAccessDateTime") || undefined,
-    ToAccessDateTime: sp.get("ToAccessDateTime") || undefined,
-    FromCancelledDateTime: sp.get("FromCancelledDateTime") || undefined,
-    ToCancelledDateTime: sp.get("ToCancelledDateTime") || undefined,
-    PageSize: sp.get("PageSize") || "20",
-    Page: sp.get("Page") || "1",
-    LanguageCode: sp.get("LanguageCode") || undefined,
+    SaleId: searchParams.get("SaleId") || undefined,
+    ReservationId: searchParams.get("ReservationId") || undefined,
+    PartnerSaleId: searchParams.get("PartnerSaleId") || undefined,
+    PointOfSaleId: searchParams.get("PointOfSaleId") || undefined,
+    FromTransactionDateTime: searchParams.get("FromTransactionDateTime") || undefined,
+    ToTransactionDateTime: searchParams.get("ToTransactionDateTime") || undefined,
+    FromAccessDateTime: searchParams.get("FromAccessDateTime") || undefined,
+    ToAccessDateTime: searchParams.get("ToAccessDateTime") || undefined,
+    FromCancelledDateTime: searchParams.get("FromCancelledDateTime") || undefined,
+    ToCancelledDateTime: searchParams.get("ToCancelledDateTime") || undefined,
+    PageSize: searchParams.get("PageSize") || "20",
+    Page: searchParams.get("Page") || "1",
+    LanguageCode: searchParams.get("LanguageCode") || undefined,
   }
 }

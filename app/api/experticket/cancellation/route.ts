@@ -29,19 +29,11 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToCancellationParams(searchParams)
+
     const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
-      params: {
-        ApiKey: getApiKey(),
-        SaleId: sp.get("SaleId") || undefined,
-        FromCreatedDateTime: sp.get("FromCreatedDateTime") || undefined,
-        ToCreatedDateTime: sp.get("ToCreatedDateTime") || undefined,
-        FromUpdatedDateTime: sp.get("FromUpdatedDateTime") || undefined,
-        ToUpdatedDateTime: sp.get("ToUpdatedDateTime") || undefined,
-        Status: sp.get("Status") || undefined,
-        PageSize: sp.get("PageSize") || "20",
-        Page: sp.get("Page") || "1",
-      },
+      params,
       retries: 1,
     })
     return NextResponse.json(data)
@@ -88,4 +80,21 @@ async function createCancellationRequest(
     body: payload,
   })
   return NextResponse.json(data)
+}
+
+/**
+ * Maps URL search parameters to Experticket cancellation query parameters.
+ */
+function mapSearchParamsToCancellationParams(searchParams: URLSearchParams) {
+  return {
+    ApiKey: getApiKey(),
+    SaleId: searchParams.get("SaleId") || undefined,
+    FromCreatedDateTime: searchParams.get("FromCreatedDateTime") || undefined,
+    ToCreatedDateTime: searchParams.get("ToCreatedDateTime") || undefined,
+    FromUpdatedDateTime: searchParams.get("FromUpdatedDateTime") || undefined,
+    ToUpdatedDateTime: searchParams.get("ToUpdatedDateTime") || undefined,
+    Status: searchParams.get("Status") || undefined,
+    PageSize: searchParams.get("PageSize") || "20",
+    Page: searchParams.get("Page") || "1",
+  }
 }

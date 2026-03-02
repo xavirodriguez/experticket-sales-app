@@ -75,30 +75,18 @@ export async function experticketFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const {
-    method = "GET",
-    body,
-    params = {},
-    timeout = DEFAULT_FETCH_TIMEOUT,
-    retries = DEFAULT_FETCH_RETRIES,
-  } = options
+  const url = buildRequestUrl(path, options.params || {})
+  const fetchOptions = prepareFetchOptions(options)
+  const timeout = options.timeout ?? DEFAULT_FETCH_TIMEOUT
+  const retries = options.retries ?? DEFAULT_FETCH_RETRIES
 
-  const url = buildUrl(path, params)
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeout)
-
-  try {
-    const fetchOptions = getFetchOptions(method, body, controller.signal)
-    return await executeWithRetry<T>(url.toString(), fetchOptions, retries)
-  } finally {
-    clearTimeout(timer)
-  }
+  return await executeRequestWithTimeout<T>(url.toString(), fetchOptions, timeout, retries)
 }
 
 /**
  * Builds a URL with query parameters.
  */
-function buildUrl(path: string, params: Record<string, unknown>): URL {
+function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") {
@@ -109,58 +97,86 @@ function buildUrl(path: string, params: Record<string, unknown>): URL {
 }
 
 /**
- * Configures fetch options including headers and body.
+ * Prepares the standard fetch options.
  */
-function getFetchOptions(method: string, body: unknown, signal: AbortSignal): RequestInit {
-  const options: RequestInit = {
+function prepareFetchOptions(options: FetchOptions): RequestInit {
+  const { method = "GET", body } = options
+  const fetchOptions: RequestInit = {
     method,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    signal,
     cache: "no-store",
   }
 
   if (body && (method === "POST" || method === "DELETE")) {
-    options.body = typeof body === "string" ? body : JSON.stringify(body)
+    fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body)
   }
 
-  return options
+  return fetchOptions
 }
 
 /**
- * Executes fetch with retry logic for idempotent GET requests.
+ * Executes a fetch request with a specified timeout.
  */
-async function executeWithRetry<T>(
+async function executeRequestWithTimeout<T>(
+  url: string,
+  options: RequestInit,
+  timeout: number,
+  retries: number
+): Promise<T> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+
+  try {
+    const optionsWithSignal = { ...options, signal: controller.signal }
+    return await performFetchWithRetry<T>(url, optionsWithSignal, retries)
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Performs the actual fetch with retry logic for idempotent GET requests.
+ */
+async function performFetchWithRetry<T>(
   url: string,
   options: RequestInit,
   retries: number
 ): Promise<T> {
+  const maxAttempts = options.method === "GET" ? 1 + retries : 1
   let lastError: unknown
-  const attempts = options.method === "GET" ? 1 + retries : 1
 
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const response = await fetch(url, options)
-      return await parseResponse<T>(response)
+      return await handleApiResponse<T>(response)
     } catch (error) {
       lastError = error
-      if (attempt < attempts - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)))
+      if (attempt < maxAttempts) {
+        await delay(500 * attempt)
       }
     }
   }
+
   throw lastError
 }
 
 /**
- * Handles the fetch response and parses JSON.
+ * Processes the API response, ensuring it is OK and parsing JSON.
  */
-async function parseResponse<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`Experticket API error ${res.status}: ${text}`)
+async function handleApiResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "Unknown error")
+    throw new Error(`Experticket API error ${response.status}: ${errorText}`)
   }
-  return (await res.json()) as T
+  return (await response.json()) as T
+}
+
+/**
+ * Simple delay helper.
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

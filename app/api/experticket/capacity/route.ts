@@ -8,18 +8,8 @@ import type { AvailableCapacityResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
-    const params: Record<string, string | undefined> = {
-      ApiKey: getApiKey(),
-      PartnerId: getPartnerId(),
-      ProductBaseIds: sp.get("ProductBaseIds") || undefined,
-      ProductIds: sp.get("ProductIds") || undefined,
-      SessionIds: sp.get("SessionIds") || undefined,
-      Dates: sp.get("Dates") || undefined,
-      FromDate: sp.get("FromDate") || undefined,
-      ToDate: sp.get("ToDate") || undefined,
-      IncludePrices: sp.get("IncludePrices") || "true",
-    }
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToCapacityParams(searchParams)
 
     const data = await experticketFetch<AvailableCapacityResponse>("/availablecapacity", {
       params,
@@ -28,5 +18,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
+  }
+}
+
+/**
+ * Maps URL search parameters to Experticket capacity query parameters.
+ */
+function mapSearchParamsToCapacityParams(searchParams: URLSearchParams) {
+  return {
+    ApiKey: getApiKey(),
+    PartnerId: getPartnerId(),
+    ProductBaseIds: searchParams.get("ProductBaseIds") || undefined,
+    ProductIds: searchParams.get("ProductIds") || undefined,
+    SessionIds: searchParams.get("SessionIds") || undefined,
+    Dates: searchParams.get("Dates") || undefined,
+    FromDate: searchParams.get("FromDate") || undefined,
+    ToDate: searchParams.get("ToDate") || undefined,
+    IncludePrices: searchParams.get("IncludePrices") || "true",
   }
 }
