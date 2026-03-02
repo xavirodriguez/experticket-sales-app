@@ -8,17 +8,27 @@ import type { TransactionDocumentsResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToDocumentsParams(searchParams)
+
     const data = await experticketFetch<TransactionDocumentsResponse>("/transactiondocuments", {
-      params: {
-        ApiKey: getApiKey(),
-        id: sp.get("id") || "",
-        IncludeTransactionDocumentsLanguages: sp.get("IncludeTransactionDocumentsLanguages") || "true",
-      },
+      params,
       retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
+  }
+}
+
+/**
+ * Maps URL search parameters to Experticket transaction documents query parameters.
+ */
+function mapSearchParamsToDocumentsParams(searchParams: URLSearchParams) {
+  return {
+    ApiKey: getApiKey(),
+    id: searchParams.get("id") || "",
+    IncludeTransactionDocumentsLanguages:
+      searchParams.get("IncludeTransactionDocumentsLanguages") || "true",
   }
 }

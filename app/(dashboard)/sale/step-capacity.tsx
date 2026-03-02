@@ -12,11 +12,10 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react"
 import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "./page"
-import type { AvailableCapacityResponse } from "@/lib/experticket/types"
+import type { AvailableCapacityResponse, CapacityItem } from "@/lib/experticket/types"
 
 /**
  * Props for the {@link StepCapacity} component.
@@ -35,47 +34,22 @@ interface Props {
 /**
  * Component for Step 2: Capacity.
  * Checks for availability restrictions on the selected products.
- *
- * @param props - {@link Props}
- *
- * @remarks
- * - Fetches capacity data from the `/api/experticket/capacity` proxy.
- * - Displays a table with availability for Product Bases, Products, and Sessions.
- * - Prevents the user from proceeding if any selected item has zero available capacity, unless manually acknowledged (logic simplified for this version).
  */
 export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
-  const productIds = state.selectedProducts.map((p) => p.ProductId).join(",")
   const params = new URLSearchParams({
-    ProductIds: productIds,
+    ProductIds: state.selectedProducts.map((p) => p.ProductId).join(","),
     Dates: state.accessDate,
     IncludePrices: "true",
   })
 
-  /**
-   * Fetch capacity data for all selected products on the specified date.
-   */
   const { data, isLoading, error } = useSWR<AvailableCapacityResponse>(
     `/api/experticket/capacity?${params.toString()}`,
     fetcher
   )
 
-  const [acknowledged, setAcknowledged] = useState(false)
-
-  /**
-   * Combined list of capacity items from different levels (ProductBases, Products, Sessions).
-   */
-  const capacityItems = [
-    ...(data?.ProductBases || []),
-    ...(data?.Products || []),
-    ...(data?.Sessions || []),
-  ]
-
-  /**
-   * Determines if all items have available capacity.
-   */
-  const hasCapacity = capacityItems.length === 0 || capacityItems.some(
-    (c) => c.AvailableCapacity === undefined || c.AvailableCapacity > 0
-  )
+  const [acknowledged] = useState(false)
+  const capacityItems = resolveCapacityItems(data)
+  const hasCapacity = checkHasCapacity(capacityItems)
 
   /**
    * Saves the capacity data to global state and proceeds to the next step.
@@ -93,76 +67,16 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
+            <CapacitySkeleton />
           ) : error || (data && !data.Success) ? (
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="font-medium">Failed to check capacity</p>
-                <p className="text-sm">{data?.ErrorMessage || "Network error"}</p>
-              </div>
-            </div>
+            <CapacityError message={data?.ErrorMessage || "Network error"} />
           ) : capacityItems.length === 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                No specific capacity restrictions found for the selected products on {state.accessDate}.
-                You can proceed.
-              </p>
-              <Badge variant="secondary">Unlimited availability</Badge>
-            </div>
+            <NoRestrictions accessDate={state.accessDate} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Available</TableHead>
-                  <TableHead>Price</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {capacityItems.map((item, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="font-mono text-xs">
-                      {item.ProductId || item.ProductBaseId || item.SessionId}
-                    </TableCell>
-                    <TableCell>{item.Date ? new Date(item.Date).toLocaleDateString() : "-"}</TableCell>
-                    <TableCell>
-                      {item.AvailableCapacity !== undefined ? (
-                        <Badge
-                          variant={item.AvailableCapacity > 0 ? "secondary" : "destructive"}
-                        >
-                          {item.AvailableCapacity}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Unlimited</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {item.Price != null ? `${item.Price.toFixed(2)} EUR` : "-"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <CapacityTable items={capacityItems} />
           )}
 
-          {!hasCapacity && !acknowledged && (
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="font-medium">No capacity available</p>
-                <p className="text-sm">
-                  One or more products have 0 available capacity for this date.
-                  You cannot proceed with the sale.
-                </p>
-              </div>
-            </div>
-          )}
+          {!hasCapacity && !acknowledged && <NoCapacityAlert />}
         </CardContent>
       </Card>
 
@@ -177,4 +91,110 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
       </div>
     </div>
   )
+}
+
+// --- Sub-components ---
+
+function CapacitySkeleton() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+    </div>
+  )
+}
+
+function CapacityError({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+      <div>
+        <p className="font-medium">Failed to check capacity</p>
+        <p className="text-sm">{message}</p>
+      </div>
+    </div>
+  )
+}
+
+function NoRestrictions({ accessDate }: { accessDate: string }) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        No specific capacity restrictions found for the selected products on {accessDate}. You can
+        proceed.
+      </p>
+      <Badge variant="secondary">Unlimited availability</Badge>
+    </div>
+  )
+}
+
+function CapacityTable({ items }: { items: CapacityItem[] }) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>ID</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Available</TableHead>
+          <TableHead>Price</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item, idx) => (
+          <TableRow key={idx}>
+            <TableCell className="font-mono text-xs">
+              {item.ProductId || item.ProductBaseId || item.SessionId}
+            </TableCell>
+            <TableCell>{item.Date ? new Date(item.Date).toLocaleDateString() : "-"}</TableCell>
+            <TableCell>
+              <CapacityBadge available={item.AvailableCapacity} />
+            </TableCell>
+            <TableCell>{item.Price != null ? `${item.Price.toFixed(2)} EUR` : "-"}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function CapacityBadge({ available }: { available?: number }) {
+  if (available === undefined) {
+    return <Badge variant="secondary">Unlimited</Badge>
+  }
+  return (
+    <Badge variant={available > 0 ? "secondary" : "destructive"}>
+      {available}
+    </Badge>
+  )
+}
+
+function NoCapacityAlert() {
+  return (
+    <div className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+      <div>
+        <p className="font-medium">No capacity available</p>
+        <p className="text-sm">
+          One or more products have 0 available capacity for this date. You cannot proceed with the
+          sale.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// --- Helper Functions ---
+
+function resolveCapacityItems(data?: AvailableCapacityResponse): CapacityItem[] {
+  return [
+    ...(data?.ProductBases || []),
+    ...(data?.Products || []),
+    ...(data?.Sessions || []),
+  ]
+}
+
+function checkHasCapacity(items: CapacityItem[]): boolean {
+  if (items.length === 0) return true
+  return items.every((c) => c.AvailableCapacity === undefined || c.AvailableCapacity > 0)
 }

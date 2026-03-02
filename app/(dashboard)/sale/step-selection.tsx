@@ -24,6 +24,7 @@ import type {
   CatalogProvider,
   CatalogProduct,
   LanguagesResponse,
+  Language,
 } from "@/lib/experticket/types"
 
 /**
@@ -41,13 +42,6 @@ interface Props {
 /**
  * Component for Step 1: Selection.
  * Handles fetching the catalog and managing the shopping cart.
- *
- * @param props - {@link Props}
- *
- * @remarks
- * - Fetches available languages and the product catalog based on the selected language.
- * - Allows users to add/remove products to a local cart state.
- * - Validates that a provider, products, and a date are selected before proceeding.
  */
 export function StepSelection({ state, updateState, onNext }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
@@ -55,81 +49,26 @@ export function StepSelection({ state, updateState, onNext }: Props) {
   const [accessDate, setAccessDate] = useState(state.accessDate)
   const [language, setLanguage] = useState(state.language)
 
-  // Fetch languages
-  const { data: langData } = useSWR<LanguagesResponse>(
-    "/api/experticket/languages",
-    fetcher
-  )
-
-  // Fetch catalog
+  const { data: langData } = useSWR<LanguagesResponse>("/api/experticket/languages", fetcher)
   const { data: catalogData, isLoading: catalogLoading } = useSWR<CatalogResponse>(
     `/api/experticket/catalog?LanguageCode=${language}`,
     fetcher
   )
 
-  /**
-   * List of languages, falling back to defaults if the API call fails or is empty.
-   */
-  const languages = langData?.Languages?.length
-    ? langData.Languages
-    : [
-        { Code: "es", EnglishName: "Spanish", NativeName: "Espanol" },
-        { Code: "en", EnglishName: "English", NativeName: "English" },
-        { Code: "fr", EnglishName: "French", NativeName: "Francais" },
-        { Code: "it", EnglishName: "Italian", NativeName: "Italiano" },
-      ]
-
-  /** List of providers from the catalog response. */
+  const languages = resolveLanguages(langData)
   const providers = catalogData?.Providers || []
 
-  /**
-   * Adds a product to the cart or increments its quantity if already present.
-   * @param product - The product to add.
-   */
-  function addToCart(product: CatalogProduct) {
-    setCart((prev) => {
-      const existing = prev.find((p) => p.ProductId === product.ProductId)
-      if (existing) {
-        return prev.map((p) =>
-          p.ProductId === product.ProductId ? { ...p, quantity: p.quantity + 1 } : p
-        )
-      }
-      return [...prev, { ...product, quantity: 1 }]
-    })
-  }
-
-  /**
-   * Decrements a product's quantity in the cart or removes it if quantity reaches zero.
-   * @param productId - ID of the product to remove.
-   */
-  function removeFromCart(productId: string) {
-    setCart((prev) => {
-      const existing = prev.find((p) => p.ProductId === productId)
-      if (existing && existing.quantity > 1) {
-        return prev.map((p) =>
-          p.ProductId === productId ? { ...p, quantity: p.quantity - 1 } : p
-        )
-      }
-      return prev.filter((p) => p.ProductId !== productId)
-    })
-  }
+  // Reset cart when provider changes
+  useEffect(() => {
+    setCart([])
+  }, [selectedProvider?.ProviderId])
 
   /**
    * Validates selections and saves them to the global state before moving to the next step.
    */
   function handleNext() {
-    if (!selectedProvider) {
-      toast.error("Please select a provider")
-      return
-    }
-    if (cart.length === 0) {
-      toast.error("Please add at least one product")
-      return
-    }
-    if (!accessDate) {
-      toast.error("Please select an access date")
-      return
-    }
+    if (!validateSelection(selectedProvider, cart, accessDate)) return
+
     updateState({
       language,
       provider: selectedProvider,
@@ -139,192 +78,334 @@ export function StepSelection({ state, updateState, onNext }: Props) {
     onNext()
   }
 
-  // Reset cart when provider changes
-  useEffect(() => {
-    setCart([])
-  }, [selectedProvider?.ProviderId])
-
-  /** Flat list of products for the currently selected provider. */
-  const products =
-    selectedProvider?.ProductBases?.flatMap((pb) => pb.Products || []) || []
-
   return (
     <div className="space-y-6">
-      {/* Language & Date */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Language</Label>
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((l) => (
-                <SelectItem key={l.Code} value={l.Code}>
-                  {l.EnglishName} ({l.Code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="access-date">Access Date</Label>
-          <Input
-            id="access-date"
-            type="date"
-            value={accessDate}
-            onChange={(e) => setAccessDate(e.target.value)}
-          />
-        </div>
-      </div>
+      <LanguageAndDateSelector
+        language={language}
+        onLanguageChange={setLanguage}
+        accessDate={accessDate}
+        onDateChange={setAccessDate}
+        languages={languages}
+      />
 
-      {/* Provider selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Provider</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {catalogLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : providers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No providers found. Check your API configuration.
-            </p>
-          ) : (
-            <ScrollArea className="max-h-60">
-              <div className="space-y-1">
-                {providers.map((prov) => (
-                  <button
-                    key={prov.ProviderId}
-                    onClick={() => setSelectedProvider(prov)}
-                    className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm transition-colors ${
-                      selectedProvider?.ProviderId === prov.ProviderId
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent"
-                    }`}
-                  >
-                    <div>
-                      <span className="font-medium">
-                        {prov.ProviderName || prov.ProviderCommercialName || prov.ProviderId}
-                      </span>
-                      {prov.Tags && prov.Tags.length > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {prov.Tags.map((t) => (
-                            <Badge key={t} variant="outline" className="text-[10px]">
-                              {t}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+      <ProviderSelector
+        providers={providers}
+        isLoading={catalogLoading}
+        selectedProvider={selectedProvider}
+        onSelect={setSelectedProvider}
+      />
 
-      {/* Products */}
       {selectedProvider && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {products.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No products available for this provider.
-              </p>
-            ) : (
-              <ScrollArea className="max-h-72">
-                <div className="space-y-2">
-                  {products.map((prod) => {
-                    const inCart = cart.find((c) => c.ProductId === prod.ProductId)
-                    return (
-                      <div
-                        key={prod.ProductId}
-                        className="flex items-center justify-between rounded-md border border-border px-3 py-2"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
-                            {prod.ProductName || prod.ProductId}
-                          </p>
-                          {prod.Price != null && (
-                            <p className="text-xs text-muted-foreground">
-                              {prod.Price.toFixed(2)} EUR
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {inCart ? (
-                            <>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-7 w-7"
-                                onClick={() => removeFromCart(prod.ProductId)}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="w-6 text-center text-sm font-medium">
-                                {inCart.quantity}
-                              </span>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-7 w-7"
-                                onClick={() => addToCart(prod)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </>
-                          ) : (
-                            <Button size="sm" variant="secondary" onClick={() => addToCart(prod)}>
-                              <Plus className="mr-1 h-3 w-3" /> Add
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+        <ProductList
+          provider={selectedProvider}
+          cart={cart}
+          onAdd={(p) => setCart((prev) => addToCart(prev, p))}
+          onRemove={(id) => setCart((prev) => removeFromCart(prev, id))}
+        />
       )}
 
-      {/* Cart summary */}
-      {cart.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Cart ({cart.reduce((a, c) => a + c.quantity, 0)} items)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              {cart.map((item) => (
-                <div key={item.ProductId} className="flex items-center justify-between text-sm">
-                  <span>{item.ProductName || item.ProductId}</span>
-                  <span className="font-medium">x{item.quantity}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {cart.length > 0 && <CartSummary cart={cart} />}
 
       <div className="flex justify-end">
-        <Button onClick={handleNext} disabled={!selectedProvider || cart.length === 0 || !accessDate}>
+        <Button
+          onClick={handleNext}
+          disabled={!selectedProvider || cart.length === 0 || !accessDate}
+        >
           Next: Check Capacity
           <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
   )
+}
+
+// --- Sub-components ---
+
+function LanguageAndDateSelector({
+  language,
+  onLanguageChange,
+  accessDate,
+  onDateChange,
+  languages,
+}: {
+  language: string
+  onLanguageChange: (val: string) => void
+  accessDate: string
+  onDateChange: (val: string) => void
+  languages: Language[]
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="space-y-2">
+        <Label>Language</Label>
+        <Select value={language} onValueChange={onLanguageChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {languages.map((l) => (
+              <SelectItem key={l.Code} value={l.Code}>
+                {l.EnglishName} ({l.Code})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="access-date">Access Date</Label>
+        <Input
+          id="access-date"
+          type="date"
+          value={accessDate}
+          onChange={(e) => onDateChange(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ProviderSelector({
+  providers,
+  isLoading,
+  selectedProvider,
+  onSelect,
+}: {
+  providers: CatalogProvider[]
+  isLoading: boolean
+  selectedProvider: CatalogProvider | null
+  onSelect: (p: CatalogProvider) => void
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Select Provider</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <ProviderSkeleton />
+        ) : providers.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No providers found. Check your API configuration.
+          </p>
+        ) : (
+          <ScrollArea className="max-h-60">
+            <div className="space-y-1">
+              {providers.map((prov) => (
+                <ProviderItem
+                  key={prov.ProviderId}
+                  provider={prov}
+                  isSelected={selectedProvider?.ProviderId === prov.ProviderId}
+                  onSelect={() => onSelect(prov)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProviderItem({
+  provider,
+  isSelected,
+  onSelect,
+}: {
+  provider: CatalogProvider
+  isSelected: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm transition-colors ${
+        isSelected ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+      }`}
+    >
+      <div>
+        <span className="font-medium">
+          {provider.ProviderName || provider.ProviderCommercialName || provider.ProviderId}
+        </span>
+        {provider.Tags && provider.Tags.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {provider.Tags.map((t) => (
+              <Badge key={t} variant="outline" className="text-[10px]">
+                {t}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />
+    </button>
+  )
+}
+
+function ProductList({
+  provider,
+  cart,
+  onAdd,
+  onRemove,
+}: {
+  provider: CatalogProvider
+  cart: (CatalogProduct & { quantity: number })[]
+  onAdd: (p: CatalogProduct) => void
+  onRemove: (id: string) => void
+}) {
+  const products = provider.ProductBases?.flatMap((pb) => pb.Products || []) || []
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Products</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {products.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No products available for this provider.</p>
+        ) : (
+          <ScrollArea className="max-h-72">
+            <div className="space-y-2">
+              {products.map((prod) => (
+                <ProductItem
+                  key={prod.ProductId}
+                  product={prod}
+                  itemInCart={cart.find((c) => c.ProductId === prod.ProductId)}
+                  onAdd={() => onAdd(prod)}
+                  onRemove={() => onRemove(prod.ProductId)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProductItem({
+  product,
+  itemInCart,
+  onAdd,
+  onRemove,
+}: {
+  product: CatalogProduct
+  itemInCart?: { quantity: number }
+  onAdd: () => void
+  onRemove: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+      <div className="flex-1">
+        <p className="text-sm font-medium">{product.ProductName || product.ProductId}</p>
+        {product.Price != null && (
+          <p className="text-xs text-muted-foreground">{product.Price.toFixed(2)} EUR</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {itemInCart ? (
+          <>
+            <Button size="icon" variant="outline" className="h-7 w-7" onClick={onRemove}>
+              <Minus className="h-3 w-3" />
+            </Button>
+            <span className="w-6 text-center text-sm font-medium">{itemInCart.quantity}</span>
+            <Button size="icon" variant="outline" className="h-7 w-7" onClick={onAdd}>
+              <Plus className="h-3 w-3" />
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" variant="secondary" onClick={onAdd}>
+            <Plus className="mr-1 h-3 w-3" /> Add
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CartSummary({ cart }: { cart: (CatalogProduct & { quantity: number })[] }) {
+  const totalItems = cart.reduce((acc, curr) => acc + curr.quantity, 0)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cart ({totalItems} items)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-1">
+          {cart.map((item) => (
+            <div key={item.ProductId} className="flex items-center justify-between text-sm">
+              <span>{item.ProductName || item.ProductId}</span>
+              <span className="font-medium">x{item.quantity}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProviderSkeleton() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  )
+}
+
+// --- Helper Functions ---
+
+function resolveLanguages(langData?: LanguagesResponse): Language[] {
+  if (langData?.Languages?.length) {
+    return langData.Languages
+  }
+  return [
+    { Code: "es", EnglishName: "Spanish", NativeName: "Espanol" },
+    { Code: "en", EnglishName: "English", NativeName: "English" },
+    { Code: "fr", EnglishName: "French", NativeName: "Francais" },
+    { Code: "it", EnglishName: "Italian", NativeName: "Italiano" },
+  ]
+}
+
+function addToCart(
+  prev: (CatalogProduct & { quantity: number })[],
+  product: CatalogProduct
+): (CatalogProduct & { quantity: number })[] {
+  const existing = prev.find((p) => p.ProductId === product.ProductId)
+  if (existing) {
+    return prev.map((p) => (p.ProductId === product.ProductId ? { ...p, quantity: p.quantity + 1 } : p))
+  }
+  return [...prev, { ...product, quantity: 1 }]
+}
+
+function removeFromCart(
+  prev: (CatalogProduct & { quantity: number })[],
+  productId: string
+): (CatalogProduct & { quantity: number })[] {
+  const existing = prev.find((p) => p.ProductId === productId)
+  if (existing && existing.quantity > 1) {
+    return prev.map((p) => (p.ProductId === productId ? { ...p, quantity: p.quantity - 1 } : p))
+  }
+  return prev.filter((p) => p.ProductId !== productId)
+}
+
+function validateSelection(
+  provider: CatalogProvider | null,
+  cart: unknown[],
+  accessDate: string
+): boolean {
+  if (!provider) {
+    toast.error("Please select a provider")
+    return false
+  }
+  if (cart.length === 0) {
+    toast.error("Please add at least one product")
+    return false
+  }
+  if (!accessDate) {
+    toast.error("Please select an access date")
+    return false
+  }
+  return true
 }

@@ -8,11 +8,11 @@ import type { TagsResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams
     const data = await experticketFetch<TagsResponse>("/tags", {
       params: {
         ApiKey: getApiKey(),
-        LanguageCode: sp.get("LanguageCode") || undefined,
+        LanguageCode: searchParams.get("LanguageCode") || undefined,
       },
       retries: 1,
     })

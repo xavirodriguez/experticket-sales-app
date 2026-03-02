@@ -8,17 +8,26 @@ import type { TicketQuestionsResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
+    const searchParams = request.nextUrl.searchParams
+    const params = mapSearchParamsToQuestionsParams(searchParams)
+
     const data = await experticketFetch<TicketQuestionsResponse>("/ticketquestions", {
-      params: {
-        ApiKey: getApiKey(),
-        Tickets: sp.get("Tickets") || "",
-        LanguageCode: sp.get("LanguageCode") || undefined,
-      },
+      params,
       retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
+  }
+}
+
+/**
+ * Maps URL search parameters to Experticket ticket questions query parameters.
+ */
+function mapSearchParamsToQuestionsParams(searchParams: URLSearchParams) {
+  return {
+    ApiKey: getApiKey(),
+    Tickets: searchParams.get("Tickets") || "",
+    LanguageCode: searchParams.get("LanguageCode") || undefined,
   }
 }

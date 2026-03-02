@@ -9,10 +9,7 @@ import type { ReservationResponse } from "@/lib/experticket/types"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = {
-      ...body,
-      ApiKey: getApiKey(),
-    }
+    const payload = buildReservationPayload(body)
 
     const data = await experticketFetch<ReservationResponse>("/reservation", {
       method: "POST",
@@ -30,10 +27,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = {
-      ...body,
-      ApiKey: getApiKey(),
-    }
+    const payload = buildReservationPayload(body)
 
     const data = await experticketFetch("/reservation", {
       method: "DELETE",
@@ -42,5 +36,15 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
+  }
+}
+
+/**
+ * Adds the API Key to the reservation payload.
+ */
+function buildReservationPayload(body: Record<string, unknown>) {
+  return {
+    ...body,
+    ApiKey: getApiKey(),
   }
 }

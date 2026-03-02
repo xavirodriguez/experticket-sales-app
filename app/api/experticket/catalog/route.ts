@@ -13,8 +13,8 @@ import type { CatalogResponse } from "@/lib/experticket/types"
  */
 export async function GET(request: NextRequest) {
   try {
-    const sp = request.nextUrl.searchParams
-    const lang = sp.get("LanguageCode") || getDefaultLanguage()
+    const searchParams = request.nextUrl.searchParams
+    const lang = searchParams.get("LanguageCode") || getDefaultLanguage()
 
     const data = await experticketFetch<CatalogResponse>("/catalog", {
       params: {
