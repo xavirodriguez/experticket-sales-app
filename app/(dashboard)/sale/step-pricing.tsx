@@ -5,15 +5,13 @@
 
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "sonner"
-import { ChevronLeft, ChevronRight, AlertTriangle, RefreshCw } from "lucide-react"
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
+import { usePricingState } from "./pricing/use-pricing-state"
+import { PricingTable } from "./pricing/pricing-table"
+import { PricingContent } from "./pricing/pricing-content"
 import type { SaleState } from "./page"
-import type { RealTimePricesResponse } from "@/lib/experticket/types"
 
 /**
  * Props for the {@link StepPricing} component.
@@ -32,60 +30,9 @@ interface Props {
 /**
  * Component for Step 3: Pricing.
  * Fetches the most up-to-date prices from the Experticket API.
- *
- * @param props - {@link Props}
- *
- * @remarks
- * - Users must trigger the price fetch manually or proceed with previously cached/catalog prices.
- * - The component calculates a subtotal for each product and an estimated total for the entire sale.
- * - Uses the `/api/experticket/prices` proxy endpoint.
  */
 export function StepPricing({ state, updateState, onNext, onBack }: Props) {
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState<RealTimePricesResponse | null>(null)
-  const [fetched, setFetched] = useState(false)
-
-  /**
-   * Fetches real-time prices for all products in the cart for the selected date.
-   */
-  async function fetchPrices() {
-    setLoading(true)
-    try {
-      const body = {
-        ProductIds: state.selectedProducts.map((p) => p.ProductId),
-        StartDate: state.accessDate,
-        EndDate: state.accessDate,
-      }
-      const res = await fetch("/api/experticket/prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      const json: RealTimePricesResponse = await res.json()
-      setData(json)
-      setFetched(true)
-      if (!json.Success) {
-        toast.error(json.ErrorMessage || "Failed to fetch prices")
-      }
-    } catch {
-      toast.error("Network error fetching prices")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  /** List of real-time prices returned by the API. */
-  const prices = data?.ProductsRealTimePrices || []
-
-  /**
-   * Calculates the estimated total sum.
-   * Prioritizes real-time prices, then falls back to catalog prices, then 0.
-   */
-  const total = state.selectedProducts.reduce((sum, p) => {
-    const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-    const unitPrice = rtPrice?.Price ?? p.Price ?? 0
-    return sum + unitPrice * p.quantity
-  }, 0)
+  const { loading, data, fetched, prices, fetchPrices } = usePricingState(state)
 
   /**
    * Proceeds to the next step, saving the pricing data.
@@ -106,57 +53,14 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
-          ) : !fetched ? (
-            <p className="text-sm text-muted-foreground">
-              Click "Fetch Prices" to get real-time pricing, or proceed with catalog prices.
-            </p>
-          ) : data && !data.Success ? (
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="font-medium">Pricing error</p>
-                <p className="text-sm">{data.ErrorMessage}</p>
-              </div>
-            </div>
-          ) : null}
+          <PricingContent
+            loading={loading}
+            fetched={fetched}
+            success={data?.Success}
+            errorMessage={data?.ErrorMessage}
+          />
 
-          <Table className="mt-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Unit Price</TableHead>
-                <TableHead>Subtotal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {state.selectedProducts.map((p) => {
-                const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-                const unitPrice = rtPrice?.Price ?? p.Price ?? 0
-                return (
-                  <TableRow key={p.ProductId}>
-                    <TableCell>{p.ProductName || p.ProductId}</TableCell>
-                    <TableCell>{p.quantity}</TableCell>
-                    <TableCell>{unitPrice.toFixed(2)} EUR</TableCell>
-                    <TableCell className="font-medium">
-                      {(unitPrice * p.quantity).toFixed(2)} EUR
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-              <TableRow>
-                <TableCell colSpan={3} className="text-right font-semibold">
-                  Estimated Total
-                </TableCell>
-                <TableCell className="font-bold">{total.toFixed(2)} EUR</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          <PricingTable selectedProducts={state.selectedProducts} prices={prices} />
         </CardContent>
       </Card>
 

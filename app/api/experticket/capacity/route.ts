@@ -4,7 +4,15 @@ import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AvailableCapacityResponse } from "@/lib/experticket/types"
 
 /**
+ * @module api-experticket-capacity
+ * @description API route handler for checking product availability/capacity from Experticket.
+ */
+
+/**
  * Handles GET requests to check available capacity.
+ *
+ * @param request - The Next.js request object.
+ * @returns A promise that resolves to the JSON response containing the available capacity.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +31,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * Maps URL search parameters to Experticket capacity query parameters.
+ *
+ * @param searchParams - The search parameters from the request URL.
+ * @returns An object containing the mapped parameters.
  */
 function mapSearchParamsToCapacityParams(searchParams: URLSearchParams) {
   return {

@@ -4,7 +4,15 @@ import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { RealTimePricesResponse } from "@/lib/experticket/types"
 
 /**
+ * @module api-experticket-prices
+ * @description API route handler for retrieving real-time product prices from Experticket.
+ */
+
+/**
  * Handles GET requests to retrieve real-time pricing information.
+ *
+ * @param request - The Next.js request object.
+ * @returns A promise that resolves to the JSON response containing real-time prices.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +31,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * Maps URL search parameters to Experticket pricing query parameters.
+ *
+ * @param searchParams - The search parameters from the request URL.
+ * @returns An object containing the mapped parameters.
  */
 function mapSearchParamsToPricingParams(searchParams: URLSearchParams) {
   return {

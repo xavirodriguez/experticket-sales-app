@@ -4,7 +4,15 @@ import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AccessCodesResponse } from "@/lib/experticket/types"
 
 /**
+ * @module api-experticket-accesscodes
+ * @description API route handler for retrieving transaction access codes from Experticket.
+ */
+
+/**
  * Handles GET requests to retrieve access codes.
+ *
+ * @param request - The Next.js request object.
+ * @returns A promise that resolves to the JSON response containing the access codes.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +31,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * Maps URL search parameters to Experticket access codes query parameters.
+ *
+ * @param searchParams - The search parameters from the request URL.
+ * @returns An object containing the mapped parameters.
  */
 function mapSearchParamsToAccessCodesParams(searchParams: URLSearchParams) {
   return {
