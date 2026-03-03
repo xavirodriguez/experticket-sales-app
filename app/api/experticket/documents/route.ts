@@ -4,7 +4,15 @@ import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionDocumentsResponse } from "@/lib/experticket/types"
 
 /**
+ * @module api-experticket-documents
+ * @description API route handler for retrieving transaction documents (tickets, invoices) from Experticket.
+ */
+
+/**
  * Handles GET requests to retrieve transaction documents.
+ *
+ * @param request - The Next.js request object.
+ * @returns A promise that resolves to the JSON response containing the document information.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +31,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * Maps URL search parameters to Experticket transaction documents query parameters.
+ *
+ * @param searchParams - The search parameters from the request URL.
+ * @returns An object containing the mapped parameters.
  */
 function mapSearchParamsToDocumentsParams(searchParams: URLSearchParams) {
   return {
