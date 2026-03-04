@@ -63,7 +63,7 @@ function SuccessCard({ saleId, totalPrice }: { saleId: string; totalPrice?: numb
 }
 
 function TransactionProductsCard({ products }: { products: Transaction["Products"] }) {
-  if (!products || products.length === 0) return null
+  if (!products || products.length === 0) return undefined
 
   return (
     <Card>

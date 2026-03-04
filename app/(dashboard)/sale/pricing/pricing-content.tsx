@@ -57,5 +57,5 @@ export function PricingContent({
     )
   }
 
-  return null
+  return undefined
 }

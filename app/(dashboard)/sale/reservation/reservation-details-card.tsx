@@ -115,7 +115,7 @@ function TimerItem({ timeLeft, isExpired }: { timeLeft: string; isExpired: boole
 }
 
 function ReservedProductsList({ products }: { products: ReservationResponse["Products"] }) {
-  if (!products || products.length === 0) return null
+  if (!products || products.length === 0) return undefined
 
   return (
     <div>

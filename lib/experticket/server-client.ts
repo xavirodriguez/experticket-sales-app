@@ -103,10 +103,7 @@ function prepareFetchOptions(options: FetchOptions): RequestInit {
   const { method = "GET", body } = options
   const fetchOptions: RequestInit = {
     method,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
     cache: "no-store",
   }
 

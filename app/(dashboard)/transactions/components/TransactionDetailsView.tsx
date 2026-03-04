@@ -132,7 +132,7 @@ function TransactionBasicFields({ entries }: { entries: [string, unknown][] }) {
  * Renders the nested (object) fields of a transaction as JSON.
  */
 function TransactionNestedFields({ nestedEntries }: { nestedEntries: [string, unknown][] }) {
-  if (nestedEntries.length === 0) return null
+  if (nestedEntries.length === 0) return undefined
 
   return (
     <>
