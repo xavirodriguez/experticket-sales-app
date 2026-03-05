@@ -67,19 +67,31 @@ async function createCancellationRequest(
   reasonComments: string,
   rest: Record<string, unknown>
 ) {
-  const payload = {
-    ApiKey: getApiKey(),
-    SaleId: saleId,
-    Reason: reason ?? 0,
-    ReasonComments: reasonComments || undefined,
-    ...rest,
-  }
+  const payload = buildCancellationPayload(saleId, reason, reasonComments, rest)
 
   const data = await experticketFetch<CancellationRequestResponse>("/cancellationrequest", {
     method: "POST",
     body: payload,
   })
   return NextResponse.json(data)
+}
+
+/**
+ * Builds the payload for a cancellation request.
+ */
+function buildCancellationPayload(
+  saleId: string,
+  reason: number,
+  reasonComments: string,
+  rest: Record<string, unknown>
+) {
+  return {
+    ApiKey: getApiKey(),
+    SaleId: saleId,
+    Reason: reason ?? 0,
+    ReasonComments: reasonComments || undefined,
+    ...rest,
+  }
 }
 
 /**

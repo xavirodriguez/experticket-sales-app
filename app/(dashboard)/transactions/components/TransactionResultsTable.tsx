@@ -28,7 +28,7 @@ export function TransactionResultsTable({
   transactions,
   onSelectTransaction,
 }: TransactionResultsTableProps) {
-  if (transactions.length === 0) return null
+  if (transactions.length === 0) return undefined
 
   return (
     <Card>

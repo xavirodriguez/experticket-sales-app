@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import useSWR from "swr"
 import { toast } from "sonner"
 import { fetcher } from "@/lib/experticket/client"
@@ -12,37 +12,13 @@ import type {
 } from "@/lib/experticket/types"
 
 /**
- * Custom hook to manage the state and logic for the Step 1 (Selection) wizard.
+ * Custom hook to manage the shopping cart for Step 1.
  *
- * @param state - The current global sale state.
- * @param updateState - Function to update the global sale state.
- * @param onNext - Callback to move to the next step.
- * @returns An object containing the current state and handler functions.
+ * @param initialProducts - The initial list of products in the cart.
+ * @returns Cart state and management functions.
  */
-export function useSelectionState(
-  state: SaleState,
-  updateState: (p: Partial<SaleState>) => void,
-  onNext: () => void
-) {
-  const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
-  const [cart, setCart] = useState<(CatalogProduct & { quantity: number })[]>(state.selectedProducts)
-  const [accessDate, setAccessDate] = useState(state.accessDate)
-  const [language, setLanguage] = useState(state.language)
-
-  const { data: langData } = useSWR<LanguagesResponse>("/api/experticket/languages", fetcher)
-  const { data: catalogData, isLoading: catalogLoading } = useSWR<CatalogResponse>(
-    `/api/experticket/catalog?LanguageCode=${language}`,
-    fetcher
-  )
-
-  const languages = resolveLanguages(langData)
-  const providers = catalogData?.Providers || []
-
-  useEffect(() => {
-    if (selectedProvider?.ProviderId !== state.provider?.ProviderId) {
-      setCart([])
-    }
-  }, [selectedProvider?.ProviderId, state.provider?.ProviderId])
+function useCart(initialProducts: (CatalogProduct & { quantity: number })[]) {
+  const [cart, setCart] = useState(initialProducts)
 
   const addToCart = useCallback((product: CatalogProduct) => {
     setCart((prev) => {
@@ -65,6 +41,54 @@ export function useSelectionState(
       return prev.filter((p) => p.ProductId !== productId)
     })
   }, [])
+
+  return { cart, setCart, addToCart, removeFromCart }
+}
+
+/**
+ * Custom hook to fetch and manage catalog and language data.
+ *
+ * @param language - The currently selected language code.
+ * @returns Catalog data, languages, and loading state.
+ */
+function useCatalogData(language: string) {
+  const { data: langData } = useSWR<LanguagesResponse>("/api/experticket/languages", fetcher)
+  const { data: catalogData, isLoading: catalogLoading } = useSWR<CatalogResponse>(
+    `/api/experticket/catalog?LanguageCode=${language}`,
+    fetcher
+  )
+
+  const languages = useMemo(() => resolveLanguages(langData), [langData])
+  const providers = catalogData?.Providers || []
+
+  return { languages, providers, catalogLoading }
+}
+
+/**
+ * Custom hook to manage the state and logic for the Step 1 (Selection) wizard.
+ *
+ * @param state - The current global sale state.
+ * @param updateState - Function to update the global sale state.
+ * @param onNext - Callback to move to the next step.
+ * @returns An object containing the current state and handler functions.
+ */
+export function useSelectionState(
+  state: SaleState,
+  updateState: (p: Partial<SaleState>) => void,
+  onNext: () => void
+) {
+  const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
+  const [accessDate, setAccessDate] = useState(state.accessDate)
+  const [language, setLanguage] = useState(state.language)
+
+  const { cart, setCart, addToCart, removeFromCart } = useCart(state.selectedProducts)
+  const { languages, providers, catalogLoading } = useCatalogData(language)
+
+  useEffect(() => {
+    if (selectedProvider?.ProviderId !== state.provider?.ProviderId) {
+      setCart([])
+    }
+  }, [selectedProvider?.ProviderId, state.provider?.ProviderId, setCart])
 
   const handleNext = useCallback(() => {
     if (!validateSelection(selectedProvider, cart, accessDate)) return
@@ -95,6 +119,9 @@ export function useSelectionState(
   }
 }
 
+/**
+ * Resolves the list of languages, providing defaults if data is missing.
+ */
 function resolveLanguages(langData?: LanguagesResponse): Language[] {
   if (langData?.Languages?.length) {
     return langData.Languages
@@ -107,22 +134,25 @@ function resolveLanguages(langData?: LanguagesResponse): Language[] {
   ]
 }
 
+/**
+ * Validates the current selection before proceeding.
+ */
 function validateSelection(
   provider: CatalogProvider | null,
   cart: unknown[],
   accessDate: string
 ): boolean {
-  if (!provider) {
-    toast.error("Please select a provider")
+  const issues = [
+    { condition: !provider, message: "Please select a provider" },
+    { condition: cart.length === 0, message: "Please add at least one product" },
+    { condition: !accessDate, message: "Please select an access date" },
+  ]
+
+  const firstIssue = issues.find((issue) => issue.condition)
+  if (firstIssue) {
+    toast.error(firstIssue.message)
     return false
   }
-  if (cart.length === 0) {
-    toast.error("Please add at least one product")
-    return false
-  }
-  if (!accessDate) {
-    toast.error("Please select an access date")
-    return false
-  }
+
   return true
 }

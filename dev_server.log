@@ -1,0 +1,16 @@
+
+> my-project@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 785ms
+○ Compiling /sale ...
+ GET /sale 200 in 10.0s (compile: 8.8s, render: 1211ms)
+ GET /api/experticket/catalog?LanguageCode=en 502 in 2.5s (compile: 2.4s, render: 106ms)
+ GET /api/experticket/languages 502 in 2.7s (compile: 2.7s, render: 20ms)
+○ Compiling /transactions ...
+ GET /transactions 200 in 3.7s (compile: 3.1s, render: 585ms)

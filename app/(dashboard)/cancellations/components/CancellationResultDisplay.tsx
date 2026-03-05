@@ -102,7 +102,7 @@ function CancellationStatusBadge({ isCancellable }: { isCancellable: boolean }) 
 }
 
 function CancellationPolicies({ policies }: { policies?: Record<string, unknown>[] }) {
-  if (!policies || policies.length === 0) return null
+  if (!policies || policies.length === 0) return undefined
 
   return (
     <>
