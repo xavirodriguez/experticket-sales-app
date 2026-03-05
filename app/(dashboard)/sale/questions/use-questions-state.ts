@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { TicketQuestionsResponse, TicketQuestion } from "@/lib/experticket/types"
 
 /**
@@ -24,7 +24,7 @@ export function useQuestionsState(state: SaleState) {
     (state.questionAnswers as Record<string, string>) || {}
   )
   const [noQuestions, setNoQuestions] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     async function fetchQuestions() {

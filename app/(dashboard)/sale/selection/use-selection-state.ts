@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import useSWR from "swr"
 import { toast } from "sonner"
 import { fetcher } from "@/lib/experticket/client"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type {
   CatalogResponse,
   CatalogProvider,
@@ -77,7 +77,9 @@ export function useSelectionState(
   updateState: (p: Partial<SaleState>) => void,
   onNext: () => void
 ) {
-  const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | null>(state.provider)
+  const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | undefined>(
+    state.provider
+  )
   const [accessDate, setAccessDate] = useState(state.accessDate)
   const [language, setLanguage] = useState(state.language)
 
@@ -138,7 +140,7 @@ function resolveLanguages(langData?: LanguagesResponse): Language[] {
  * Validates the current selection before proceeding.
  */
 function validateSelection(
-  provider: CatalogProvider | null,
+  provider: CatalogProvider | undefined,
   cart: unknown[],
   accessDate: string
 ): boolean {

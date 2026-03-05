@@ -147,8 +147,7 @@ async function performFetchWithRetry<T>(
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await fetch(url, options)
-      return await handleApiResponse<T>(response)
+      return await fetchAndProcess<T>(url, options)
     } catch (error) {
       lastError = error
       if (attempt < maxAttempts) {
@@ -158,6 +157,14 @@ async function performFetchWithRetry<T>(
   }
 
   throw lastError
+}
+
+/**
+ * Fetches the URL and processes the response.
+ */
+async function fetchAndProcess<T>(url: string, options: RequestInit): Promise<T> {
+  const response = await fetch(url, options)
+  return await handleApiResponse<T>(response)
 }
 
 /**

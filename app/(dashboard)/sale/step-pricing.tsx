@@ -11,7 +11,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
 import { usePricingState } from "./pricing/use-pricing-state"
 import { PricingTable } from "./pricing/pricing-table"
 import { PricingContent } from "./pricing/pricing-content"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepPricing} component.
@@ -57,7 +57,7 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
             loading={loading}
             fetched={fetched}
             success={data?.Success}
-            errorMessage={data?.ErrorMessage}
+            errorMessage={data?.ErrorMessage ?? undefined}
           />
 
           <PricingTable selectedProducts={state.selectedProducts} prices={prices} />

@@ -7,7 +7,7 @@ import { useState, useCallback } from "react"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/experticket/client"
 import { getIsTestMode } from "@/lib/experticket/storage"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { Transaction } from "@/lib/experticket/types"
 
 /**
@@ -22,8 +22,8 @@ import type { Transaction } from "@/lib/experticket/types"
  */
 export function useTransactionState(state: SaleState) {
   const [loading, setLoading] = useState(false)
-  const [transaction, setTransaction] = useState<Transaction | null>(state.transaction)
-  const [error, setError] = useState<string | null>(null)
+  const [transaction, setTransaction] = useState<Transaction | undefined>(state.transaction)
+  const [error, setError] = useState<string | undefined>(undefined)
   const [paymentRef, setPaymentRef] = useState("")
 
   const createTransaction = useCallback(async () => {
@@ -32,7 +32,7 @@ export function useTransactionState(state: SaleState) {
       return
     }
     setLoading(true)
-    setError(null)
+    setError(undefined)
 
     try {
       const payload = buildTransactionPayload(state, paymentRef)

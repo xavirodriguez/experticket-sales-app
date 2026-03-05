@@ -20,7 +20,7 @@ interface Props {
   /** Indicates if the reservation is being created. */
   loading: boolean
   /** Error message if creation failed. */
-  error: string | null
+  error: string | undefined
   /** Callback to initiate reservation. */
   onAction: () => void
 }

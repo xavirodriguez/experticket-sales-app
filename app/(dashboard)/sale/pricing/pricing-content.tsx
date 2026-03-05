@@ -13,7 +13,7 @@ interface Props {
   loading: boolean
   fetched: boolean
   success?: boolean
-  errorMessage?: string | null
+  errorMessage?: string | undefined
 }
 
 /**
