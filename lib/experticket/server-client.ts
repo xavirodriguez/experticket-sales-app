@@ -39,9 +39,9 @@ export function getApiKey(): string {
 }
 
 /**
- * Options for the {@link experticketFetch} function.
+ * Configuration options for the {@link experticketFetch} function.
  */
-interface FetchOptions {
+export interface FetchOptions {
   /** HTTP method to use. Defaults to "GET". */
   method?: "GET" | "POST" | "DELETE"
   /** Request body for POST or DELETE requests. */
@@ -55,11 +55,14 @@ interface FetchOptions {
 }
 
 /**
- * Performs a server-side fetch to the Experticket API.
- * Handles URL building, timeouts, retries (for GET), and JSON parsing.
+ * Performs an authenticated server-side fetch to the Experticket API.
  *
- * @param path - The API endpoint path relative to the BASE_URL.
- * @param options - Configuration for the request (method, body, params, etc.).
+ * @remarks
+ * This function handles URL building, timeouts, retries (only for GET requests),
+ * and JSON parsing. It is intended for use in server-side contexts only.
+ *
+ * @param path - The API endpoint path relative to the base URL.
+ * @param options - Configuration for the request.
  * @returns A promise that resolves to the parsed JSON response of type T.
  *
  * @throws {Error} If the API response is not OK or if a network/timeout error occurs.
@@ -85,6 +88,8 @@ export async function experticketFetch<T = unknown>(
 
 /**
  * Builds a URL with query parameters.
+ *
+ * @internal
  */
 function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
@@ -98,6 +103,8 @@ function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
 
 /**
  * Prepares the standard fetch options.
+ *
+ * @internal
  */
 function prepareFetchOptions(options: FetchOptions): RequestInit {
   const { method = "GET", body } = options
@@ -116,6 +123,8 @@ function prepareFetchOptions(options: FetchOptions): RequestInit {
 
 /**
  * Executes a fetch request with a specified timeout.
+ *
+ * @internal
  */
 async function executeRequestWithTimeout<T>(
   url: string,
@@ -136,6 +145,8 @@ async function executeRequestWithTimeout<T>(
 
 /**
  * Performs the actual fetch with retry logic for idempotent GET requests.
+ *
+ * @internal
  */
 async function performFetchWithRetry<T>(
   url: string,
@@ -162,6 +173,8 @@ async function performFetchWithRetry<T>(
 
 /**
  * Processes the API response, ensuring it is OK and parsing JSON.
+ *
+ * @internal
  */
 async function handleApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -173,6 +186,8 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 
 /**
  * Simple delay helper.
+ *
+ * @internal
  */
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))

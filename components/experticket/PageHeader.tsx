@@ -6,21 +6,34 @@
 "use client"
 
 /**
- * Props for the {@link PageHeader} component.
+ * Defines the properties for the {@link PageHeader} component.
  */
-interface PageHeaderProps {
-  /** The main title of the page. */
+export interface PageHeaderProps {
+  /** The primary title of the page, rendered as an h1. */
   title: string
-  /** A brief description of the page's purpose. */
+  /** An optional subtitle or description to provide more context. */
   description?: string
-  /** Additional CSS classes for the container. */
+  /** Optional CSS class names to be applied to the container. */
   className?: string
 }
 
 /**
- * PageHeader component that displays a consistent title and description.
+ * Renders a consistent page header with a title and optional description.
  *
- * @param props - {@link PageHeaderProps}
+ * @remarks
+ * The title is styled with large, bold text suitable for the top of a page.
+ * The description, if provided, appears directly below the title.
+ *
+ * @param props - The component properties.
+ * @returns A JSX element representing the page header.
+ *
+ * @example
+ * ```tsx
+ * <PageHeader
+ *   title="Sale Wizard"
+ *   description="Create a new reservation by selecting products and sessions."
+ * />
+ * ```
  */
 export function PageHeader({ title, description, className }: PageHeaderProps) {
   return (

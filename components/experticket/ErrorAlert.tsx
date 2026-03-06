@@ -9,19 +9,29 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
 /**
- * Props for the {@link ErrorAlert} component.
+ * Defines the properties for the {@link ErrorAlert} component.
  */
-interface ErrorAlertProps {
-  /** The error message to display. */
+export interface ErrorAlertProps {
+  /** The error message string to be displayed within the alert. */
   message: string
-  /** Additional CSS classes for the alert container. */
+  /** Optional CSS class names to be applied to the alert container. */
   className?: string
 }
 
 /**
- * ErrorAlert component for displaying error messages in a consistent style.
+ * Renders a standardized error alert box with a destructive style.
  *
- * @param props - {@link ErrorAlertProps}
+ * @remarks
+ * This component uses the `AlertCircle` icon from Lucide and the Radix-based
+ * Alert primitive from the UI library.
+ *
+ * @param props - The component properties.
+ * @returns A JSX element representing the error alert.
+ *
+ * @example
+ * ```tsx
+ * <ErrorAlert message="Failed to load catalog. Please try again." />
+ * ```
  */
 export function ErrorAlert({ message, className }: ErrorAlertProps) {
   return (

@@ -8,9 +8,22 @@ import { NextResponse } from "next/server"
 /**
  * Creates a standardized error response for Experticket API routes.
  *
- * @param err - The error object or message.
- * @param status - The HTTP status code (defaults to 502).
- * @returns A Next.js response object with the error details.
+ * @remarks
+ * This helper ensures that all internal API proxy routes return errors in a format
+ * consistent with {@link ExperticketBaseResponse}, using a standard HTTP status.
+ *
+ * @param err - The error object or message to be returned.
+ * @param status - The HTTP status code (defaults to 502 Bad Gateway).
+ * @returns A {@link NextResponse} object containing the serialized error details.
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   // ... logic
+ * } catch (error) {
+ *   return createErrorResponse(error, 500);
+ * }
+ * ```
  */
 export function createErrorResponse(err: unknown, status: number = 502) {
   const message = err instanceof Error ? err.message : "Unknown error"
