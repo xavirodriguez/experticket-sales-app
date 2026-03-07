@@ -65,36 +65,54 @@ function useCatalogData(language: string) {
 }
 
 /**
- * Custom hook to manage the state and logic for the Step 1 (Selection) wizard.
- *
- * @param state - The current global sale state.
- * @param updateState - Function to update the global sale state.
- * @param onNext - Callback to move to the next step.
- * @returns An object containing the current state and handler functions.
+ * Custom hook for managing the basic selection state.
  */
-export function useSelectionState(
-  state: SaleState,
-  updateState: (p: Partial<SaleState>) => void,
-  onNext: () => void
-) {
+function useLocalSelectionState(state: SaleState) {
   const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | undefined>(
     state.provider
   )
   const [accessDate, setAccessDate] = useState(state.accessDate)
   const [language, setLanguage] = useState(state.language)
 
-  const { cart, setCart, addToCart, removeFromCart } = useCart(state.selectedProducts)
-  const { languages, providers, catalogLoading } = useCatalogData(language)
+  return {
+    selectedProvider,
+    setSelectedProvider,
+    accessDate,
+    setAccessDate,
+    language,
+    setLanguage,
+  }
+}
 
+/**
+ * Hook to synchronize the cart when the provider changes.
+ */
+function useCartSync(
+  selectedProvider: CatalogProvider | undefined,
+  stateProvider: CatalogProvider | undefined,
+  setCart: (c: (CatalogProduct & { quantity: number })[]) => void
+) {
   useEffect(() => {
-    if (selectedProvider?.ProviderId !== state.provider?.ProviderId) {
+    if (selectedProvider?.ProviderId !== stateProvider?.ProviderId) {
       setCart([])
     }
-  }, [selectedProvider?.ProviderId, state.provider?.ProviderId, setCart])
+  }, [selectedProvider?.ProviderId, stateProvider?.ProviderId, setCart])
+}
 
-  const handleNext = useCallback(() => {
-    if (!validateSelection(selectedProvider, cart, accessDate)) return
+/**
+ * Hook for handling the transition to the next step.
+ */
+function useSelectionNavigation(
+  local: ReturnType<typeof useLocalSelectionState>,
+  cart: (CatalogProduct & { quantity: number })[],
+  updateState: (p: Partial<SaleState>) => void,
+  onNext: () => void
+) {
+  const { selectedProvider, accessDate, language } = local
 
+  return useCallback(() => {
+    const context = { provider: selectedProvider, cart, accessDate }
+    if (!validateSelection(context)) return
     updateState({
       language,
       provider: selectedProvider,
@@ -102,23 +120,24 @@ export function useSelectionState(
       accessDate,
     })
     onNext()
-  }, [selectedProvider, cart, accessDate, language, updateState, onNext])
+  }, [selectedProvider, accessDate, language, cart, updateState, onNext])
+}
 
-  return {
-    language,
-    setLanguage,
-    accessDate,
-    setAccessDate,
-    selectedProvider,
-    setSelectedProvider,
-    cart,
-    addToCart,
-    removeFromCart,
-    languages,
-    providers,
-    catalogLoading,
-    handleNext,
-  }
+/**
+ * Custom hook to manage the state and logic for the Step 1 (Selection) wizard.
+ */
+export function useSelectionState(
+  state: SaleState,
+  updateState: (p: Partial<SaleState>) => void,
+  onNext: () => void
+) {
+  const local = useLocalSelectionState(state)
+  const { cart, setCart, addToCart, removeFromCart } = useCart(state.selectedProducts)
+  const { languages, providers, catalogLoading } = useCatalogData(local.language)
+  useCartSync(local.selectedProvider, state.provider, setCart)
+  const handleNext = useSelectionNavigation(local, cart, updateState, onNext)
+
+  return { ...local, cart, addToCart, removeFromCart, languages, providers, catalogLoading, handleNext }
 }
 
 /**
@@ -137,13 +156,18 @@ function resolveLanguages(langData?: LanguagesResponse): Language[] {
 }
 
 /**
+ * Context for selection validation.
+ */
+interface SelectionValidationContext {
+  provider: CatalogProvider | undefined
+  cart: unknown[]
+  accessDate: string
+}
+
+/**
  * Validates the current selection before proceeding.
  */
-function validateSelection(
-  provider: CatalogProvider | undefined,
-  cart: unknown[],
-  accessDate: string
-): boolean {
+function validateSelection({ provider, cart, accessDate }: SelectionValidationContext): boolean {
   const issues = [
     { condition: !provider, message: "Please select a provider" },
     { condition: cart.length === 0, message: "Please add at least one product" },

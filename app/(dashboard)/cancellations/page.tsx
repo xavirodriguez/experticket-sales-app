@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { AlertCircle, Info, Loader2, XCircle } from "lucide-react"
+import { Info, Loader2, XCircle } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
 import { StatusBadge } from "@/components/status-badge"
 import { SearchCard } from "@/components/experticket/SearchCard"
@@ -38,6 +38,42 @@ interface CancellationCheckResult {
 }
 
 /**
+ * Performs the API call to check cancellation eligibility.
+ */
+async function performCancellationCheck(saleId: string) {
+  const res = await apiFetch("/api/experticket/cancellation", {
+    method: "POST",
+    body: JSON.stringify({ action: "check", saleId }),
+  })
+
+  if (!res.ok) {
+    const errData = await res.json()
+    throw new Error(errData.error || "Failed to check cancellation eligibility")
+  }
+
+  return await res.json()
+}
+
+/**
+ * Performs the API call to confirm cancellation.
+ */
+async function performCancellationConfirm(saleId: string) {
+  const res = await apiFetch("/api/experticket/cancellation", {
+    method: "POST",
+    body: JSON.stringify({
+      action: "confirm",
+      saleId,
+      reason: DEFAULT_CANCELLATION_REASON,
+    }),
+  })
+
+  if (!res.ok) {
+    const errData = await res.json()
+    throw new Error(errData.error || "Failed to process cancellation")
+  }
+}
+
+/**
  * Main Cancellations Page component.
  * Provides a specialized interface for handling refunds and cancellations.
  */
@@ -45,9 +81,9 @@ export default function CancellationsPage() {
   const [txId, setTxId] = useState("")
   const [checking, setChecking] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [checkResult, setCheckResult] = useState<CancellationCheckResult | null>(null)
+  const [checkResult, setCheckResult] = useState<CancellationCheckResult | undefined>(undefined)
   const [cancelComplete, setCancelComplete] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | undefined>(undefined)
 
   const isCancellable = Boolean(checkResult?.IsCancellable || checkResult?.Cancellable)
 
@@ -57,23 +93,13 @@ export default function CancellationsPage() {
   async function handleCheck() {
     if (!txId.trim()) return
     setChecking(true)
-    setError(null)
-    setCheckResult(null)
+    setError(undefined)
+    setCheckResult(undefined)
     setCancelComplete(false)
 
     try {
-      const res = await apiFetch("/api/experticket/cancellation", {
-        method: "POST",
-        body: JSON.stringify({ action: "check", saleId: txId.trim() }),
-      })
-
-      if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || "Failed to check cancellation eligibility")
-      }
-
-      const data = await res.json()
-      setCheckResult(data)
+      const res = await performCancellationCheck(txId.trim())
+      setCheckResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred")
     } finally {
@@ -87,25 +113,12 @@ export default function CancellationsPage() {
   async function handleConfirmCancel() {
     if (!txId.trim()) return
     setCancelling(true)
-    setError(null)
+    setError(undefined)
 
     try {
-      const res = await apiFetch("/api/experticket/cancellation", {
-        method: "POST",
-        body: JSON.stringify({
-          action: "confirm",
-          saleId: txId.trim(),
-          reason: DEFAULT_CANCELLATION_REASON,
-        }),
-      })
-
-      if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || "Failed to process cancellation")
-      }
-
+      await performCancellationConfirm(txId.trim())
       setCancelComplete(true)
-      setCheckResult(null)
+      setCheckResult(undefined)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred")
     } finally {
@@ -204,4 +217,3 @@ export default function CancellationsPage() {
     </div>
   )
 }
-

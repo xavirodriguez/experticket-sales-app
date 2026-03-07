@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, QrCode, Copy, Check } from "lucide-react"
+import { QrCode, Copy, Check } from "lucide-react"
 import { fetcher } from "@/lib/experticket/client"
 import { normalizeApiResponse } from "@/lib/experticket/utils"
 import { StatusBadge } from "@/components/status-badge"
@@ -25,8 +25,8 @@ import { toast } from "sonner"
  */
 export default function AccessCodesPage() {
   const [txId, setTxId] = useState("")
-  const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [searchedTxId, setSearchedTxId] = useState<string | undefined>(undefined)
+  const [copiedId, setCopiedId] = useState<string | undefined>(undefined)
 
   /**
    * Fetches access code data based on the searched Transaction ID.
@@ -53,7 +53,7 @@ export default function AccessCodesPage() {
     navigator.clipboard.writeText(text)
     setCopiedId(id)
     toast.success("Code copied to clipboard")
-    setTimeout(() => setCopiedId(null), 2000)
+    setTimeout(() => setCopiedId(undefined), 2000)
   }
 
   /** Normalizes the access codes into a flat array. */
@@ -79,7 +79,6 @@ export default function AccessCodesPage() {
 
       {error && (
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
           <AlertDescription>Failed to fetch access codes. Please check the Transaction ID.</AlertDescription>
         </Alert>
       )}
