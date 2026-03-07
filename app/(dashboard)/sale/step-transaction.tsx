@@ -13,7 +13,7 @@ import { AlertTriangle } from "lucide-react"
 import { useTransactionState } from "./transaction/use-transaction-state"
 import { SaleSuccessScreen } from "./transaction/sale-success-screen"
 import { TransactionSummary } from "./transaction/transaction-components"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepTransaction} component.

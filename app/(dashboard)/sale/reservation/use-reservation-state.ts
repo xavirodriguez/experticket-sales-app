@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { apiFetch } from "@/lib/experticket/client"
 import { getIsTestMode } from "@/lib/experticket/storage"
 import { useCountdown } from "@/hooks/use-countdown"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { ReservationResponse } from "@/lib/experticket/types"
 
 /**
@@ -28,21 +28,23 @@ export function useReservationState(
 ) {
   const [loading, setLoading] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [reservation, setReservation] = useState<ReservationResponse | null>(state.reservation)
-  const [error, setError] = useState<string | null>(null)
-  const [expiresAt, setExpiresAt] = useState<number | null>(state.reservationExpiry)
+  const [reservation, setReservation] = useState<ReservationResponse | undefined>(
+    state.reservation
+  )
+  const [error, setError] = useState<string | undefined>(undefined)
+  const [expiresAt, setExpiresAt] = useState<number | undefined>(state.reservationExpiry)
 
-  const { timeLeft, isExpired } = useCountdown(expiresAt)
+  const { timeLeft, isExpired } = useCountdown(expiresAt ?? null)
 
   const resetReservationState = useCallback(() => {
-    setReservation(null)
-    setExpiresAt(null)
-    updateState({ reservation: null, reservationExpiry: null })
+    setReservation(undefined)
+    setExpiresAt(undefined)
+    updateState({ reservation: undefined, reservationExpiry: undefined })
   }, [updateState])
 
   const makeReservation = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setError(undefined)
     try {
       const payload = buildReservationPayload(state)
       const res = await apiFetch("/api/experticket/reservation", {
@@ -118,11 +120,11 @@ function buildReservationPayload(state: SaleState) {
     Products: state.selectedProducts.map((p) => ({
       ProductId: p.ProductId,
       Quantity: p.quantity,
-      Tickets: null,
-      AccessDateTime: null,
-      AccessEndDateTime: null,
+      Tickets: undefined,
+      AccessDateTime: undefined,
+      AccessEndDateTime: undefined,
     })),
-    LanguageCode: state.language || null,
+    LanguageCode: state.language || undefined,
   }
 }
 
@@ -135,7 +137,7 @@ function buildReservationPayload(state: SaleState) {
  */
 function handleReservationSuccess(
   data: ReservationResponse,
-  setExpiresAt: (val: number | null) => void,
+  setExpiresAt: (val: number | undefined) => void,
   updateState: (partial: Partial<SaleState>) => void
 ) {
   if (data.MinutesToExpiry) {
@@ -143,6 +145,6 @@ function handleReservationSuccess(
     setExpiresAt(expiry)
     updateState({ reservation: data, reservationExpiry: expiry })
   } else {
-    updateState({ reservation: data, reservationExpiry: null })
+    updateState({ reservation: data, reservationExpiry: undefined })
   }
 }

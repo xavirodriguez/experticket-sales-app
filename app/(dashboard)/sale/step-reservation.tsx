@@ -11,7 +11,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useReservationState } from "./reservation/use-reservation-state"
 import { ReservationSummaryCard } from "./reservation/reservation-summary-card"
 import { ReservationDetailsCard } from "./reservation/reservation-details-card"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepReservation} component.

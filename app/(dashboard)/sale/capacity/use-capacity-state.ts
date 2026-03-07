@@ -5,7 +5,7 @@
 
 import useSWR from "swr"
 import { fetcher } from "@/lib/experticket/client"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { AvailableCapacityResponse, CapacityItem } from "@/lib/experticket/types"
 
 /**

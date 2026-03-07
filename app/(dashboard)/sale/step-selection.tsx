@@ -12,7 +12,7 @@ import { LanguageAndDateSelector } from "./selection/language-date-selector"
 import { ProviderSelector } from "./selection/provider-selector"
 import { ProductList } from "./selection/product-list"
 import { CartSummary } from "./selection/cart-summary"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepSelection} component.

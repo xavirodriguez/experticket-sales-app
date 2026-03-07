@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { RealTimePricesResponse } from "@/lib/experticket/types"
 
 /**
@@ -20,7 +20,7 @@ import type { RealTimePricesResponse } from "@/lib/experticket/types"
  */
 export function usePricingState(state: SaleState) {
   const [loading, setLoading] = useState(false)
-  const [data, setData] = useState<RealTimePricesResponse | null>(null)
+  const [data, setData] = useState<RealTimePricesResponse | undefined>(undefined)
   const [fetched, setFetched] = useState(false)
 
   const fetchPrices = useCallback(async () => {

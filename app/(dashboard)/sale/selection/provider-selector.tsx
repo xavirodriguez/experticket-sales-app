@@ -11,7 +11,7 @@ import type { CatalogProvider } from "@/lib/experticket/types"
 interface Props {
   providers: CatalogProvider[]
   isLoading: boolean
-  selectedProvider: CatalogProvider | null
+  selectedProvider: CatalogProvider | undefined
   onSelect: (p: CatalogProvider) => void
 }
 

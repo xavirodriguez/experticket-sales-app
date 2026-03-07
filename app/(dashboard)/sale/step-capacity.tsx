@@ -12,7 +12,7 @@ import { useCapacityState } from "./capacity/use-capacity-state"
 import { CapacityTable } from "./capacity/capacity-table"
 import { CapacityError, NoCapacityAlert } from "./capacity/capacity-alerts"
 import { CapacitySkeleton, NoRestrictions } from "./capacity/capacity-components"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepCapacity} component.

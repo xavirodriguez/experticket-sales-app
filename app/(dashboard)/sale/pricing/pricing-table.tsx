@@ -4,7 +4,7 @@
  */
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { SaleState } from "../page"
+import type { SaleState } from "../use-sale-wizard"
 import type { RealTimePriceItem } from "@/lib/experticket/types"
 
 /**

@@ -15,7 +15,7 @@ import {
   NoQuestionsView,
   StepNavigation,
 } from "./questions/question-components"
-import type { SaleState } from "./page"
+import type { SaleState } from "./use-sale-wizard"
 
 /**
  * Props for the {@link StepQuestions} component.
