@@ -7,13 +7,10 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, Loader2, Eye, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
-import { apiFetch, fetcher } from "@/lib/experticket/client"
+import { Search } from "lucide-react"
+import { fetcher } from "@/lib/experticket/client"
 import { normalizeApiResponse } from "@/lib/experticket/utils"
-import { StatusBadge } from "@/components/status-badge"
 import { PageHeader } from "@/components/experticket/PageHeader"
 import { ErrorAlert } from "@/components/experticket/ErrorAlert"
 import { TransactionSearch } from "./components/TransactionSearch"
@@ -27,9 +24,9 @@ import type { Transaction } from "@/lib/experticket/types"
  */
 export default function TransactionsPage() {
   const [txIdSearch, setTxIdSearch] = useState("")
-  const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [searchedTxId, setSearchedTxId] = useState<string | undefined>(undefined)
+  const [selectedTx, setSelectedTx] = useState<Transaction | undefined>(undefined)
+  const [error, setError] = useState<string | undefined>(undefined)
 
   /**
    * Fetches transaction data when a search ID is provided.
@@ -44,8 +41,8 @@ export default function TransactionsPage() {
    */
   function handleSearch() {
     if (!txIdSearch.trim()) return
-    setError(null)
-    setSelectedTx(null)
+    setError(undefined)
+    setSelectedTx(undefined)
     setSearchedTxId(txIdSearch.trim())
   }
 
@@ -71,7 +68,7 @@ export default function TransactionsPage() {
       {error && <ErrorAlert message={error} />}
 
       {selectedTx ? (
-        <TransactionDetailsView transaction={selectedTx} onBack={() => setSelectedTx(null)} />
+        <TransactionDetailsView transaction={selectedTx} onBack={() => setSelectedTx(undefined)} />
       ) : (
         <TransactionResultsTable
           transactions={transactions}

@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, Loader2, AlertCircle, FileText, Download, ExternalLink } from "lucide-react"
+import { FileText, Download, ExternalLink } from "lucide-react"
 import { fetcher } from "@/lib/experticket/client"
 import { normalizeApiResponse } from "@/lib/experticket/utils"
 import { StatusBadge } from "@/components/status-badge"
@@ -24,7 +24,7 @@ import { SearchCard } from "@/components/experticket/SearchCard"
  */
 export default function DocumentsPage() {
   const [txId, setTxId] = useState("")
-  const [searchedTxId, setSearchedTxId] = useState<string | null>(null)
+  const [searchedTxId, setSearchedTxId] = useState<string | undefined>(undefined)
 
   /**
    * Fetches document links based on the Transaction ID.
@@ -65,7 +65,6 @@ export default function DocumentsPage() {
 
       {error && (
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
           <AlertDescription>Failed to fetch documents. Please check the Transaction ID.</AlertDescription>
         </Alert>
       )}

@@ -83,7 +83,33 @@ export async function experticketFetch<T = unknown>(
   const timeout = options.timeout ?? DEFAULT_FETCH_TIMEOUT
   const retries = options.retries ?? DEFAULT_FETCH_RETRIES
 
-  return await executeRequestWithTimeout<T>(url.toString(), fetchOptions, timeout, retries)
+  return await executeRequestWithTimeout<T>({
+    url: url.toString(),
+    options: fetchOptions,
+    timeout,
+    retries,
+  })
+}
+
+/**
+ * Options for executing a request with timeout.
+ * @internal
+ */
+interface ExecuteRequestOptions {
+  url: string
+  options: RequestInit
+  timeout: number
+  retries: number
+}
+
+/**
+ * Options for performing a fetch with retry logic.
+ * @internal
+ */
+interface RetryOptions {
+  url: string
+  options: RequestInit
+  retries: number
 }
 
 /**
@@ -126,18 +152,18 @@ function prepareFetchOptions(options: FetchOptions): RequestInit {
  *
  * @internal
  */
-async function executeRequestWithTimeout<T>(
-  url: string,
-  options: RequestInit,
-  timeout: number,
-  retries: number
-): Promise<T> {
+async function executeRequestWithTimeout<T>({
+  url,
+  options,
+  timeout,
+  retries,
+}: ExecuteRequestOptions): Promise<T> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
 
   try {
     const optionsWithSignal = { ...options, signal: controller.signal }
-    return await performFetchWithRetry<T>(url, optionsWithSignal, retries)
+    return await performFetchWithRetry<T>({ url, options: optionsWithSignal, retries })
   } finally {
     clearTimeout(timer)
   }
@@ -148,11 +174,11 @@ async function executeRequestWithTimeout<T>(
  *
  * @internal
  */
-async function performFetchWithRetry<T>(
-  url: string,
-  options: RequestInit,
-  retries: number
-): Promise<T> {
+async function performFetchWithRetry<T>({
+  url,
+  options,
+  retries,
+}: RetryOptions): Promise<T> {
   const maxAttempts = options.method === "GET" ? 1 + retries : 1
   let lastError: unknown
 

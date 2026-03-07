@@ -18,10 +18,20 @@ export async function POST(request: NextRequest) {
       return await checkCancellationStatus(saleId)
     }
 
-    return await createCancellationRequest(saleId, reason, reasonComments, rest)
+    return await createCancellationRequest({ saleId, reason, reasonComments, extra: rest })
   } catch (err: unknown) {
     return createErrorResponse(err)
   }
+}
+
+/**
+ * Context object for creating a cancellation request.
+ */
+interface CancellationRequestContext {
+  saleId: string
+  reason: number
+  reasonComments: string
+  extra: Record<string, unknown>
 }
 
 /**
@@ -61,13 +71,8 @@ async function checkCancellationStatus(saleId: string) {
 /**
  * Internal helper to create a cancellation request.
  */
-async function createCancellationRequest(
-  saleId: string,
-  reason: number,
-  reasonComments: string,
-  rest: Record<string, unknown>
-) {
-  const payload = buildCancellationPayload(saleId, reason, reasonComments, rest)
+async function createCancellationRequest(context: CancellationRequestContext) {
+  const payload = buildCancellationPayload(context)
 
   const data = await experticketFetch<CancellationRequestResponse>("/cancellationrequest", {
     method: "POST",
@@ -79,18 +84,18 @@ async function createCancellationRequest(
 /**
  * Builds the payload for a cancellation request.
  */
-function buildCancellationPayload(
-  saleId: string,
-  reason: number,
-  reasonComments: string,
-  rest: Record<string, unknown>
-) {
+function buildCancellationPayload({
+  saleId,
+  reason,
+  reasonComments,
+  extra,
+}: CancellationRequestContext) {
   return {
     ApiKey: getApiKey(),
     SaleId: saleId,
     Reason: reason ?? 0,
     ReasonComments: reasonComments || undefined,
-    ...rest,
+    ...extra,
   }
 }
 
