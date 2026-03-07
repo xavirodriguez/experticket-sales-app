@@ -1,16 +1,20 @@
 /**
  * @module lib/utils
- * @description Utility functions for the application.
+ * @description Core application utility functions.
  */
 
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 /**
- * Combines multiple Tailwind CSS classes and merges conflicting ones.
+ * Combines multiple Tailwind CSS class values and merges conflicting utilities.
  *
- * @param inputs - A list of class values to be combined.
- * @returns A string containing the merged Tailwind CSS classes.
+ * @remarks
+ * This function uses `clsx` to conditionally join class names and `tailwind-merge`
+ * to ensure that later classes in the list override earlier conflicting ones.
+ *
+ * @param inputs - A variadic list of class values (strings, objects, arrays, etc.).
+ * @returns A single string of merged Tailwind CSS classes.
  *
  * @example
  * ```typescript

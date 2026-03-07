@@ -7,13 +7,18 @@ import type { Transaction } from "./types"
 
 /**
  * Extracts a unique transaction or sale identifier from a transaction object.
- * Checks multiple common keys used by the Experticket API.
  *
- * @param transaction - The transaction object.
- * @returns The extracted ID string, or "N/A" if not found.
+ * @remarks
+ * This function checks multiple common keys (`SaleId`, `TransactionId`, `Id`) used by
+ * different Experticket API endpoints to ensure a valid identifier is resolved.
+ *
+ * @param transaction - The transaction object to extract the ID from.
+ * @returns The extracted identifier string, or "N/A" if no valid identifier is found.
+ *
  * @example
  * ```typescript
- * const id = resolveTransactionId(tx);
+ * const id = resolveTransactionId({ SaleId: "12345" });
+ * // returns "12345"
  * ```
  */
 export function resolveTransactionId(transaction: Transaction): string {
@@ -22,14 +27,20 @@ export function resolveTransactionId(transaction: Transaction): string {
 }
 
 /**
- * Formats a price or amount with a currency symbol.
+ * Formats a numeric price or amount into a human-readable currency string.
  *
- * @param amount - The numeric amount to format.
- * @param currency - The currency code (defaults to "EUR").
- * @returns A formatted currency string (e.g., "123.45 EUR").
+ * @remarks
+ * If the provided amount is null, undefined, or empty, the function returns "N/A".
+ * It handles both numeric and stringified numbers.
+ *
+ * @param amount - The numeric or string amount to format.
+ * @param currency - The ISO currency code to append (defaults to "EUR").
+ * @returns A formatted string containing the amount with two decimal places and the currency.
+ *
  * @example
  * ```typescript
- * const price = formatPrice(123.45, "USD");
+ * const price = formatPrice(123.456, "USD");
+ * // returns "123.46 USD"
  * ```
  */
 export function formatPrice(
@@ -49,11 +60,17 @@ export function formatPrice(
 }
 
 /**
- * Normalizes an API response into a consistent array of T.
+ * Normalizes an inconsistent API response into a standard array of entities.
  *
- * @param response - The raw API response.
- * @param listKeys - Optional key(s) to look for if the response is an object.
- * @returns An array of entities.
+ * @remarks
+ * The Experticket API may return lists directly as arrays or wrapped within objects
+ * under various keys. This function attempts to find the list based on common
+ * patterns and provided keys.
+ *
+ * @param response - The raw, unknown API response to normalize.
+ * @param listKeys - Optional key or list of keys to prioritize when searching for the array.
+ * @returns A typed array containing the normalized entities.
+ *
  * @example
  * ```typescript
  * const transactions = normalizeApiResponse<Transaction>(data, 'Transactions');
@@ -79,6 +96,8 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
 
 /**
  * Checks if the value is a non-null object.
+ *
+ * @internal
  */
 function isValidObject(val: unknown): val is Record<string, unknown> {
   return typeof val === "object" && val !== null
@@ -86,6 +105,8 @@ function isValidObject(val: unknown): val is Record<string, unknown> {
 
 /**
  * Extracts a list from the response object using provided keys.
+ *
+ * @internal
  */
 function extractListFromObject<T>(
   resp: Record<string, unknown>,
@@ -104,6 +125,8 @@ function extractListFromObject<T>(
 
 /**
  * Extracts a list from the response object using common fallback keys.
+ *
+ * @internal
  */
 function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined {
   const fallbacks = ["Transactions", "Documents", "AccessCodes", "Codes", "CancellationRequests"]
@@ -117,6 +140,8 @@ function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined
 
 /**
  * Wraps a single object as an array if it's not a container object.
+ *
+ * @internal
  */
 function wrapAsArrayIfValid<T>(resp: Record<string, unknown>): T[] {
   const isContainer = "Success" in resp || "Timestamp" in resp

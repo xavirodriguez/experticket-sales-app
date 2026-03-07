@@ -1,12 +1,36 @@
 import { useState, useEffect } from "react"
 
 /**
- * Custom hook to manage a countdown timer.
- *
- * @param targetTimestamp - The unix timestamp (ms) to count down to.
- * @returns An object containing the formatted time left, whether it has expired, and the raw difference.
+ * Defines the shape of the data returned by the {@link useCountdown} hook.
  */
-export function useCountdown(targetTimestamp: number | null) {
+export interface CountdownResult {
+  /** The formatted time remaining (e.g., "5m 30s") or "Expired". */
+  timeLeft: string
+  /** Indicates if the target timestamp has been reached or passed. */
+  isExpired: boolean
+  /** The raw numeric difference in milliseconds between the target and now. */
+  diff: number
+}
+
+/**
+ * Custom hook to manage a real-time countdown timer.
+ *
+ * @remarks
+ * This hook sets up an interval that updates every second. It automatically
+ * handles cleanup when the component unmounts or the target changes.
+ *
+ * @param targetTimestamp - The unix timestamp (in milliseconds) to count down to.
+ * @returns An object of type {@link CountdownResult} containing timer state.
+ *
+ * @example
+ * ```tsx
+ * function Timer({ expiry }) {
+ *   const { timeLeft, isExpired } = useCountdown(expiry);
+ *   return <div>{isExpired ? 'Too late!' : timeLeft}</div>;
+ * }
+ * ```
+ */
+export function useCountdown(targetTimestamp: number | null): CountdownResult {
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [isExpired, setIsExpired] = useState(false)
   const [diff, setDiff] = useState<number>(0)

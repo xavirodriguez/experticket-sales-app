@@ -1,3 +1,8 @@
+/**
+ * @module SearchCard
+ * @description A reusable search component contained within a card.
+ */
+
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -7,32 +12,48 @@ import { Label } from "@/components/ui/label"
 import { Search, Loader2 } from "lucide-react"
 
 /**
- * Props for the {@link SearchCard} component.
+ * Defines the properties for the {@link SearchCard} component.
  */
-interface SearchCardProps {
-  /** Title of the search card. */
+export interface SearchCardProps {
+  /** The title displayed at the top of the card. */
   title: string
-  /** Description for the search card. */
+  /** A descriptive subtitle for the card. */
   description: string
-  /** Label for the search input. */
+  /** The text used as the label for the search input field. */
   inputLabel: string
-  /** Placeholder for the search input. */
+  /** The placeholder text shown in the input field when empty. */
   inputPlaceholder?: string
-  /** Current value of the search input. */
+  /** The current controlled value of the search input. */
   searchValue: string
-  /** Callback triggered when the search value changes. */
+  /** Callback function triggered whenever the input value changes. */
   onSearchValueChange: (value: string) => void
-  /** Callback triggered when the search is initiated. */
+  /** Callback function triggered when the search button is clicked or Enter is pressed. */
   onSearch: () => void
-  /** Whether a search is currently in progress. */
+  /** Indicates if a search operation is currently pending. */
   isLoading?: boolean
 }
 
 /**
- * A reusable search card component with a title, description, and an input with a search button.
+ * Renders a card containing a search input and an action button.
  *
- * @param props - Component props.
- * @returns The rendered search card.
+ * @remarks
+ * This component handles the Enter key press within the input to trigger the search.
+ * The search button is automatically disabled when the input is empty or a search is loading.
+ *
+ * @param props - The component properties.
+ * @returns A JSX element representing the search card.
+ *
+ * @example
+ * ```tsx
+ * <SearchCard
+ *   title="Find Transaction"
+ *   description="Search for a transaction by ID or email."
+ *   inputLabel="Transaction Identifier"
+ *   searchValue={query}
+ *   onSearchValueChange={setQuery}
+ *   onSearch={handleSearch}
+ * />
+ * ```
  */
 export function SearchCard({
   title,

@@ -6,7 +6,7 @@
 /**
  * A simple fetcher compatible with the SWR library for data fetching.
  *
- * @param url - The URL to fetch data from.
+ * @param url - The internal API URL to fetch data from.
  * @returns A promise that resolves to the parsed JSON response.
  *
  * @example
@@ -18,9 +18,12 @@ export const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 /**
  * Performs a fetch request to an internal API route and returns the raw Response.
- * Automatically sets the `Content-Type` header to `application/json`.
  *
- * @param path - The API endpoint path.
+ * @remarks
+ * This function automatically sets the `Content-Type` header to `application/json`.
+ * It is a thin wrapper around the native `fetch` API for consistent internal calls.
+ *
+ * @param path - The internal API endpoint path.
  * @param options - Standard RequestInit options for the fetch call.
  * @returns A promise that resolves to the fetch Response object.
  *
