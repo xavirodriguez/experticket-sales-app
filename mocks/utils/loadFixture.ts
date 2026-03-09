@@ -1,6 +1,7 @@
 // Use Vite's glob import to load all JSON fixtures at build time.
 // This ensures they are available in both Browser and Node environments.
-const fixtures = import.meta.glob("../fixtures/experticket/**/*.json", {
+// @ts-ignore - Vite specific import
+const fixtures = (import.meta as any).glob("../fixtures/experticket/**/*.json", {
   eager: true,
   import: "default",
 })

@@ -723,29 +723,29 @@ export interface CancellationListResponse extends ExperticketBaseResponse {
 /**
  * Defines the response containing the last updated date and time for the catalog.
  */
-export interface CatalogLastUpdatedDateTimeResponse extends LastUpdatedResponse {}
+export type CatalogLastUpdatedDateTimeResponse = LastUpdatedResponse
 
 /**
  * Defines the response for checking ticket questions.
  */
-export interface CheckTicketsQuestionsResponse extends TicketQuestionsResponse {}
+export type CheckTicketsQuestionsResponse = TicketQuestionsResponse
 
 /**
  * Alias for creating a transaction response.
  */
-export interface TransactionCreateResponse extends Transaction {}
+export type TransactionCreateResponse = Transaction
 
 /**
  * Alias for querying a transaction response.
  */
-export interface TransactionQueryResponse extends TransactionListResponse {}
+export type TransactionQueryResponse = TransactionListResponse
 
 /**
  * Defines the response for creating a cancellation request.
  */
-export interface CancellationRequestCreateResponse extends CancellationRequestResponse {}
+export type CancellationRequestCreateResponse = CancellationRequestResponse
 
 /**
  * Defines the response for querying cancellation requests.
  */
-export interface CancellationRequestQueryResponse extends CancellationListResponse {}
+export type CancellationRequestQueryResponse = CancellationListResponse
