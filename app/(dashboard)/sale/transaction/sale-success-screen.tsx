@@ -7,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, FileText, QrCode, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Transaction } from "@/lib/experticket/types"
+import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**
  * Props for the SaleSuccessScreen component.
  */
 interface Props {
   /** The finalized transaction details. */
-  transaction: Transaction
+  transaction: DomainTransaction
   /** Callback to reset the sale wizard. */
   onReset: () => void
 }
@@ -33,12 +33,12 @@ export function SaleSuccessScreen({
   transaction,
   onReset,
 }: Props) {
-  const saleId = transaction.SaleId || transaction.TransactionId || ""
+  const saleId = transaction.saleId || transaction.transactionId || ""
   return (
     <div className="space-y-6">
-      <SuccessCard saleId={saleId} totalPrice={transaction.TotalPrice} />
+      <SuccessCard saleId={saleId} totalPrice={transaction.totalPrice} />
 
-      <TransactionProductsCard products={transaction.Products || []} />
+      <TransactionProductsCard products={transaction.products || []} />
 
       <QuickActionsCard saleId={saleId} onReset={onReset} />
     </div>
@@ -62,7 +62,7 @@ function SuccessCard({ saleId, totalPrice }: { saleId: string; totalPrice?: numb
   )
 }
 
-function TransactionProductsCard({ products }: { products: Transaction["Products"] }) {
+function TransactionProductsCard({ products }: { products: DomainTransaction["products"] }) {
   if (!products || products.length === 0) return undefined
 
   return (
@@ -78,21 +78,21 @@ function TransactionProductsCard({ products }: { products: Transaction["Products
               className="flex items-center justify-between rounded-md border border-border px-3 py-2"
             >
               <div>
-                <p className="text-sm font-medium">{p.ProductName || p.ProductId}</p>
-                {p.AccessCode && (
+                <p className="text-sm font-medium">{p.productName || p.productId}</p>
+                {p.accessCode && (
                   <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                    Access: {p.AccessCode}
+                    Access: {p.accessCode}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {p.Price != null && (
-                  <span className="text-sm font-medium">{p.Price.toFixed(2)} EUR</span>
+                {p.price != null && (
+                  <span className="text-sm font-medium">{p.price.toFixed(2)} EUR</span>
                 )}
                 <Badge
-                  variant={p.Status === 1 || p.Status === undefined ? "secondary" : "destructive"}
+                  variant={p.status === 1 || p.status === undefined ? "secondary" : "destructive"}
                 >
-                  {p.Status === 1 || p.Status === undefined ? "OK" : `Status ${p.Status}`}
+                  {p.status === 1 || p.status === undefined ? "OK" : `Status ${p.status}`}
                 </Badge>
               </div>
             </div>

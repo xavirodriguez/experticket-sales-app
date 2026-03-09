@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react"
 import type {
-  CatalogProvider,
-  CatalogProduct,
-  CapacityItem,
-  RealTimePriceItem,
-  ReservationResponse,
-  Transaction,
-} from "@/lib/experticket/types"
+  DomainProvider,
+  DomainProduct,
+  DomainCapacityItem,
+  DomainRealTimePrice,
+  DomainReservation,
+  DomainTransaction,
+} from "@/lib/experticket/adapter"
 
 /**
  * Shared state for the entire sale wizard.
@@ -15,9 +15,9 @@ export interface SaleState {
   /** Selected language code for the sale. */
   language: string
   /** The provider selected in Step 1. */
-  provider: CatalogProvider | undefined
+  provider: DomainProvider | undefined
   /** List of products added to the cart, including their quantities. */
-  selectedProducts: (CatalogProduct & { quantity: number })[]
+  selectedProducts: (DomainProduct & { quantity: number })[]
   /** Chosen access date for the sale. */
   accessDate: string
   /** Optional end date for access. */
@@ -27,11 +27,11 @@ export interface SaleState {
 
   // Step 2
   /** Capacity data fetched for the selected products and date. */
-  capacityData: CapacityItem[]
+  capacityData: DomainCapacityItem[]
 
   // Step 3
   /** Real-time pricing information. */
-  pricingData: RealTimePriceItem[]
+  pricingData: DomainRealTimePrice[]
 
   // Step 4
   /** Answers provided for the required ticket questions. */
@@ -39,13 +39,13 @@ export interface SaleState {
 
   // Step 5
   /** The reservation result from the Experticket API. */
-  reservation: ReservationResponse | undefined
+  reservation: DomainReservation | undefined
   /** Timestamp indicating when the current reservation expires. */
   reservationExpiry: number | undefined
 
   // Step 6
   /** The final transaction details after successful creation. */
-  transaction: Transaction | undefined
+  transaction: DomainTransaction | undefined
 }
 
 /**

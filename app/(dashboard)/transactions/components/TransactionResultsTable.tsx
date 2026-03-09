@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
 import { resolveTransactionId, formatPrice } from "@/lib/experticket/utils"
-import type { Transaction } from "@/lib/experticket/types"
+import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**
  * Props for the {@link TransactionResultsTable} component.
  */
 interface TransactionResultsTableProps {
   /** List of transactions to display. */
-  transactions: Transaction[]
+  transactions: DomainTransaction[]
   /** Callback triggered when a transaction is selected for viewing. */
-  onSelectTransaction: (tx: Transaction) => void
+  onSelectTransaction: (tx: DomainTransaction) => void
 }
 
 /**
@@ -49,20 +49,20 @@ export function TransactionResultsTable({
           </TableHeader>
           <TableBody>
             {transactions.map((tx, i) => {
-              const txId = resolveTransactionId(tx)
-              const price = tx.TotalPrice ?? tx.TotalAmount ?? tx.Price
-              const currency = (tx.Currency as string) || "EUR"
+              const txId = tx.saleId || tx.transactionId || "N/A"
+              const price = tx.totalPrice
+              const currency = "EUR"
 
               return (
                 <TableRow key={txId + i}>
                   <TableCell className="font-mono text-sm">{txId}</TableCell>
                   <TableCell>
-                    {String(tx.TransactionDateTime || tx.DateTime || tx.Date || "N/A")}
+                    {String(tx.transactionDateTime || "N/A")}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={String(tx.Status || tx.TransactionStatus || "Unknown")} />
+                    <StatusBadge status={String(tx.paymentStatus || "Unknown")} />
                   </TableCell>
-                  <TableCell>{formatPrice(price as number | string | null | undefined, currency)}</TableCell>
+                  <TableCell>{formatPrice(price, currency)}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" onClick={() => onSelectTransaction(tx)}>
                       <Eye className="mr-1 h-3 w-3" />

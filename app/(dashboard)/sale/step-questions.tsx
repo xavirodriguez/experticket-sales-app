@@ -42,7 +42,7 @@ export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
    * Validates mandatory questions and proceeds.
    */
   function handleNext() {
-    const missing = questions.filter((q) => q.Required && !answers[q.Id])
+    const missing = questions.filter((q) => q.required && !answers[q.id])
     if (missing.length > 0) {
       toast.error(`Please answer all required questions (${missing.length} missing)`)
       return
@@ -68,10 +68,10 @@ export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
         <CardContent className="space-y-4">
           {questions.map((q) => (
             <QuestionField
-              key={q.Id}
-              question={q}
-              value={answers[q.Id] || ""}
-              onChange={(val) => setAnswer(q.Id, val)}
+              key={q.id}
+              question={q as any}
+              value={answers[q.id] || ""}
+              onChange={(val) => setAnswer(q.id, val)}
             />
           ))}
         </CardContent>

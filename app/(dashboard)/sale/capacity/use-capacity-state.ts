@@ -6,7 +6,7 @@
 import useSWR from "swr"
 import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "../use-sale-wizard"
-import type { AvailableCapacityResponse, CapacityItem } from "@/lib/experticket/types"
+import type { DomainCapacity, DomainCapacityItem } from "@/lib/experticket/adapter"
 
 /**
  * Custom hook to manage the state and logic for Step 2 (Capacity).
@@ -20,12 +20,12 @@ import type { AvailableCapacityResponse, CapacityItem } from "@/lib/experticket/
  */
 export function useCapacityState(state: SaleState) {
   const params = new URLSearchParams({
-    ProductIds: state.selectedProducts.map((p) => p.ProductId).join(","),
+    ProductIds: state.selectedProducts.map((p) => p.productId).join(","),
     Dates: state.accessDate,
     IncludePrices: "true",
   })
 
-  const { data, isLoading, error } = useSWR<AvailableCapacityResponse>(
+  const { data, isLoading, error } = useSWR<DomainCapacity>(
     `/api/experticket/capacity?${params.toString()}`,
     fetcher
   )
@@ -48,11 +48,11 @@ export function useCapacityState(state: SaleState) {
  * @param data - The raw API response.
  * @returns An array of capacity items.
  */
-function resolveCapacityItems(data?: AvailableCapacityResponse): CapacityItem[] {
+function resolveCapacityItems(data?: DomainCapacity): DomainCapacityItem[] {
   return [
-    ...(data?.ProductBases || []),
-    ...(data?.Products || []),
-    ...(data?.Sessions || []),
+    ...(data?.productBases || []),
+    ...(data?.products || []),
+    ...(data?.sessions || []),
   ]
 }
 
@@ -62,7 +62,7 @@ function resolveCapacityItems(data?: AvailableCapacityResponse): CapacityItem[] 
  * @param items - The list of capacity items to check.
  * @returns True if all items have capacity or unlimited capacity.
  */
-function checkHasCapacity(items: CapacityItem[]): boolean {
+function checkHasCapacity(items: DomainCapacityItem[]): boolean {
   if (items.length === 0) return true
-  return items.every((c) => c.AvailableCapacity === undefined || c.AvailableCapacity > 0)
+  return items.every((c) => c.availableCapacity === undefined || c.availableCapacity > 0)
 }

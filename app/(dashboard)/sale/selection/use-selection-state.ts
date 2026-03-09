@@ -4,12 +4,12 @@ import { toast } from "sonner"
 import { fetcher } from "@/lib/experticket/client"
 import type { SaleState } from "../use-sale-wizard"
 import type {
-  CatalogResponse,
-  CatalogProvider,
-  CatalogProduct,
-  LanguagesResponse,
-  Language,
-} from "@/lib/experticket/types"
+  DomainCatalog,
+  DomainProvider,
+  DomainProduct,
+  DomainLanguages,
+  DomainLanguage,
+} from "@/lib/experticket/adapter"
 
 /**
  * Custom hook to manage the shopping cart for Step 1.
@@ -17,15 +17,15 @@ import type {
  * @param initialProducts - The initial list of products in the cart.
  * @returns Cart state and management functions.
  */
-function useCart(initialProducts: (CatalogProduct & { quantity: number })[]) {
+function useCart(initialProducts: (DomainProduct & { quantity: number })[]) {
   const [cart, setCart] = useState(initialProducts)
 
-  const addToCart = useCallback((product: CatalogProduct) => {
+  const addToCart = useCallback((product: DomainProduct) => {
     setCart((prev) => {
-      const existing = prev.find((p) => p.ProductId === product.ProductId)
+      const existing = prev.find((p) => p.productId === product.productId)
       if (existing) {
         return prev.map((p) =>
-          p.ProductId === product.ProductId ? { ...p, quantity: p.quantity + 1 } : p
+          p.productId === product.productId ? { ...p, quantity: p.quantity + 1 } : p
         )
       }
       return [...prev, { ...product, quantity: 1 }]
@@ -34,11 +34,11 @@ function useCart(initialProducts: (CatalogProduct & { quantity: number })[]) {
 
   const removeFromCart = useCallback((productId: string) => {
     setCart((prev) => {
-      const existing = prev.find((p) => p.ProductId === productId)
+      const existing = prev.find((p) => p.productId === productId)
       if (existing && existing.quantity > 1) {
-        return prev.map((p) => (p.ProductId === productId ? { ...p, quantity: p.quantity - 1 } : p))
+        return prev.map((p) => (p.productId === productId ? { ...p, quantity: p.quantity - 1 } : p))
       }
-      return prev.filter((p) => p.ProductId !== productId)
+      return prev.filter((p) => p.productId !== productId)
     })
   }, [])
 
@@ -52,14 +52,14 @@ function useCart(initialProducts: (CatalogProduct & { quantity: number })[]) {
  * @returns Catalog data, languages, and loading state.
  */
 function useCatalogData(language: string) {
-  const { data: langData } = useSWR<LanguagesResponse>("/api/experticket/languages", fetcher)
-  const { data: catalogData, isLoading: catalogLoading } = useSWR<CatalogResponse>(
+  const { data: langData } = useSWR<DomainLanguages>("/api/experticket/languages", fetcher)
+  const { data: catalogData, isLoading: catalogLoading } = useSWR<DomainCatalog>(
     `/api/experticket/catalog?LanguageCode=${language}`,
     fetcher
   )
 
   const languages = useMemo(() => resolveLanguages(langData), [langData])
-  const providers = catalogData?.Providers || []
+  const providers = catalogData?.providers || []
 
   return { languages, providers, catalogLoading }
 }
@@ -68,7 +68,7 @@ function useCatalogData(language: string) {
  * Custom hook for managing the basic selection state.
  */
 function useLocalSelectionState(state: SaleState) {
-  const [selectedProvider, setSelectedProvider] = useState<CatalogProvider | undefined>(
+  const [selectedProvider, setSelectedProvider] = useState<DomainProvider | undefined>(
     state.provider
   )
   const [accessDate, setAccessDate] = useState(state.accessDate)
@@ -88,15 +88,15 @@ function useLocalSelectionState(state: SaleState) {
  * Hook to synchronize the cart when the provider changes.
  */
 function useCartSync(
-  selectedProvider: CatalogProvider | undefined,
-  stateProvider: CatalogProvider | undefined,
-  setCart: (c: (CatalogProduct & { quantity: number })[]) => void
+  selectedProvider: DomainProvider | undefined,
+  stateProvider: DomainProvider | undefined,
+  setCart: (c: (DomainProduct & { quantity: number })[]) => void
 ) {
   useEffect(() => {
-    if (selectedProvider?.ProviderId !== stateProvider?.ProviderId) {
+    if (selectedProvider?.providerId !== stateProvider?.providerId) {
       setCart([])
     }
-  }, [selectedProvider?.ProviderId, stateProvider?.ProviderId, setCart])
+  }, [selectedProvider?.providerId, stateProvider?.providerId, setCart])
 }
 
 /**
@@ -104,7 +104,7 @@ function useCartSync(
  */
 function useSelectionNavigation(
   local: ReturnType<typeof useLocalSelectionState>,
-  cart: (CatalogProduct & { quantity: number })[],
+  cart: (DomainProduct & { quantity: number })[],
   updateState: (p: Partial<SaleState>) => void,
   onNext: () => void
 ) {
@@ -143,15 +143,15 @@ export function useSelectionState(
 /**
  * Resolves the list of languages, providing defaults if data is missing.
  */
-function resolveLanguages(langData?: LanguagesResponse): Language[] {
-  if (langData?.Languages?.length) {
-    return langData.Languages
+function resolveLanguages(langData?: DomainLanguages): DomainLanguage[] {
+  if (langData?.languages?.length) {
+    return langData.languages
   }
   return [
-    { Code: "es", EnglishName: "Spanish", NativeName: "Espanol" },
-    { Code: "en", EnglishName: "English", NativeName: "English" },
-    { Code: "fr", EnglishName: "French", NativeName: "Francais" },
-    { Code: "it", EnglishName: "Italian", NativeName: "Italiano" },
+    { code: "es", englishName: "Spanish", nativeName: "Espanol" },
+    { code: "en", englishName: "English", nativeName: "English" },
+    { code: "fr", englishName: "French", nativeName: "Francais" },
+    { code: "it", englishName: "Italian", nativeName: "Italiano" },
   ]
 }
 
@@ -159,7 +159,7 @@ function resolveLanguages(langData?: LanguagesResponse): Language[] {
  * Context for selection validation.
  */
 interface SelectionValidationContext {
-  provider: CatalogProvider | undefined
+  provider: DomainProvider | undefined
   cart: unknown[]
   accessDate: string
 }

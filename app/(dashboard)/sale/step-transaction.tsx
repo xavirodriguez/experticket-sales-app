@@ -54,11 +54,11 @@ export function StepTransaction({ state, onReset }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <TransactionSummary
-            reservationId={state.reservation?.ReservationId}
+            reservationId={state.reservation?.reservationId}
             accessDate={state.accessDate}
             productsCount={state.selectedProducts.length}
             itemsCount={state.selectedProducts.reduce((a, p) => a + p.quantity, 0)}
-            totalPrice={state.reservation?.TotalPrice}
+            totalPrice={state.reservation?.totalPrice}
           />
 
           <div className="space-y-2">

@@ -5,14 +5,14 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { CapacityItem } from "@/lib/experticket/types"
+import type { DomainCapacityItem } from "@/lib/experticket/adapter"
 
 /**
  * Props for the CapacityTable component.
  */
 interface Props {
   /** Array of capacity items to display. */
-  items: CapacityItem[]
+  items: DomainCapacityItem[]
 }
 
 /**
@@ -40,13 +40,13 @@ export function CapacityTable({ items }: Props) {
         {items.map((item, idx) => (
           <TableRow key={idx}>
             <TableCell className="font-mono text-xs">
-              {item.ProductId || item.ProductBaseId || item.SessionId}
+              {item.productId || item.productBaseId || item.sessionId}
             </TableCell>
-            <TableCell>{item.Date ? new Date(item.Date).toLocaleDateString() : "-"}</TableCell>
+            <TableCell>{item.date ? new Date(item.date).toLocaleDateString() : "-"}</TableCell>
             <TableCell>
-              <CapacityBadge available={item.AvailableCapacity} />
+              <CapacityBadge available={item.availableCapacity} />
             </TableCell>
-            <TableCell>{item.Price != null ? `${item.Price.toFixed(2)} EUR` : "-"}</TableCell>
+            <TableCell>{item.price != null ? `${item.price.toFixed(2)} EUR` : "-"}</TableCell>
           </TableRow>
         ))}
       </TableBody>
