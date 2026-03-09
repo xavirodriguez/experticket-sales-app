@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { ReservationResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * Handles POST requests to create a temporary reservation.
@@ -45,6 +47,5 @@ export async function DELETE(request: NextRequest) {
 function buildReservationPayload(body: Record<string, unknown>) {
   return {
     ...body,
-    ApiKey: getApiKey(),
   }
 }

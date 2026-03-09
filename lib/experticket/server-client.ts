@@ -12,7 +12,16 @@ import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
 const BASE_URL = process.env.EXPERTICKET_BASE_URL || ""
 const PARTNER_ID = process.env.EXPERTICKET_PARTNER_ID || ""
 const API_KEY = process.env.EXPERTICKET_API_KEY || ""
+const API_VERSION = process.env.EXPERTICKET_API_VERSION || "3.58"
 const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
+
+/**
+ * Retrieves the API Version from environment variables.
+ * @returns The API Version string.
+ */
+export function getApiVersion(): string {
+  return API_VERSION
+}
 
 /**
  * Retrieves the Partner ID from environment variables.
@@ -52,6 +61,8 @@ export interface FetchOptions {
   timeout?: number
   /** Number of retry attempts for idempotent GET requests. Defaults to 1. */
   retries?: number
+  /** Cache revalidation time in seconds. Defaults to 60 for GET requests. */
+  revalidate?: number
 }
 
 /**
@@ -119,7 +130,14 @@ interface RetryOptions {
  */
 function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
   const url = new URL(path, BASE_URL)
-  Object.entries(params).forEach(([key, value]) => {
+  const allParams = {
+    ApiKey: API_KEY,
+    PartnerId: PARTNER_ID,
+    "api-version": API_VERSION,
+    ...params,
+  }
+
+  Object.entries(allParams).forEach(([key, value]) => {
     if (value !== undefined && value !== "") {
       url.searchParams.set(key, String(value))
     }
@@ -133,11 +151,17 @@ function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
  * @internal
  */
 function prepareFetchOptions(options: FetchOptions): RequestInit {
-  const { method = "GET", body } = options
+  const { method = "GET", body, revalidate = 60 } = options
   const fetchOptions: RequestInit = {
     method,
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    cache: "no-store",
+  }
+
+  if (method === "GET") {
+    // @ts-ignore - Next.js specific fetch options
+    fetchOptions.next = { revalidate }
+  } else {
+    fetchOptions.cache = "no-store"
   }
 
   if (body && (method === "POST" || method === "DELETE")) {
@@ -210,11 +234,26 @@ async function fetchAndProcess<T>(url: string, options: RequestInit): Promise<T>
  * @internal
  */
 async function handleApiResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error")
-    throw new Error(`Experticket API error ${response.status}: ${errorText}`)
+  const text = await response.text()
+  let data: any
+
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch {
+    data = null
   }
-  return (await response.json()) as T
+
+  if (!response.ok) {
+    const errorMessage = data?.ErrorMessage || text || "Unknown error"
+    const error = new Error(`Experticket API error ${response.status}: ${errorMessage}`)
+    // @ts-ignore - attaching status for better error handling
+    error.status = response.status
+    // @ts-ignore
+    error.details = text
+    throw error
+  }
+
+  return data as T
 }
 
 /**

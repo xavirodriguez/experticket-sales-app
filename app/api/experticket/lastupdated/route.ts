@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { LastUpdatedResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-lastupdated
@@ -16,24 +18,11 @@ import type { LastUpdatedResponse } from "@/lib/experticket/types"
  */
 export async function GET(_request: NextRequest) {
   try {
-    const params = mapSearchParamsToLastUpdatedParams()
     const data = await experticketFetch<LastUpdatedResponse>("/lastupdated", {
-      params,
       retries: 1,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps parameters for the last updated request.
- *
- * @returns An object containing the API key.
- */
-function mapSearchParamsToLastUpdatedParams() {
-  return {
-    ApiKey: getApiKey(),
   }
 }

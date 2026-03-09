@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type {
   CancellationListResponse,
   CancellationRequestResponse,
 } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * Handles POST requests to create or check cancellation requests.
@@ -58,7 +60,6 @@ export async function GET(request: NextRequest) {
 async function checkCancellationStatus(saleId: string) {
   const data = await experticketFetch<CancellationListResponse>("/cancellationrequest", {
     params: {
-      ApiKey: getApiKey(),
       SaleId: saleId,
       PageSize: "10",
       Page: "1",
@@ -91,7 +92,6 @@ function buildCancellationPayload({
   extra,
 }: CancellationRequestContext) {
   return {
-    ApiKey: getApiKey(),
     SaleId: saleId,
     Reason: reason ?? 0,
     ReasonComments: reasonComments || undefined,
@@ -104,7 +104,6 @@ function buildCancellationPayload({
  */
 function mapSearchParamsToCancellationParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
     SaleId: searchParams.get("SaleId") || undefined,
     FromCreatedDateTime: searchParams.get("FromCreatedDateTime") || undefined,
     ToCreatedDateTime: searchParams.get("ToCreatedDateTime") || undefined,

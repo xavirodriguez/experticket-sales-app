@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey, getPartnerId } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AvailableCapacityResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-capacity
@@ -37,8 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToCapacityParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
-    PartnerId: getPartnerId(),
     ProductBaseIds: searchParams.get("ProductBaseIds") || undefined,
     ProductIds: searchParams.get("ProductIds") || undefined,
     SessionIds: searchParams.get("SessionIds") || undefined,

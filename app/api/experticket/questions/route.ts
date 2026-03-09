@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TicketQuestionsResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-questions
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToQuestionsParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
     Tickets: searchParams.get("Tickets") || "",
     LanguageCode: searchParams.get("LanguageCode") || undefined,
   }

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionListResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * Handles POST requests to create a new transaction.
@@ -11,7 +13,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const payload = {
       ...body,
-      ApiKey: getApiKey(),
     }
 
     const data = await experticketFetch("/transaction", {
@@ -49,7 +50,6 @@ function mapSearchParamsToTransactionParams(searchParams: URLSearchParams) {
   const getParam = (key: string) => searchParams.get(key) || undefined
 
   return {
-    ApiKey: getApiKey(),
     SaleId: getParam("SaleId"),
     ReservationId: getParam("ReservationId"),
     PartnerSaleId: getParam("PartnerSaleId"),

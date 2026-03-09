@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { TransactionDocumentsResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-documents
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToDocumentsParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
     id: searchParams.get("id") || "",
     IncludeTransactionDocumentsLanguages:
       searchParams.get("IncludeTransactionDocumentsLanguages") || "true",

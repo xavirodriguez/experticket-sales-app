@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { RealTimePricesResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-prices
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToPricingParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
     AccessDateTime: searchParams.get("AccessDateTime") || "",
     Products: searchParams.get("Products") || "",
     LanguageCode: searchParams.get("LanguageCode") || undefined,
