@@ -8,7 +8,7 @@ import { HttpResponse } from "msw"
  * @returns An MSW HttpResponse instance.
  */
 export function jsonResponse<T>(data: T, status = 200) {
-  return HttpResponse.json(data, { status })
+  return HttpResponse.json(data as unknown as object, { status })
 }
 
 /**
