@@ -10,19 +10,23 @@ import type {
 
 /**
  * Shared state for the entire sale wizard.
+ *
+ * @remarks
+ * This interface holds all the data accumulated throughout the multi-step
+ * checkout process, from initial selection to final transaction.
  */
 export interface SaleState {
-  /** Selected language code for the sale. */
+  /** ISO 639-1 two-letter language code selected for the sale. */
   language: string
-  /** The provider selected in Step 1. */
+  /** The provider selected in the first step. */
   provider: CatalogProvider | undefined
   /** List of products added to the cart, including their quantities. */
   selectedProducts: (CatalogProduct & { quantity: number })[]
-  /** Chosen access date for the sale. */
+  /** Chosen access date for the sale in ISO 8601 format. */
   accessDate: string
-  /** Optional end date for access. */
+  /** Optional end date for venue access in ISO 8601 format. */
   accessEndDate?: string
-  /** Optional session identifier. */
+  /** Optional session identifier if a specific time slot was selected. */
   sessionId?: string
 
   // Step 2
@@ -30,17 +34,17 @@ export interface SaleState {
   capacityData: CapacityItem[]
 
   // Step 3
-  /** Real-time pricing information. */
+  /** Real-time pricing information for the current selection. */
   pricingData: RealTimePriceItem[]
 
   // Step 4
-  /** Answers provided for the required ticket questions. */
+  /** Answers provided for the required ticket questions, keyed by question ID. */
   questionAnswers: Record<string, unknown>
 
   // Step 5
   /** The reservation result from the Experticket API. */
   reservation: ReservationResponse | undefined
-  /** Timestamp indicating when the current reservation expires. */
+  /** Unix timestamp (milliseconds) indicating when the current reservation expires. */
   reservationExpiry: number | undefined
 
   // Step 6
@@ -62,20 +66,48 @@ export const STEPS = [
 
 /**
  * Custom hook to manage the state and navigation of the sale wizard.
+ *
+ * @returns An object containing the current step, wizard state, and navigation helpers.
+ *
+ * @example
+ * ```tsx
+ * function SalePage() {
+ *   const { step, state, goNext, goBack } = useSaleWizard();
+ *   return <div>Step: {step}</div>;
+ * }
+ * ```
  */
 export function useSaleWizard() {
   const [step, setStep] = useState(0)
   const [state, setState] = useState<SaleState>(createInitialState())
 
+  /**
+   * Updates the wizard state with a partial state object.
+   */
   const updateState = useCallback(
     (partial: Partial<SaleState>) => setState((prev) => ({ ...prev, ...partial })),
     []
   )
 
+  /**
+   * Advances to the next step in the wizard.
+   */
   const goNext = useCallback(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), [])
+
+  /**
+   * Navigates back to the previous step in the wizard.
+   */
   const goBack = useCallback(() => setStep((s) => Math.max(s - 1, 0)), [])
+
+  /**
+   * Navigates to a specific step by its index.
+   * @param idx - The zero-based index of the target step.
+   */
   const goTo = useCallback((idx: number) => setStep(idx), [])
 
+  /**
+   * Resets the entire sale wizard to its initial state and step.
+   */
   const resetSale = useCallback(() => {
     setState(createInitialState())
     setStep(0)
@@ -94,6 +126,8 @@ export function useSaleWizard() {
 
 /**
  * Creates the initial state for the sale wizard.
+ *
+ * @internal
  */
 function createInitialState(): SaleState {
   return {

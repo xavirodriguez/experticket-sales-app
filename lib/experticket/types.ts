@@ -17,7 +17,12 @@ export interface ExperticketBaseResponse {
   Success: boolean
   /** ISO 8601 timestamp indicating when the response was generated. */
   Timestamp?: string
-  /** Human-readable error message explaining the failure when {@link Success} is false. */
+  /**
+   * Human-readable error message explaining the failure.
+   *
+   * @remarks
+   * This field is typically populated only when {@link ExperticketBaseResponse.Success} is `false`.
+   */
   ErrorMessage?: string | null
   /** A list of machine-readable error codes associated with the failure. */
   ErrorCodes?: string[]

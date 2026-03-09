@@ -1,6 +1,11 @@
 /**
- * @module lib/utils
- * @description Core application utility functions.
+ * Core application utility functions.
+ *
+ * @remarks
+ * This module provides generic utilities used across the entire application,
+ * such as Tailwind CSS class merging.
+ *
+ * @packageDocumentation
  */
 
 import { clsx, type ClassValue } from 'clsx'
@@ -22,6 +27,6 @@ import { twMerge } from 'tailwind-merge'
  * // returns 'px-2 py-1 bg-blue-500 text-white'
  * ```
  */
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }

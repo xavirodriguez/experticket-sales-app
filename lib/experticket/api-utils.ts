@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server"
 
 /**
- * @module experticket-api-utils
- * @description Utility functions for Next.js API route handlers.
+ * Utility functions for Next.js API route handlers.
+ *
+ * @remarks
+ * These utilities assist in creating standardized responses and handling
+ * errors within the application's internal API proxy routes.
+ *
+ * @packageDocumentation
  */
 
 /**
@@ -25,7 +30,7 @@ import { NextResponse } from "next/server"
  * }
  * ```
  */
-export function createErrorResponse(err: unknown, status: number = 502) {
+export function createErrorResponse(err: unknown, status: number = 502): NextResponse {
   const message = err instanceof Error ? err.message : "Unknown error"
   return NextResponse.json(
     {

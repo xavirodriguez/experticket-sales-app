@@ -1,10 +1,11 @@
 /**
- * @module experticket-storage
- * @description Centralized utility for interacting with localStorage.
+ * Centralized utility for interacting with localStorage.
  *
  * @remarks
  * All functions in this module are safe to call in server-side environments;
  * they will gracefully handle the absence of the `window` or `localStorage` objects.
+ *
+ * @packageDocumentation
  */
 
 import { STORAGE_KEYS } from "./constants"
