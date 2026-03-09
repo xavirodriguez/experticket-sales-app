@@ -129,7 +129,11 @@ interface RetryOptions {
  * @internal
  */
 function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
-  const url = new URL(path, BASE_URL)
+  // Ensure BASE_URL doesn't end with / and path doesn't start with / to avoid losing subpaths
+  const normalizedBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path
+  const url = new URL(`${normalizedBase}/${normalizedPath}`)
+
   const allParams = {
     ApiKey: API_KEY,
     PartnerId: PARTNER_ID,

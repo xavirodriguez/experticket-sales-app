@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const params = mapSearchParamsToCatalogParams(searchParams)
 
-    const data = await experticketFetch<CatalogResponse>("/catalog", {
+    const data = await experticketFetch<CatalogResponse>("catalog", {
       params,
       retries: 1,
     })

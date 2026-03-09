@@ -18,7 +18,7 @@ export const runtime = "nodejs"
  */
 export async function GET(_request: NextRequest) {
   try {
-    const data = await experticketFetch<LanguagesResponse>("/languages", {
+    const data = await experticketFetch<LanguagesResponse>("languages", {
       retries: 1,
     })
     return NextResponse.json(data)
