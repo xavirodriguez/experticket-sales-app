@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { experticketFetch } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { AccessCodesResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-accesscodes
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToAccessCodesParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
     SaleId: searchParams.get("SaleId") || "",
     InternalCodes: searchParams.get("InternalCodes") || undefined,
   }

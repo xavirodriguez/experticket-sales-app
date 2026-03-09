@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  experticketFetch,
-  getApiKey,
-  getDefaultLanguage,
-  getPartnerId,
-} from "@/lib/experticket/server-client"
+import { experticketFetch, getDefaultLanguage } from "@/lib/experticket/server-client"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
 import type { CatalogResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-catalog
@@ -42,8 +39,6 @@ export async function GET(request: NextRequest) {
  */
 function mapSearchParamsToCatalogParams(searchParams: URLSearchParams) {
   return {
-    ApiKey: getApiKey(),
-    PartnerId: getPartnerId(),
     LanguageCode: searchParams.get("LanguageCode") || getDefaultLanguage(),
   }
 }

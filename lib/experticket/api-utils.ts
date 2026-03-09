@@ -27,11 +27,27 @@ import { NextResponse } from "next/server"
  */
 export function createErrorResponse(err: unknown, status: number = 502) {
   const message = err instanceof Error ? err.message : "Unknown error"
+  // @ts-ignore
+  const upstreamStatus = err?.status || status
+  // @ts-ignore
+  const details = err?.details || undefined
+
+  if (process.env.NODE_ENV === "development") {
+    console.error("[Experticket API Error]:", {
+      message,
+      upstreamStatus,
+      details,
+      err,
+    })
+  }
+
   return NextResponse.json(
     {
       Success: false,
       ErrorMessage: message,
+      UpstreamStatus: upstreamStatus,
+      Details: details,
     },
-    { status }
+    { status: upstreamStatus }
   )
 }
