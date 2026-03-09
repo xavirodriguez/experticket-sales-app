@@ -719,3 +719,33 @@ export interface CancellationListResponse extends ExperticketBaseResponse {
   /** Indicates if the current page is the first in the results. */
   IsFirstPage?: boolean
 }
+
+/**
+ * Defines the response containing the last updated date and time for the catalog.
+ */
+export interface CatalogLastUpdatedDateTimeResponse extends LastUpdatedResponse {}
+
+/**
+ * Defines the response for checking ticket questions.
+ */
+export interface CheckTicketsQuestionsResponse extends TicketQuestionsResponse {}
+
+/**
+ * Alias for creating a transaction response.
+ */
+export interface TransactionCreateResponse extends Transaction {}
+
+/**
+ * Alias for querying a transaction response.
+ */
+export interface TransactionQueryResponse extends TransactionListResponse {}
+
+/**
+ * Defines the response for creating a cancellation request.
+ */
+export interface CancellationRequestCreateResponse extends CancellationRequestResponse {}
+
+/**
+ * Defines the response for querying cancellation requests.
+ */
+export interface CancellationRequestQueryResponse extends CancellationListResponse {}

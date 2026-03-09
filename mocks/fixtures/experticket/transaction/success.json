@@ -1,0 +1,21 @@
+{
+  "Success": true,
+  "TransactionId": "TRANS-789012",
+  "SaleId": "SALE-789012",
+  "TotalPrice": 15.0,
+  "PaymentStatus": 1,
+  "Products": [
+    {
+      "ProductId": "PROD-001",
+      "ProductName": "Entrada Adulto",
+      "Price": 15.0,
+      "Tickets": [
+        {
+          "TicketId": "TICK-INST-001",
+          "AccessCode": "BC-123456789",
+          "TicketName": "Ticket Adulto"
+        }
+      ]
+    }
+  ]
+}

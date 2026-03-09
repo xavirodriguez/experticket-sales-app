@@ -1,0 +1,27 @@
+{
+  "Success": true,
+  "Products": [
+    {
+      "ProductId": "PROD-001",
+      "Tickets": [
+        {
+          "TicketId": "TICK-001",
+          "TicketQuestionsProfileId": "PROF-001"
+        }
+      ]
+    }
+  ],
+  "TicketQuestionsProfiles": [
+    {
+      "Id": "PROF-001",
+      "Questions": [
+        {
+          "Id": "QUEST-001",
+          "Question": "¿Cuál es su nombre?",
+          "Required": true,
+          "DataType": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "Success": true,
+  "Transactions": [
+    {
+      "Id": "TRANS-789012",
+      "Products": [
+        {
+          "Id": "PROD-INST-001",
+          "Tickets": [
+            {
+              "Id": "TICK-INST-001",
+              "AccessCode": "BC-123456789"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
