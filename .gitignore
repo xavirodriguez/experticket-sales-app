@@ -12,3 +12,5 @@ node_modules/
 # Build artifacts
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+dist-types/
+temp/

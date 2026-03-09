@@ -1,6 +1,11 @@
 /**
- * @module experticket-constants
- * @description Centralized constants for the Experticket integration.
+ * Centralized constants for the Experticket integration.
+ *
+ * @remarks
+ * This module contains configuration defaults and storage keys used
+ * throughout the Experticket integration.
+ *
+ * @packageDocumentation
  */
 
 /**

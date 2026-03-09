@@ -1,6 +1,11 @@
 /**
- * @module experticket-utils
- * @description Shared utility functions for Experticket data processing.
+ * Shared utility functions for Experticket data processing.
+ *
+ * @remarks
+ * This module contains functions for price formatting, ID resolution,
+ * and API response normalization.
+ *
+ * @packageDocumentation
  */
 
 import type { Transaction } from "./types"
@@ -99,7 +104,7 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
  *
  * @internal
  */
-function isValidObject(val: unknown): val is Record<string, unknown> {
+export function isValidObject(val: unknown): val is Record<string, unknown> {
   return typeof val === "object" && val !== null
 }
 
@@ -108,7 +113,7 @@ function isValidObject(val: unknown): val is Record<string, unknown> {
  *
  * @internal
  */
-function extractListFromObject<T>(
+export function extractListFromObject<T>(
   resp: Record<string, unknown>,
   listKeys?: string | string[]
 ): T[] | undefined {
@@ -128,7 +133,7 @@ function extractListFromObject<T>(
  *
  * @internal
  */
-function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined {
+export function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined {
   const fallbacks = ["Transactions", "Documents", "AccessCodes", "Codes", "CancellationRequests"]
   for (const key of fallbacks) {
     if (Array.isArray(resp[key])) {
@@ -143,7 +148,7 @@ function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined
  *
  * @internal
  */
-function wrapAsArrayIfValid<T>(resp: Record<string, unknown>): T[] {
+export function wrapAsArrayIfValid<T>(resp: Record<string, unknown>): T[] {
   const isContainer = "Success" in resp || "Timestamp" in resp
   return !isContainer ? [resp as unknown as T] : []
 }

@@ -43,7 +43,7 @@ export function useCountdown(targetTimestamp: number | null): CountdownResult {
       return
     }
 
-    const calculateTimeLeft = () => {
+    const calculateTimeLeft = (): boolean => {
       const now = Date.now()
       const currentDiff = targetTimestamp - now
 

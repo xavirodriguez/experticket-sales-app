@@ -1,10 +1,11 @@
 /**
- * @module experticket-server-client
- * @description Server-side Experticket API client for communicating directly with the Experticket external API.
+ * Server-side Experticket API client.
  *
  * @remarks
  * This module should ONLY be imported from API route handlers or server-side functions.
  * It uses environment variables for configuration.
+ *
+ * @packageDocumentation
  */
 
 import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
@@ -47,15 +48,24 @@ export function getApiKey(): string {
  * Configuration options for the {@link experticketFetch} function.
  */
 export interface FetchOptions {
-  /** HTTP method to use. Defaults to "GET". */
+  /**
+   * HTTP method to use.
+   * @defaultValue "GET"
+   */
   method?: "GET" | "POST" | "DELETE"
   /** Request body for POST or DELETE requests. */
   body?: unknown
   /** Query parameters to be appended to the URL. */
   params?: Record<string, string | number | boolean | undefined>
-  /** Timeout in milliseconds before the request is aborted. Defaults to 15000ms. */
+  /**
+   * Timeout in milliseconds before the request is aborted.
+   * @defaultValue 15000
+   */
   timeout?: number
-  /** Number of retry attempts for idempotent GET requests. Defaults to 1. */
+  /**
+   * Number of retry attempts for idempotent GET requests.
+   * @defaultValue 1
+   */
   retries?: number
   /** Cache revalidation time in seconds. Defaults to 60 for GET requests. */
   revalidate?: number
@@ -72,7 +82,8 @@ export interface FetchOptions {
  * @param options - Configuration for the request.
  * @returns A promise that resolves to the parsed JSON response of type T.
  *
- * @throws {Error} If the API response is not OK or if a network/timeout error occurs.
+ * @throws {@link Error}
+ * Thrown if the API response is not OK or if a network/timeout error occurs.
  *
  * @example
  * ```typescript
@@ -102,10 +113,14 @@ export async function experticketFetch<T = unknown>(
  * Options for executing a request with timeout.
  * @internal
  */
-interface ExecuteRequestOptions {
+export interface ExecuteRequestOptions {
+  /** The full URL for the request. */
   url: string
+  /** The fetch configuration. */
   options: RequestInit
+  /** Timeout in milliseconds. */
   timeout: number
+  /** Number of retries. */
   retries: number
 }
 
@@ -113,9 +128,12 @@ interface ExecuteRequestOptions {
  * Options for performing a fetch with retry logic.
  * @internal
  */
-interface RetryOptions {
+export interface RetryOptions {
+  /** The full URL for the request. */
   url: string
+  /** The fetch configuration. */
   options: RequestInit
+  /** Number of retry attempts. */
   retries: number
 }
 
@@ -256,6 +274,8 @@ async function performFetchWithRetry<T>({
 
 /**
  * Fetches the URL and processes the response.
+ *
+ * @internal
  */
 async function fetchAndProcess<T>(url: string, options: RequestInit): Promise<T> {
   const response = await fetch(url, options)

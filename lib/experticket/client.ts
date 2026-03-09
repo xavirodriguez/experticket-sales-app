@@ -1,6 +1,12 @@
 /**
- * @module experticket-client
- * @description Client-side helpers for calling internal Experticket proxy API routes.
+ * Client-side helpers for calling internal Experticket proxy API routes.
+ *
+ * @remarks
+ * These utilities are designed for use in React components and hooks (client-side).
+ * They communicate with the application's own API routes which then proxy requests
+ * to the Experticket backend.
+ *
+ * @packageDocumentation
  */
 
 /**
@@ -14,7 +20,13 @@
  * const { data, error } = useSWR('/api/experticket/catalog', fetcher);
  * ```
  */
-export const fetcher = (url: string) => fetch(url).then((r) => r.json())
+export const fetcher = (url: string): Promise<any> =>
+  fetch(url).then((res) => {
+    if (!res.ok) {
+      throw new Error("Failed to fetch data")
+    }
+    return res.json()
+  })
 
 /**
  * Performs a fetch request to an internal API route and returns the raw Response.
@@ -39,9 +51,14 @@ export async function apiFetch(
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {
+  const headers = new Headers(options.headers)
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
+  }
+
   const res = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   })
   return res
 }
