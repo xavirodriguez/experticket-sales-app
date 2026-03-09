@@ -11,9 +11,7 @@ export const runtime = "nodejs"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = {
-      ...body,
-    }
+    const payload = { ...body }
 
     const data = await experticketFetch("transaction", {
       method: "POST",
@@ -47,21 +45,39 @@ export async function GET(request: NextRequest) {
  * Maps URL search parameters to Experticket transaction query parameters.
  */
 function mapSearchParamsToTransactionParams(searchParams: URLSearchParams) {
-  const getParam = (key: string) => searchParams.get(key) || undefined
-
   return {
-    SaleId: getParam("SaleId"),
-    ReservationId: getParam("ReservationId"),
-    PartnerSaleId: getParam("PartnerSaleId"),
-    PointOfSaleId: getParam("PointOfSaleId"),
-    FromTransactionDateTime: getParam("FromTransactionDateTime"),
-    ToTransactionDateTime: getParam("ToTransactionDateTime"),
-    FromAccessDateTime: getParam("FromAccessDateTime"),
-    ToAccessDateTime: getParam("ToAccessDateTime"),
-    FromCancelledDateTime: getParam("FromCancelledDateTime"),
-    ToCancelledDateTime: getParam("ToCancelledDateTime"),
+    SaleId: searchParams.get("SaleId") || undefined,
+    ReservationId: searchParams.get("ReservationId") || undefined,
+    PartnerSaleId: searchParams.get("PartnerSaleId") || undefined,
+    PointOfSaleId: searchParams.get("PointOfSaleId") || undefined,
+    ...mapDateParams(searchParams),
+    ...mapPaginationAndLangParams(searchParams),
+  }
+}
+
+/**
+ * Maps date-related search parameters.
+ * @internal
+ */
+function mapDateParams(searchParams: URLSearchParams) {
+  return {
+    FromTransactionDateTime: searchParams.get("FromTransactionDateTime") || undefined,
+    ToTransactionDateTime: searchParams.get("ToTransactionDateTime") || undefined,
+    FromAccessDateTime: searchParams.get("FromAccessDateTime") || undefined,
+    ToAccessDateTime: searchParams.get("ToAccessDateTime") || undefined,
+    FromCancelledDateTime: searchParams.get("FromCancelledDateTime") || undefined,
+    ToCancelledDateTime: searchParams.get("ToCancelledDateTime") || undefined,
+  }
+}
+
+/**
+ * Maps pagination and language-related search parameters.
+ * @internal
+ */
+function mapPaginationAndLangParams(searchParams: URLSearchParams) {
+  return {
     PageSize: searchParams.get("PageSize") || "20",
     Page: searchParams.get("Page") || "1",
-    LanguageCode: getParam("LanguageCode"),
+    LanguageCode: searchParams.get("LanguageCode") || undefined,
   }
 }
