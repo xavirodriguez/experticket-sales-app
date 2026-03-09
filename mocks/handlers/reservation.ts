@@ -2,7 +2,7 @@ import { http } from "msw"
 import { loadFixture } from "../utils/loadFixture"
 import { jsonResponse, errorResponse } from "../utils/jsonResponse"
 import { EXPERTICKET_API_BASE_URL, checkParams } from "../utils/constants"
-import type { ReservationResponse, ExperticketBaseResponse } from "../../lib/experticket/types"
+import type { ReservationResponse } from "../../lib/experticket/types"
 
 export const reservationHandlers = [
   // Create Reservation

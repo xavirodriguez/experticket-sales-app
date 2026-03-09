@@ -22,7 +22,7 @@ describe("utils", () => {
     expect(formatPrice("100", "USD")).toBe("100.00 USD")
     expect(formatPrice(null)).toBe("N/A")
     expect(formatPrice(undefined)).toBe("N/A")
-    expect(formatPrice("invalid" as any)).toBe("N/A")
+    expect(formatPrice("invalid")).toBe("N/A")
   })
 
   it("normalizeApiResponse handles various inputs", () => {
@@ -52,6 +52,6 @@ describe("utils", () => {
 
     // Invalid input
     expect(normalizeApiResponse(null)).toEqual([])
-    expect(normalizeApiResponse("string" as any)).toEqual([])
+    expect(normalizeApiResponse("string")).toEqual([])
   })
 })
