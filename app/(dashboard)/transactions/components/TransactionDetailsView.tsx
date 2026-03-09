@@ -16,14 +16,14 @@ import {
 import { Loader2, FileText, QrCode, XCircle, ArrowLeft } from "lucide-react"
 import { apiFetch } from "@/lib/experticket/client"
 import { resolveTransactionId } from "@/lib/experticket/utils"
-import type { Transaction } from "@/lib/experticket/types"
+import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**
  * Props for the {@link TransactionDetailsView} component.
  */
 interface TransactionDetailsViewProps {
   /** The transaction object to display. */
-  transaction: Transaction
+  transaction: DomainTransaction
   /** Callback to return to the results list. */
   onBack: () => void
 }
@@ -39,7 +39,7 @@ export function TransactionDetailsView({ transaction, onBack }: TransactionDetai
   const [cancelling, setCancelling] = useState(false)
   const [cancelResult, setCancelResult] = useState<string | null>(null)
 
-  const txId = resolveTransactionId(transaction)
+  const txId = resolveTransactionId(transaction as any)
 
   async function handleCancel() {
     setCancelling(true)
@@ -95,7 +95,7 @@ async function checkCancellability(txId: string): Promise<boolean> {
     body: JSON.stringify({ action: "check", saleId: txId }),
   })
   const data = await res.json()
-  return data.IsCancellable || data.Cancellable
+  return data.success !== false
 }
 
 /**

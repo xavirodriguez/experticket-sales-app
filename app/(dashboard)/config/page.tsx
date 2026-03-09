@@ -41,19 +41,19 @@ export default function ConfigPage() {
     try {
       const res = await fetch("/api/experticket/lastupdated")
       const data = await res.json()
-      if (data.Success) {
+      if (data.success) {
         setConnectionResult({
           success: true,
           message: "Connection successful",
-          timestamp: data.LastUpdatedDateTime || data.Timestamp,
+          timestamp: data.lastUpdatedDateTime || data.timestamp,
         })
         toast.success("Connection to Experticket API is healthy")
       } else {
         setConnectionResult({
           success: false,
-          message: data.ErrorMessage || "Connection failed",
+          message: data.errorMessage || "Connection failed",
         })
-        toast.error(data.ErrorMessage || "Connection check failed")
+        toast.error(data.errorMessage || "Connection check failed")
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Network error"

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch } from "@/lib/experticket/server-client"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { AvailableCapacityResponse } from "@/lib/experticket/types"
 
 export const runtime = "nodejs"
 
@@ -19,32 +18,10 @@ export const runtime = "nodejs"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const params = mapSearchParamsToCapacityParams(searchParams)
-
-    const data = await experticketFetch<AvailableCapacityResponse>("/availablecapacity", {
-      params,
-      retries: 1,
-    })
+    const params = Object.fromEntries(searchParams.entries())
+    const data = await experticketService.getCapacity(params)
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps URL search parameters to Experticket capacity query parameters.
- *
- * @param searchParams - The search parameters from the request URL.
- * @returns An object containing the mapped parameters.
- */
-function mapSearchParamsToCapacityParams(searchParams: URLSearchParams) {
-  return {
-    ProductBaseIds: searchParams.get("ProductBaseIds") || undefined,
-    ProductIds: searchParams.get("ProductIds") || undefined,
-    SessionIds: searchParams.get("SessionIds") || undefined,
-    Dates: searchParams.get("Dates") || undefined,
-    FromDate: searchParams.get("FromDate") || undefined,
-    ToDate: searchParams.get("ToDate") || undefined,
-    IncludePrices: searchParams.get("IncludePrices") || "true",
   }
 }

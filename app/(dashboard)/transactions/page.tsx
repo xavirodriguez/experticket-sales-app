@@ -16,7 +16,7 @@ import { ErrorAlert } from "@/components/experticket/ErrorAlert"
 import { TransactionSearch } from "./components/TransactionSearch"
 import { TransactionDetailsView } from "./components/TransactionDetailsView"
 import { TransactionResultsTable } from "./components/TransactionResultsTable"
-import type { Transaction } from "@/lib/experticket/types"
+import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**
  * Main Transactions Page component.
@@ -25,7 +25,7 @@ import type { Transaction } from "@/lib/experticket/types"
 export default function TransactionsPage() {
   const [txIdSearch, setTxIdSearch] = useState("")
   const [searchedTxId, setSearchedTxId] = useState<string | undefined>(undefined)
-  const [selectedTx, setSelectedTx] = useState<Transaction | undefined>(undefined)
+  const [selectedTx, setSelectedTx] = useState<DomainTransaction | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
   /**
@@ -49,7 +49,7 @@ export default function TransactionsPage() {
   /**
    * Normalizes the API response into an array of transactions.
    */
-  const transactions = normalizeApiResponse<Transaction>(txData, "Transactions")
+  const transactions = normalizeApiResponse<DomainTransaction>(txData, "transactions")
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">

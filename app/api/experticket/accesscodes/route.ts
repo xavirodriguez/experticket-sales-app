@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch } from "@/lib/experticket/server-client"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { AccessCodesResponse } from "@/lib/experticket/types"
 
 export const runtime = "nodejs"
 
@@ -19,27 +18,10 @@ export const runtime = "nodejs"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const params = mapSearchParamsToAccessCodesParams(searchParams)
-
-    const data = await experticketFetch<AccessCodesResponse>("/transactionaccesscodes", {
-      params,
-      retries: 1,
-    })
+    const saleId = searchParams.get("SaleId") || ""
+    const data = await experticketService.getAccessCodes(saleId)
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps URL search parameters to Experticket access codes query parameters.
- *
- * @param searchParams - The search parameters from the request URL.
- * @returns An object containing the mapped parameters.
- */
-function mapSearchParamsToAccessCodesParams(searchParams: URLSearchParams) {
-  return {
-    SaleId: searchParams.get("SaleId") || "",
-    InternalCodes: searchParams.get("InternalCodes") || undefined,
   }
 }

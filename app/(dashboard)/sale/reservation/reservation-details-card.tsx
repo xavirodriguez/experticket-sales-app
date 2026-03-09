@@ -7,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Clock, Trash2 } from "lucide-react"
-import type { ReservationResponse } from "@/lib/experticket/types"
+import type { DomainReservation } from "@/lib/experticket/adapter"
 
 /**
  * Props for the ReservationDetailsCard component.
  */
 interface Props {
   /** The reservation data returned by the API. */
-  reservation: ReservationResponse
+  reservation: DomainReservation
   /** The formatted time remaining for the reservation. */
   timeLeft: string
   /** Indicates if the reservation has expired. */
@@ -50,19 +50,19 @@ export function ReservationDetailsCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Reservation Created
-          <Badge variant="secondary">{reservation.ReservationId}</Badge>
+          <Badge variant="secondary">{reservation.reservationId}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <ReservationIdItem id={reservation.ReservationId} />
-          {reservation.TotalPrice != null && (
-            <TotalPriceItem price={reservation.TotalPrice} />
+          <ReservationIdItem id={reservation.reservationId} />
+          {reservation.totalPrice != null && (
+            <TotalPriceItem price={reservation.totalPrice} />
           )}
           <TimerItem timeLeft={timeLeft} isExpired={isExpired} />
         </div>
 
-        <ReservedProductsList products={reservation.Products || []} />
+        <ReservedProductsList products={reservation.products || []} />
 
         <Button
           variant="destructive"
@@ -114,7 +114,7 @@ function TimerItem({ timeLeft, isExpired }: { timeLeft: string; isExpired: boole
   )
 }
 
-function ReservedProductsList({ products }: { products: ReservationResponse["Products"] }) {
+function ReservedProductsList({ products }: { products: DomainReservation["products"] }) {
   if (!products || products.length === 0) return undefined
 
   return (
@@ -126,11 +126,11 @@ function ReservedProductsList({ products }: { products: ReservationResponse["Pro
             key={i}
             className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
           >
-            <span className="font-mono text-xs">{p.ProductId}</span>
-            <span>x{p.Quantity}</span>
-            {p.Price != null && <span>{p.Price.toFixed(2)} EUR</span>}
-            <Badge variant={p.Success ? "secondary" : "destructive"}>
-              {p.Success ? "OK" : "Failed"}
+            <span className="font-mono text-xs">{p.productId}</span>
+            <span>x{p.quantity}</span>
+            {p.price != null && <span>{p.price.toFixed(2)} EUR</span>}
+            <Badge variant={p.success ? "secondary" : "destructive"}>
+              {p.success ? "OK" : "Failed"}
             </Badge>
           </div>
         ))}

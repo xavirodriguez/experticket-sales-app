@@ -6,7 +6,7 @@
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
 import type { SaleState } from "../use-sale-wizard"
-import type { RealTimePricesResponse } from "@/lib/experticket/types"
+import type { DomainRealTimePrices } from "@/lib/experticket/adapter"
 
 /**
  * Custom hook to manage the state and logic for Step 3 (Pricing).
@@ -20,7 +20,7 @@ import type { RealTimePricesResponse } from "@/lib/experticket/types"
  */
 export function usePricingState(state: SaleState) {
   const [loading, setLoading] = useState(false)
-  const [data, setData] = useState<RealTimePricesResponse | undefined>(undefined)
+  const [data, setData] = useState<DomainRealTimePrices | undefined>(undefined)
   const [fetched, setFetched] = useState(false)
 
   const fetchPrices = useCallback(async () => {
@@ -30,16 +30,16 @@ export function usePricingState(state: SaleState) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ProductIds: state.selectedProducts.map((p) => p.ProductId),
+          ProductIds: state.selectedProducts.map((p) => p.productId),
           StartDate: state.accessDate,
           EndDate: state.accessDate,
         }),
       })
-      const json: RealTimePricesResponse = await res.json()
+      const json: DomainRealTimePrices = await res.json()
       setData(json)
       setFetched(true)
-      if (!json.Success) {
-        toast.error(json.ErrorMessage || "Failed to fetch prices")
+      if (!json.success) {
+        toast.error(json.errorMessage || "Failed to fetch prices")
       }
     } catch {
       toast.error("Network error fetching prices")
@@ -48,7 +48,7 @@ export function usePricingState(state: SaleState) {
     }
   }, [state.selectedProducts, state.accessDate])
 
-  const prices = data?.ProductsRealTimePrices || []
+  const prices = data?.prices || []
 
   return {
     loading,

@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { CatalogProduct } from "@/lib/experticket/types"
+import type { DomainProduct } from "@/lib/experticket/adapter"
 
 /**
  * Props for the CartSummary component.
  */
 interface Props {
-  cart: (CatalogProduct & { quantity: number })[]
+  cart: (DomainProduct & { quantity: number })[]
 }
 
 /**
@@ -22,8 +22,8 @@ export function CartSummary({ cart }: Props) {
       <CardContent>
         <div className="space-y-1">
           {cart.map((item) => (
-            <div key={item.ProductId} className="flex items-center justify-between text-sm">
-              <span>{item.ProductName || item.ProductId}</span>
+            <div key={item.productId} className="flex items-center justify-between text-sm">
+              <span>{item.productName || item.productId}</span>
               <span className="font-medium">x{item.quantity}</span>
             </div>
           ))}

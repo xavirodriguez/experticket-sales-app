@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import type { SaleState } from "../use-sale-wizard"
-import type { TicketQuestionsResponse, TicketQuestion } from "@/lib/experticket/types"
+import type { DomainTicketQuestions, DomainTicketQuestion } from "@/lib/experticket/adapter"
 
 /**
  * Custom hook to manage the state and logic for Step 4 (Questions).
@@ -19,7 +19,7 @@ import type { TicketQuestionsResponse, TicketQuestion } from "@/lib/experticket/
  */
 export function useQuestionsState(state: SaleState) {
   const [loading, setLoading] = useState(true)
-  const [questions, setQuestions] = useState<TicketQuestion[]>([])
+  const [questions, setQuestions] = useState<DomainTicketQuestion[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>(
     (state.questionAnswers as Record<string, string>) || {}
   )
@@ -57,12 +57,12 @@ export function useQuestionsState(state: SaleState) {
     setLoading(false)
   }, [])
 
-  const handleFetchResponse = useCallback((data: TicketQuestionsResponse) => {
-    if (!data.Success) {
-      setError(data.ErrorMessage || "Failed to load questions")
+  const handleFetchResponse = useCallback((data: DomainTicketQuestions) => {
+    if (!data.success) {
+      setError(data.errorMessage || "Failed to load questions")
     }
 
-    const allQuestions = data.TicketQuestionsProfiles?.flatMap((p) => p.Questions || []) || []
+    const allQuestions = data.profiles?.flatMap((p) => p.questions || []) || []
 
     if (allQuestions.length === 0) {
       setNoQuestions(true)
@@ -90,7 +90,7 @@ export function useQuestionsState(state: SaleState) {
 function collectProfileIds(products: SaleState["selectedProducts"]): string[] {
   const ids = products.flatMap(
     (p) =>
-      p.Tickets?.filter((t) => t.TicketQuestionsProfileId).map((t) => t.TicketQuestionsProfileId!) ||
+      p.tickets?.filter((t) => t.ticketQuestionsProfileId).map((t) => t.ticketQuestionsProfileId!) ||
       []
   )
   return [...new Set(ids)]
@@ -108,12 +108,12 @@ async function performFetch(
   products: SaleState["selectedProducts"],
   profileIds: string[],
   language: string
-): Promise<TicketQuestionsResponse> {
+): Promise<DomainTicketQuestions> {
   const res = await fetch("/api/experticket/questions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      ProductIds: products.map((p) => p.ProductId),
+      ProductIds: products.map((p) => p.productId),
       TicketsQuestionsProfileIds: profileIds,
       LanguageCode: language,
     }),

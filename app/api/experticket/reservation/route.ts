@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch } from "@/lib/experticket/server-client"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { ReservationResponse } from "@/lib/experticket/types"
+import { experticketFetch } from "@/lib/experticket/server-client"
 
 export const runtime = "nodejs"
 
@@ -11,12 +11,7 @@ export const runtime = "nodejs"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = buildReservationPayload(body)
-
-    const data = await experticketFetch<ReservationResponse>("reservation", {
-      method: "POST",
-      body: payload,
-    })
+    const data = await experticketService.createReservation(body)
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
@@ -29,23 +24,14 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
-    const payload = buildReservationPayload(body)
-
+    // DELETE reservation is not currently in the service, using direct fetch for now
+    // as it's a simple teardown operation.
     const data = await experticketFetch("reservation", {
       method: "DELETE",
-      body: payload,
+      body,
     })
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Adds the API Key to the reservation payload.
- */
-function buildReservationPayload(body: Record<string, unknown>) {
-  return {
-    ...body,
   }
 }

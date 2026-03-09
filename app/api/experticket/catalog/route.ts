@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getDefaultLanguage } from "@/lib/experticket/server-client"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { CatalogResponse } from "@/lib/experticket/types"
 
 export const runtime = "nodejs"
 
@@ -19,26 +18,10 @@ export const runtime = "nodejs"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const params = mapSearchParamsToCatalogParams(searchParams)
-
-    const data = await experticketFetch<CatalogResponse>("catalog", {
-      params,
-      retries: 1,
-    })
+    const lang = searchParams.get("LanguageCode") || undefined
+    const data = await experticketService.getCatalog(lang)
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps URL search parameters to Experticket catalog query parameters.
- *
- * @param searchParams - The search parameters from the request URL.
- * @returns An object containing the mapped parameters.
- */
-function mapSearchParamsToCatalogParams(searchParams: URLSearchParams) {
-  return {
-    LanguageCode: searchParams.get("LanguageCode") || getDefaultLanguage(),
   }
 }
