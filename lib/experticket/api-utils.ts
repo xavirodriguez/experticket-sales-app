@@ -33,12 +33,10 @@ export function createErrorResponse(err: unknown, status: number = 502) {
   const details = err?.details || undefined
 
   if (process.env.NODE_ENV === "development") {
-    console.error("[Experticket API Error]:", {
-      message,
-      upstreamStatus,
-      details,
-      err,
-    })
+    console.error(`[Experticket API Error ${upstreamStatus}]: ${message}`)
+    if (details) {
+      console.error("[Details]:", details)
+    }
   }
 
   return NextResponse.json(

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const payload = buildReservationPayload(body)
 
-    const data = await experticketFetch<ReservationResponse>("/reservation", {
+    const data = await experticketFetch<ReservationResponse>("reservation", {
       method: "POST",
       body: payload,
     })
@@ -31,7 +31,7 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json()
     const payload = buildReservationPayload(body)
 
-    const data = await experticketFetch("/reservation", {
+    const data = await experticketFetch("reservation", {
       method: "DELETE",
       body: payload,
     })

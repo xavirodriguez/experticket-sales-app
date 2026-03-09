@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       ...body,
     }
 
-    const data = await experticketFetch("/transaction", {
+    const data = await experticketFetch("transaction", {
       method: "POST",
       body: payload,
     })
