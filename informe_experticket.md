@@ -246,6 +246,22 @@ La API de Experticket puede fallar por timeouts o errores de lógica de negocio 
 
 ---
 
+## 12.5 Estrategia de Mocking (Sandbox mode)
+Para facilitar el desarrollo y las pruebas sin afectar al entorno de producción, se ha implementado una capa de **Mocking via MSW (Mock Service Worker)**.
+
+**Activación:**
+Se controla mediante la variable de entorno `NEXT_PUBLIC_API_MOCKING=enabled`.
+
+**Arquitectura de Mocking:**
+1. **Server-side:** El archivo `instrumentation.ts` inicializa el servidor de MSW en el runtime de Node.js de Next.js. Esto intercepta las llamadas salientes desde `experticketFetch` hacia la API real.
+2. **Client-side:** Permite simular estados de carga o errores directamente en el navegador si fuera necesario (opcional).
+3. **Fixtures:** Los datos de prueba residen en `/mocks/fixtures/experticket/`, permitiendo replicar respuestas complejas de catálogos y transacciones.
+
+**Beneficios para IA Agéntica:**
+Permite entrenar y validar al agente en un entorno seguro ("Sandbox") donde las transacciones no tienen coste real y se pueden forzar escenarios de error (ej. cupo agotado) para probar la resiliencia del agente.
+
+---
+
 ## 13. Observabilidad y operación
 Para operar con éxito una integración crítica, necesitamos métricas claras.
 
