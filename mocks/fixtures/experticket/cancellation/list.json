@@ -1,0 +1,11 @@
+{
+  "Success": true,
+  "CancellationRequests": [
+    {
+      "CancellationRequestId": "CAN-456789",
+      "SaleId": "SALE-789012",
+      "Status": 1,
+      "CreatedDateTime": "2025-01-01T12:00:00Z"
+    }
+  ]
+}
