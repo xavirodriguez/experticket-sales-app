@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { NextResponse } from "next/server"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { TagsResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-tags
@@ -11,33 +12,13 @@ import type { TagsResponse } from "@/lib/experticket/types"
 /**
  * Handles GET requests to retrieve the product tag hierarchy.
  *
- * @param request - The Next.js request object.
  * @returns A promise that resolves to the JSON response containing the tags.
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const params = mapSearchParamsToTagsParams(searchParams)
-
-    const data = await experticketFetch<TagsResponse>("/tags", {
-      params,
-      retries: 1,
-    })
+    const data = await experticketService.getTags()
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps URL search parameters to Experticket tags query parameters.
- *
- * @param searchParams - The search parameters from the request URL.
- * @returns An object containing the mapped parameters.
- */
-function mapSearchParamsToTagsParams(searchParams: URLSearchParams) {
-  return {
-    ApiKey: getApiKey(),
-    LanguageCode: searchParams.get("LanguageCode") || undefined,
   }
 }

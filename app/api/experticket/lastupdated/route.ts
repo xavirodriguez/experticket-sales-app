@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
-import { experticketFetch, getApiKey } from "@/lib/experticket/server-client"
+import { NextResponse } from "next/server"
+import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse } from "@/lib/experticket/api-utils"
-import type { LastUpdatedResponse } from "@/lib/experticket/types"
+
+export const runtime = "nodejs"
 
 /**
  * @module api-experticket-lastupdated
@@ -11,29 +12,13 @@ import type { LastUpdatedResponse } from "@/lib/experticket/types"
 /**
  * Handles GET requests to check the system's last updated status.
  *
- * @param _request - The Next.js request object (unused).
  * @returns A promise that resolves to the JSON response containing the last updated status.
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
-    const params = mapSearchParamsToLastUpdatedParams()
-    const data = await experticketFetch<LastUpdatedResponse>("/lastupdated", {
-      params,
-      retries: 1,
-    })
+    const data = await experticketService.getLastUpdated()
     return NextResponse.json(data)
   } catch (err: unknown) {
     return createErrorResponse(err)
-  }
-}
-
-/**
- * Maps parameters for the last updated request.
- *
- * @returns An object containing the API key.
- */
-function mapSearchParamsToLastUpdatedParams() {
-  return {
-    ApiKey: getApiKey(),
   }
 }

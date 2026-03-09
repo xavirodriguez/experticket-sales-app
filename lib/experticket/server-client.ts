@@ -13,12 +13,18 @@ import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
 const BASE_URL = process.env.EXPERTICKET_BASE_URL || ""
 const PARTNER_ID = process.env.EXPERTICKET_PARTNER_ID || ""
 const API_KEY = process.env.EXPERTICKET_API_KEY || ""
+const API_VERSION = process.env.EXPERTICKET_API_VERSION || "3.58"
 const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
 
 /**
+ * Retrieves the API Version from environment variables.
+ */
+export function getApiVersion(): string {
+  return API_VERSION
+}
+
+/**
  * Retrieves the Partner ID from environment variables.
- *
- * @returns The Partner ID string.
  */
 export function getPartnerId(): string {
   return PARTNER_ID
@@ -26,8 +32,6 @@ export function getPartnerId(): string {
 
 /**
  * Retrieves the default language code from environment variables.
- *
- * @returns The default language code (e.g., "en", "es").
  */
 export function getDefaultLanguage(): string {
   return DEFAULT_LANG
@@ -35,8 +39,6 @@ export function getDefaultLanguage(): string {
 
 /**
  * Retrieves the raw API Key from environment variables.
- *
- * @returns The plain API Key string.
  */
 export function getApiKey(): string {
   return API_KEY
@@ -65,6 +67,8 @@ export interface FetchOptions {
    * @defaultValue 1
    */
   retries?: number
+  /** Cache revalidation time in seconds. Defaults to 60 for GET requests. */
+  revalidate?: number
 }
 
 /**
@@ -139,13 +143,41 @@ export interface RetryOptions {
  * @internal
  */
 function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
-  const url = new URL(path, BASE_URL)
+  const normalizedBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path
+  const url = new URL(`${normalizedBase}/${normalizedPath}`)
+
+  const allParams = mergeDefaultParams(params)
+  appendUrlSearchParams(url, allParams)
+
+  return url
+}
+
+/**
+ * Merges default parameters with provided ones.
+ *
+ * @internal
+ */
+function mergeDefaultParams(params: Record<string, unknown>) {
+  return {
+    ApiKey: API_KEY,
+    PartnerId: PARTNER_ID,
+    "api-version": API_VERSION,
+    ...params,
+  }
+}
+
+/**
+ * Appends query parameters to a URL object.
+ *
+ * @internal
+ */
+function appendUrlSearchParams(url: URL, params: Record<string, unknown>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") {
       url.searchParams.set(key, String(value))
     }
   })
-  return url
 }
 
 /**
@@ -154,18 +186,41 @@ function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
  * @internal
  */
 function prepareFetchOptions(options: FetchOptions): RequestInit {
-  const { method = "GET", body } = options
+  const { method = "GET", body, revalidate = 60 } = options
   const fetchOptions: RequestInit = {
     method,
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    cache: "no-store",
   }
 
-  if (body && (method === "POST" || method === "DELETE")) {
-    fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body)
-  }
+  applyCachingStrategy(fetchOptions, method, revalidate)
+  applyRequestBody(fetchOptions, method, body)
 
   return fetchOptions
+}
+
+/**
+ * Applies caching strategy based on the HTTP method.
+ *
+ * @internal
+ */
+function applyCachingStrategy(options: RequestInit, method: string, revalidate: number) {
+  if (method === "GET") {
+    // @ts-ignore - Next.js specific fetch options
+    options.next = { revalidate }
+  } else {
+    options.cache = "no-store"
+  }
+}
+
+/**
+ * Applies request body for POST or DELETE methods.
+ *
+ * @internal
+ */
+function applyRequestBody(options: RequestInit, method: string, body: unknown) {
+  if (body && (method === "POST" || method === "DELETE")) {
+    options.body = typeof body === "string" ? body : JSON.stringify(body)
+  }
 }
 
 /**
@@ -233,11 +288,45 @@ async function fetchAndProcess<T>(url: string, options: RequestInit): Promise<T>
  * @internal
  */
 async function handleApiResponse<T>(response: Response): Promise<T> {
+  const text = await response.text()
+  const data = tryParseJson(text)
+
   if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error")
-    throw new Error(`Experticket API error ${response.status}: ${errorText}`)
+    throw buildUpstreamError(response, data, text)
   }
-  return (await response.json()) as T
+
+  return data as T
+}
+
+/**
+ * Attempts to parse a string as JSON, returning an empty object on failure.
+ *
+ * @internal
+ */
+function tryParseJson(text: string) {
+  try {
+    return text ? JSON.parse(text) : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Builds an Error object enriched with upstream API details.
+ *
+ * @internal
+ */
+function buildUpstreamError(response: Response, data: unknown, text: string) {
+  const resp = data as Record<string, unknown>
+  const message = String(resp?.ErrorMessage || text || "Unknown error")
+  const error = new Error(`Experticket API error ${response.status}: ${message}`)
+
+  // @ts-ignore - attaching status for better error handling
+  error.status = response.status
+  // @ts-ignore
+  error.details = text
+
+  return error
 }
 
 /**

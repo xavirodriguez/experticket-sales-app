@@ -13,6 +13,7 @@ import { ProviderSelector } from "./selection/provider-selector"
 import { ProductList } from "./selection/product-list"
 import { CartSummary } from "./selection/cart-summary"
 import type { SaleState } from "./use-sale-wizard"
+import type { DomainLanguage, DomainProvider } from "@/lib/experticket/adapter"
 
 /**
  * Props for the {@link StepSelection} component.
@@ -54,14 +55,14 @@ export function StepSelection({ state, updateState, onNext }: Props) {
         onLanguageChange={setLanguage}
         accessDate={accessDate}
         onDateChange={setAccessDate}
-        languages={languages}
+        languages={languages as any}
       />
 
       <ProviderSelector
-        providers={providers}
+        providers={providers as any}
         isLoading={catalogLoading}
-        selectedProvider={selectedProvider}
-        onSelect={setSelectedProvider}
+        selectedProvider={selectedProvider as any}
+        onSelect={setSelectedProvider as any}
       />
 
       {selectedProvider && (

@@ -9,7 +9,7 @@ import { apiFetch } from "@/lib/experticket/client"
 import { getIsTestMode } from "@/lib/experticket/storage"
 import { useCountdown } from "@/hooks/use-countdown"
 import type { SaleState } from "../use-sale-wizard"
-import type { ReservationResponse } from "@/lib/experticket/types"
+import type { DomainReservation } from "@/lib/experticket/adapter"
 
 /**
  * Custom hook to manage the state and logic for Step 5 (Reservation).
@@ -28,7 +28,7 @@ export function useReservationState(
 ) {
   const [loading, setLoading] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [reservation, setReservation] = useState<ReservationResponse | undefined>(
+  const [reservation, setReservation] = useState<DomainReservation | undefined>(
     state.reservation
   )
   const [error, setError] = useState<string | undefined>(undefined)
@@ -51,15 +51,15 @@ export function useReservationState(
         method: "POST",
         body: JSON.stringify(payload),
       })
-      const data: ReservationResponse = await res.json()
+      const data: DomainReservation = await res.json()
 
-      if (!data.Success) {
-        throw new Error(data.ErrorMessage || "Reservation failed")
+      if (!data.success) {
+        throw new Error(data.errorMessage || "Reservation failed")
       }
 
       setReservation(data)
       handleReservationSuccess(data, setExpiresAt, updateState)
-      toast.success(`Reservation created: ${data.ReservationId}`)
+      toast.success(`Reservation created: ${data.reservationId}`)
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Network error"
       setError(msg)
@@ -70,29 +70,29 @@ export function useReservationState(
   }, [state, updateState])
 
   const cancelReservation = useCallback(async () => {
-    if (!reservation?.ReservationId) return
+    if (!reservation?.reservationId) return
     setCancelling(true)
     try {
       const res = await apiFetch("/api/experticket/reservation", {
         method: "DELETE",
         body: JSON.stringify({
           IsTest: getIsTestMode(),
-          ReservationId: reservation.ReservationId,
+          ReservationId: reservation.reservationId,
         }),
       })
       const data = await res.json()
-      if (data.Success) {
+      if (data.success) {
         toast.success("Reservation cancelled")
         resetReservationState()
       } else {
-        toast.error(data.ErrorMessage || "Failed to cancel reservation")
+        toast.error(data.errorMessage || "Failed to cancel reservation")
       }
     } catch {
       toast.error("Network error cancelling reservation")
     } finally {
       setCancelling(false)
     }
-  }, [reservation?.ReservationId, resetReservationState])
+  }, [reservation?.reservationId, resetReservationState])
 
   return {
     reservation,
@@ -118,7 +118,7 @@ function buildReservationPayload(state: SaleState) {
     IsTest: getIsTestMode(),
     AccessDateTime: `${state.accessDate}T00:00:00`,
     Products: state.selectedProducts.map((p) => ({
-      ProductId: p.ProductId,
+      ProductId: p.productId,
       Quantity: p.quantity,
       Tickets: undefined,
       AccessDateTime: undefined,
@@ -136,12 +136,12 @@ function buildReservationPayload(state: SaleState) {
  * @param updateState - Global state update function.
  */
 function handleReservationSuccess(
-  data: ReservationResponse,
+  data: DomainReservation,
   setExpiresAt: (val: number | undefined) => void,
   updateState: (partial: Partial<SaleState>) => void
 ) {
-  if (data.MinutesToExpiry) {
-    const expiry = Date.now() + data.MinutesToExpiry * 60 * 1000
+  if (data.minutesToExpiry) {
+    const expiry = Date.now() + data.minutesToExpiry * 60 * 1000
     setExpiresAt(expiry)
     updateState({ reservation: data, reservationExpiry: expiry })
   } else {

@@ -1,0 +1,14 @@
+{
+  "Success": true,
+  "ReservationId": "RES-123456",
+  "MinutesToExpiry": 15,
+  "TotalPrice": 15.0,
+  "Products": [
+    {
+      "ProductId": "PROD-001",
+      "Quantity": 1,
+      "Price": 15.0,
+      "Success": true
+    }
+  ]
+}

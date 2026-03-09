@@ -2,15 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Plus, Minus } from "lucide-react"
-import type { CatalogProvider, CatalogProduct } from "@/lib/experticket/types"
+import type { DomainProvider, DomainProduct } from "@/lib/experticket/adapter"
 
 /**
  * Props for the ProductList component.
  */
 interface Props {
-  provider: CatalogProvider
-  cart: (CatalogProduct & { quantity: number })[]
-  onAdd: (p: CatalogProduct) => void
+  provider: DomainProvider
+  cart: (DomainProduct & { quantity: number })[]
+  onAdd: (p: DomainProduct) => void
   onRemove: (id: string) => void
 }
 
@@ -23,7 +23,7 @@ export function ProductList({
   onAdd,
   onRemove,
 }: Props) {
-  const products = provider.ProductBases?.flatMap((pb) => pb.Products || []) || []
+  const products = provider.productBases?.flatMap((pb) => pb.products || []) || []
 
   return (
     <Card>
@@ -38,11 +38,11 @@ export function ProductList({
             <div className="space-y-2">
               {products.map((prod) => (
                 <ProductItem
-                  key={prod.ProductId}
+                  key={prod.productId}
                   product={prod}
-                  itemInCart={cart.find((c) => c.ProductId === prod.ProductId)}
+                  itemInCart={cart.find((c) => c.productId === prod.productId)}
                   onAdd={() => onAdd(prod)}
-                  onRemove={() => onRemove(prod.ProductId)}
+                  onRemove={() => onRemove(prod.productId)}
                 />
               ))}
             </div>
@@ -59,7 +59,7 @@ function ProductItem({
   onAdd,
   onRemove,
 }: {
-  product: CatalogProduct
+  product: DomainProduct
   itemInCart?: { quantity: number }
   onAdd: () => void
   onRemove: () => void
@@ -67,9 +67,9 @@ function ProductItem({
   return (
     <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
       <div className="flex-1">
-        <p className="text-sm font-medium">{product.ProductName || product.ProductId}</p>
-        {product.Price != null && (
-          <p className="text-xs text-muted-foreground">{product.Price.toFixed(2)} EUR</p>
+        <p className="text-sm font-medium">{product.productName || product.productId}</p>
+        {product.price != null && (
+          <p className="text-xs text-muted-foreground">{product.price.toFixed(2)} EUR</p>
         )}
       </div>
       <div className="flex items-center gap-2">

@@ -1,0 +1,38 @@
+{
+  "Success": true,
+  "Timestamp": "2025-01-01T12:00:00Z",
+  "CatalogLastUpdatedDateTime": "2025-01-01T10:00:00Z",
+  "Providers": [
+    {
+      "ProviderId": "PROV-001",
+      "ProviderName": "Museo de Prueba",
+      "ProviderCommercialName": "Museo de Prueba",
+      "ProductBases": [
+        {
+          "ProductBaseId": "BASE-001",
+          "ProductBaseName": "Entrada General Museo",
+          "Products": [
+            {
+              "ProductId": "PROD-001",
+              "ProductName": "Entrada Adulto",
+              "Price": 15.0,
+              "Tickets": [
+                {
+                  "TicketId": "TICK-001",
+                  "TicketName": "Ticket Adulto",
+                  "TicketQuestionsProfileId": "PROF-001"
+                }
+              ],
+              "Sessions": [
+                {
+                  "SessionId": "SESS-001",
+                  "SessionTime": "2025-05-01T10:00:00"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

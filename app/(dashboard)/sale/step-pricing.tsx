@@ -56,8 +56,8 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
           <PricingContent
             loading={loading}
             fetched={fetched}
-            success={data?.Success}
-            errorMessage={data?.ErrorMessage ?? undefined}
+            success={data?.success}
+            errorMessage={data?.errorMessage ?? undefined}
           />
 
           <PricingTable selectedProducts={state.selectedProducts} prices={prices} />

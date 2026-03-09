@@ -5,7 +5,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { SaleState } from "../use-sale-wizard"
-import type { RealTimePriceItem } from "@/lib/experticket/types"
+import type { DomainRealTimePrice } from "@/lib/experticket/adapter"
 
 /**
  * Props for the PricingTable component.
@@ -14,7 +14,7 @@ interface Props {
   /** The list of products currently in the cart. */
   selectedProducts: SaleState["selectedProducts"]
   /** The real-time pricing data fetched from the API. */
-  prices: RealTimePriceItem[]
+  prices: DomainRealTimePrice[]
 }
 
 /**
@@ -42,11 +42,11 @@ export function PricingTable({ selectedProducts, prices }: Props) {
       </TableHeader>
       <TableBody>
         {selectedProducts.map((p) => {
-          const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-          const unitPrice = rtPrice?.Price ?? p.Price ?? 0
+          const rtPrice = prices.find((pr) => pr.productId === p.productId)
+          const unitPrice = rtPrice?.price ?? p.price ?? 0
           return (
-            <TableRow key={p.ProductId}>
-              <TableCell>{p.ProductName || p.ProductId}</TableCell>
+            <TableRow key={p.productId}>
+              <TableCell>{p.productName || p.productId}</TableCell>
               <TableCell>{p.quantity}</TableCell>
               <TableCell>{unitPrice.toFixed(2)} EUR</TableCell>
               <TableCell className="font-medium">
@@ -75,11 +75,11 @@ export function PricingTable({ selectedProducts, prices }: Props) {
  */
 function calculateTotal(
   selectedProducts: SaleState["selectedProducts"],
-  prices: RealTimePriceItem[]
+  prices: DomainRealTimePrice[]
 ): number {
   return selectedProducts.reduce((sum, p) => {
-    const rtPrice = prices.find((pr) => pr.ProductId === p.ProductId)
-    const unitPrice = rtPrice?.Price ?? p.Price ?? 0
+    const rtPrice = prices.find((pr) => pr.productId === p.productId)
+    const unitPrice = rtPrice?.price ?? p.price ?? 0
     return sum + unitPrice * p.quantity
   }, 0)
 }

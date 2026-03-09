@@ -1,0 +1,9 @@
+{
+  "Success": true,
+  "Documents": [
+    {
+      "SalesDocumentUrl": "https://example.com/tickets/SALE-789012.pdf",
+      "LanguageCode": "es"
+    }
+  ]
+}

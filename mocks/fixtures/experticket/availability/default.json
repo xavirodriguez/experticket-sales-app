@@ -1,0 +1,11 @@
+{
+  "Success": true,
+  "Sessions": [
+    {
+      "SessionId": "SESS-001",
+      "Date": "2025-05-01",
+      "AvailableCapacity": 50,
+      "Price": 15.0
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react"
 import type {
-  CatalogProvider,
-  CatalogProduct,
-  CapacityItem,
-  RealTimePriceItem,
-  ReservationResponse,
-  Transaction,
-} from "@/lib/experticket/types"
+  DomainProvider,
+  DomainProduct,
+  DomainCapacityItem,
+  DomainRealTimePrice,
+  DomainReservation,
+  DomainTransaction,
+} from "@/lib/experticket/adapter"
 
 /**
  * Shared state for the entire sale wizard.
@@ -18,11 +18,11 @@ import type {
 export interface SaleState {
   /** ISO 639-1 two-letter language code selected for the sale. */
   language: string
-  /** The provider selected in the first step. */
-  provider: CatalogProvider | undefined
+  /** The provider selected in Step 1. */
+  provider: DomainProvider | undefined
   /** List of products added to the cart, including their quantities. */
-  selectedProducts: (CatalogProduct & { quantity: number })[]
-  /** Chosen access date for the sale in ISO 8601 format. */
+  selectedProducts: (DomainProduct & { quantity: number })[]
+  /** Chosen access date for the sale. */
   accessDate: string
   /** Optional end date for venue access in ISO 8601 format. */
   accessEndDate?: string
@@ -31,11 +31,11 @@ export interface SaleState {
 
   // Step 2
   /** Capacity data fetched for the selected products and date. */
-  capacityData: CapacityItem[]
+  capacityData: DomainCapacityItem[]
 
   // Step 3
-  /** Real-time pricing information for the current selection. */
-  pricingData: RealTimePriceItem[]
+  /** Real-time pricing information. */
+  pricingData: DomainRealTimePrice[]
 
   // Step 4
   /** Answers provided for the required ticket questions, keyed by question ID. */
@@ -43,13 +43,13 @@ export interface SaleState {
 
   // Step 5
   /** The reservation result from the Experticket API. */
-  reservation: ReservationResponse | undefined
-  /** Unix timestamp (milliseconds) indicating when the current reservation expires. */
+  reservation: DomainReservation | undefined
+  /** Timestamp indicating when the current reservation expires. */
   reservationExpiry: number | undefined
 
   // Step 6
   /** The final transaction details after successful creation. */
-  transaction: Transaction | undefined
+  transaction: DomainTransaction | undefined
 }
 
 /**

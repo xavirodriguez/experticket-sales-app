@@ -57,7 +57,7 @@ export default function AccessCodesPage() {
   }
 
   /** Normalizes the access codes into a flat array. */
-  const codes = normalizeApiResponse(data, ["AccessCodes", "Codes"])
+  const codes = normalizeApiResponse<any>(data, ["transactions", "products", "tickets"])
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
@@ -105,14 +105,14 @@ export default function AccessCodesPage() {
               </TableHeader>
               <TableBody>
                 {codes.map((code, i) => {
-                  const codeValue = String(code.Code || code.AccessCode || code.Barcode || `CODE-${i + 1}`)
-                  const codeId = String(code.Id || code.CodeId || i)
+                  const codeValue = String(code.accessCode || code.Code || `CODE-${i + 1}`)
+                  const codeId = String(code.id || i)
                   return (
                     <TableRow key={codeId}>
                       <TableCell className="font-mono text-sm font-semibold">{codeValue}</TableCell>
-                      <TableCell>{String(code.ProductName || code.Product || "N/A")}</TableCell>
+                      <TableCell>{String(code.productName || "N/A")}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{String(code.Type || code.CodeType || "Barcode")}</Badge>
+                        <Badge variant="outline">Barcode</Badge>
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={String(code.Status || "Active")} />

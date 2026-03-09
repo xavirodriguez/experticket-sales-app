@@ -52,8 +52,8 @@ export function StepCapacity({ state, updateState, onNext, onBack }: Props) {
         <CardContent>
           {isLoading ? (
             <CapacitySkeleton />
-          ) : error || (data && !data.Success) ? (
-            <CapacityError message={data?.ErrorMessage || "Network error"} />
+          ) : error || (data && !data.success) ? (
+            <CapacityError message={data?.errorMessage || "Network error"} />
           ) : capacityItems.length === 0 ? (
             <NoRestrictions accessDate={state.accessDate} />
           ) : (

@@ -45,7 +45,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
   } = useReservationState(state, updateState)
 
   function handleNext() {
-    if (!reservation?.ReservationId) {
+    if (!reservation?.reservationId) {
       toast.error("You must create a reservation first")
       return
     }

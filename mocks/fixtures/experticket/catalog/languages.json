@@ -1,0 +1,7 @@
+{
+  "Success": true,
+  "Languages": [
+    {"Code": "es", "EnglishName": "Spanish", "NativeName": "Español"},
+    {"Code": "en", "EnglishName": "English", "NativeName": "English"}
+  ]
+}
