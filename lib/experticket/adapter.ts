@@ -16,6 +16,8 @@ import type {
   TicketQuestionsResponse,
   TicketQuestionsProduct,
   TicketQuestionsProfile,
+  TicketQuestion,
+  TicketQuestionValue,
   ReservationResponse,
   ReservationProductResponse,
   TransactionListResponse,
@@ -171,19 +173,21 @@ export interface DomainTicketQuestions extends DomainBase {
   profiles: DomainTicketQuestionsProfile[]
 }
 
+export interface DomainReservationProduct {
+  productId: string
+  quantity: number
+  price?: number
+  success: boolean
+  errorMessage?: string
+  tickets?: { ticketId: string; sessionId?: string; accessDateTime?: string }[]
+}
+
 export interface DomainReservation extends DomainBase {
   reservationId?: string
   minutesToExpiry?: number
   accessDateTime?: string
   totalPrice?: number
-  products: {
-    productId: string
-    quantity: number
-    price?: number
-    success: boolean
-    errorMessage?: string
-    tickets?: { ticketId: string; sessionId?: string; accessDateTime?: string }[]
-  }[]
+  products: DomainReservationProduct[]
 }
 
 export interface DomainTransactionTicket {
@@ -342,11 +346,15 @@ export function adaptLanguages(raw: LanguagesResponse): DomainLanguages {
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    languages: (raw.Languages || []).map((l: Language) => ({
-      code: l.Code,
-      englishName: l.EnglishName,
-      nativeName: l.NativeName,
-    })),
+    languages: (raw.Languages || []).map(adaptLanguage),
+  }
+}
+
+function adaptLanguage(raw: Language): DomainLanguage {
+  return {
+    code: raw.Code,
+    englishName: raw.EnglishName,
+    nativeName: raw.NativeName,
   }
 }
 
@@ -376,7 +384,18 @@ function adaptTag(raw: Tag): DomainTag {
  * Normalizes an AvailableCapacityResponse.
  */
 export function adaptCapacity(raw: AvailableCapacityResponse): DomainCapacity {
-  const adaptItem = (item: CapacityItem): DomainCapacityItem => ({
+  return {
+    success: raw.Success,
+    timestamp: raw.Timestamp,
+    errorMessage: raw.ErrorMessage ?? undefined,
+    productBases: (raw.ProductBases || []).map(adaptCapacityItem),
+    products: (raw.Products || []).map(adaptCapacityItem),
+    sessions: (raw.Sessions || []).map(adaptCapacityItem),
+  }
+}
+
+function adaptCapacityItem(item: CapacityItem): DomainCapacityItem {
+  return {
     productBaseId: item.ProductBaseId,
     productId: item.ProductId,
     sessionId: item.SessionId,
@@ -384,15 +403,6 @@ export function adaptCapacity(raw: AvailableCapacityResponse): DomainCapacity {
     availableCapacity: item.AvailableCapacity,
     price: item.Price,
     priceMode: item.PriceMode,
-  })
-
-  return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    productBases: (raw.ProductBases || []).map(adaptItem),
-    products: (raw.Products || []).map(adaptItem),
-    sessions: (raw.Sessions || []).map(adaptItem),
   }
 }
 
@@ -404,15 +414,19 @@ export function adaptPrices(raw: RealTimePricesResponse): DomainRealTimePrices {
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    prices: (raw.ProductsRealTimePrices || []).map((item: RealTimePriceItem) => ({
-      productId: item.ProductId,
-      date: item.Date,
-      accessDate: item.AccessDate,
-      price: item.Price,
-      priceMode: item.PriceMode,
-      success: item.Success,
-      errorMessage: item.ErrorMessage,
-    })),
+    prices: (raw.ProductsRealTimePrices || []).map(adaptRealTimePrice),
+  }
+}
+
+function adaptRealTimePrice(item: RealTimePriceItem): DomainRealTimePrice {
+  return {
+    productId: item.ProductId,
+    date: item.Date,
+    accessDate: item.AccessDate,
+    price: item.Price,
+    priceMode: item.PriceMode,
+    success: item.Success,
+    errorMessage: item.ErrorMessage,
   }
 }
 
@@ -424,29 +438,41 @@ export function adaptQuestions(raw: TicketQuestionsResponse): DomainTicketQuesti
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    products: (raw.Products || []).map((p: TicketQuestionsProduct) => ({
-      productId: p.ProductId,
-      tickets: (p.Tickets || []).map((t) => ({
-        ticketId: t.TicketId,
-        ticketQuestionsProfileId: t.TicketQuestionsProfileId,
-      })),
-    })),
+    products: (raw.Products || []).map(adaptTicketQuestionsProduct),
     profiles: (raw.TicketQuestionsProfiles || []).map(adaptProfile),
+  }
+}
+
+function adaptTicketQuestionsProduct(raw: TicketQuestionsProduct) {
+  return {
+    productId: raw.ProductId,
+    tickets: (raw.Tickets || []).map((t) => ({
+      ticketId: t.TicketId,
+      ticketQuestionsProfileId: t.TicketQuestionsProfileId,
+    })),
   }
 }
 
 function adaptProfile(raw: TicketQuestionsProfile): DomainTicketQuestionsProfile {
   return {
     id: raw.Id,
-    questions: (raw.Questions || []).map((q) => ({
-      id: q.Id,
-      question: q.Question,
-      shortQuestion: q.ShortQuestion,
-      required: q.Required,
-      dataType: q.DataType,
-      values: (q.Values || []).map((v) => ({ id: v.Id, value: v.Value })),
-    })),
+    questions: (raw.Questions || []).map(adaptTicketQuestion),
   }
+}
+
+function adaptTicketQuestion(raw: TicketQuestion): DomainTicketQuestion {
+  return {
+    id: raw.Id,
+    question: raw.Question,
+    shortQuestion: raw.ShortQuestion,
+    required: raw.Required,
+    dataType: raw.DataType,
+    values: (raw.Values || []).map(adaptTicketQuestionValue),
+  }
+}
+
+function adaptTicketQuestionValue(v: TicketQuestionValue) {
+  return { id: v.Id, value: v.Value }
 }
 
 /**
@@ -461,18 +487,32 @@ export function adaptReservation(raw: ReservationResponse): DomainReservation {
     minutesToExpiry: raw.MinutesToExpiry,
     accessDateTime: raw.AccessDateTime,
     totalPrice: raw.TotalPrice,
-    products: (raw.Products || []).map((p: ReservationProductResponse) => ({
-      productId: p.ProductId,
-      quantity: p.Quantity,
-      price: p.Price,
-      success: p.Success,
-      errorMessage: p.ErrorMessage,
-      tickets: (p.Tickets || []).map((t) => ({
-        ticketId: t.TicketId,
-        sessionId: t.SessionId,
-        accessDateTime: t.AccessDateTime,
-      })),
-    })),
+    products: (raw.Products || []).map(adaptReservationProduct),
+  }
+}
+
+function adaptReservationProduct(raw: ReservationProductResponse): DomainReservationProduct {
+  return {
+    productId: raw.ProductId,
+    quantity: raw.Quantity,
+    price: raw.Price,
+    success: raw.Success,
+    errorMessage: raw.ErrorMessage,
+    tickets: (raw.Tickets || []).map(adaptReservationTicket),
+  }
+}
+
+interface RawReservationTicket {
+  TicketId: string
+  SessionId?: string
+  AccessDateTime?: string
+}
+
+function adaptReservationTicket(raw: RawReservationTicket) {
+  return {
+    ticketId: raw.TicketId,
+    sessionId: raw.SessionId,
+    accessDateTime: raw.AccessDateTime,
   }
 }
 
@@ -539,10 +579,14 @@ export function adaptDocuments(raw: TransactionDocumentsResponse): DomainDocumen
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    documents: (raw.Documents || []).map((d: TransactionDocument) => ({
-      url: d.SalesDocumentUrl,
-      languageCode: d.LanguageCode,
-    })),
+    documents: (raw.Documents || []).map(adaptTransactionDocument),
+  }
+}
+
+function adaptTransactionDocument(raw: TransactionDocument): DomainDocument {
+  return {
+    url: raw.SalesDocumentUrl,
+    languageCode: raw.LanguageCode,
   }
 }
 
@@ -554,15 +598,19 @@ export function adaptAccessCodes(raw: AccessCodesResponse): DomainAccessCodes {
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    transactions: (raw.Transactions || []).map((t: AccessCodeTransaction) => ({
-      id: t.Id,
-      products: (t.Products || []).map((p) => ({
-        id: p.Id,
-        tickets: (p.Tickets || []).map((tk) => ({
-          id: tk.Id,
-          accessCode: tk.AccessCode,
-          internalCode: tk.InternalCode,
-        })),
+    transactions: (raw.Transactions || []).map(adaptAccessCodeTransaction),
+  }
+}
+
+function adaptAccessCodeTransaction(raw: AccessCodeTransaction): DomainAccessCode {
+  return {
+    id: raw.Id,
+    products: (raw.Products || []).map((p) => ({
+      id: p.Id,
+      tickets: (p.Tickets || []).map((tk) => ({
+        id: tk.Id,
+        accessCode: tk.AccessCode,
+        internalCode: tk.InternalCode,
       })),
     })),
   }
@@ -576,13 +624,17 @@ export function adaptCancellations(raw: CancellationListResponse): DomainCancell
     success: raw.Success,
     timestamp: raw.Timestamp,
     errorMessage: raw.ErrorMessage ?? undefined,
-    requests: (raw.CancellationRequests || []).map((r: CancellationRequestItem) => ({
-      id: r.CancellationRequestId,
-      saleId: r.SaleId,
-      createdDateTime: r.CreatedDateTime,
-      status: r.Status,
-      statusComments: r.StatusComments,
-    })),
+    requests: (raw.CancellationRequests || []).map(adaptCancellationRequest),
+  }
+}
+
+function adaptCancellationRequest(raw: CancellationRequestItem): DomainCancellationRequest {
+  return {
+    id: raw.CancellationRequestId,
+    saleId: raw.SaleId,
+    createdDateTime: raw.CreatedDateTime,
+    status: raw.Status,
+    statusComments: raw.StatusComments,
   }
 }
 

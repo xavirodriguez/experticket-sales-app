@@ -1,4 +1,5 @@
 import { z } from "zod"
+import type { Tag } from "./types"
 
 /**
  * @module experticket-schema
@@ -97,7 +98,7 @@ export const LanguagesResponseSchema = ExperticketBaseResponseSchema.extend({
 
 // ── Tags Schemas ──────────────────────────────────────────────────
 
-export const TagSchema: z.ZodType<any> = z.lazy(() =>
+export const TagSchema: z.ZodType<Tag> = z.lazy(() =>
   z.object({
     Id: z.string(),
     Key: z.number(),

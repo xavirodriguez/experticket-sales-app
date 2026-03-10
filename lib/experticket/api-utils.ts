@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { ExperticketError } from "./server-client"
 
 /**
  * Utility functions for Next.js API route handlers.
@@ -18,7 +19,7 @@ import { NextResponse } from "next/server"
  * consistent with {@link ExperticketBaseResponse}, using a standard HTTP status.
  *
  * @param err - The error object or message to be returned.
- * @param status - The HTTP status code (defaults to 502 Bad Gateway).
+ * @param fallbackStatus - The HTTP status code (defaults to 502 Bad Gateway).
  * @returns A {@link NextResponse} object containing the serialized error details.
  *
  * @example
@@ -30,19 +31,16 @@ import { NextResponse } from "next/server"
  * }
  * ```
  */
-export function createErrorResponse(err: unknown, status: number = 502): NextResponse {
+export function createErrorResponse(
+  err: unknown,
+  fallbackStatus: number = 502
+): NextResponse {
+  const isExperticketError = err instanceof ExperticketError
   const message = err instanceof Error ? err.message : "Unknown error"
-  // @ts-ignore
-  const upstreamStatus = err?.status || status
-  // @ts-ignore
-  const details = err?.details || undefined
+  const upstreamStatus = isExperticketError ? err.status : fallbackStatus
+  const details = isExperticketError ? err.details : undefined
 
-  if (process.env.NODE_ENV === "development") {
-    console.error(`[Experticket API Error ${upstreamStatus}]: ${message}`)
-    if (details) {
-      console.error("[Details]:", details)
-    }
-  }
+  logErrorInDevelopment(message, upstreamStatus, details)
 
   return NextResponse.json(
     {
@@ -53,4 +51,18 @@ export function createErrorResponse(err: unknown, status: number = 502): NextRes
     },
     { status: upstreamStatus }
   )
+}
+
+/**
+ * Logs API errors to the console in development mode.
+ *
+ * @internal
+ */
+function logErrorInDevelopment(message: string, status: number, details?: string) {
+  if (process.env.NODE_ENV === "development") {
+    console.error(`[Experticket API Error ${status}]: ${message}`)
+    if (details) {
+      console.error("[Details]:", details)
+    }
+  }
 }

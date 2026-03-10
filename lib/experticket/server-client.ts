@@ -17,6 +17,35 @@ const API_VERSION = process.env.EXPERTICKET_API_VERSION || "3.58"
 const DEFAULT_LANG = process.env.EXPERTICKET_DEFAULT_LANGUAGE || "en"
 
 /**
+ * Custom error class for Experticket API errors.
+ */
+export class ExperticketError extends Error {
+  /** HTTP status code from the upstream response. */
+  public readonly status: number
+  /** Raw response body or additional error details. */
+  public readonly details?: string
+
+  constructor(message: string, status: number, details?: string) {
+    super(message)
+    this.name = "ExperticketError"
+    this.status = status
+    this.details = details
+    Object.setPrototypeOf(this, ExperticketError.prototype)
+  }
+}
+
+/**
+ * Extended RequestInit to include Next.js-specific properties.
+ */
+export interface NextFetchRequestInit extends RequestInit {
+  /** Next.js specific caching and revalidation options. */
+  next?: {
+    revalidate?: number | false
+    tags?: string[]
+  }
+}
+
+/**
  * Retrieves the API Version from environment variables.
  */
 export function getApiVersion(): string {
@@ -82,7 +111,7 @@ export interface FetchOptions {
  * @param options - Configuration for the request.
  * @returns A promise that resolves to the parsed JSON response of type T.
  *
- * @throws {@link Error}
+ * @throws {@link ExperticketError}
  * Thrown if the API response is not OK or if a network/timeout error occurs.
  *
  * @example
@@ -117,7 +146,7 @@ export interface ExecuteRequestOptions {
   /** The full URL for the request. */
   url: string
   /** The fetch configuration. */
-  options: RequestInit
+  options: NextFetchRequestInit
   /** Timeout in milliseconds. */
   timeout: number
   /** Number of retries. */
@@ -132,7 +161,7 @@ export interface RetryOptions {
   /** The full URL for the request. */
   url: string
   /** The fetch configuration. */
-  options: RequestInit
+  options: NextFetchRequestInit
   /** Number of retry attempts. */
   retries: number
 }
@@ -185,9 +214,9 @@ function appendUrlSearchParams(url: URL, params: Record<string, unknown>) {
  *
  * @internal
  */
-function prepareFetchOptions(options: FetchOptions): RequestInit {
+function prepareFetchOptions(options: FetchOptions): NextFetchRequestInit {
   const { method = "GET", body, revalidate = 60 } = options
-  const fetchOptions: RequestInit = {
+  const fetchOptions: NextFetchRequestInit = {
     method,
     headers: { Accept: "application/json", "Content-Type": "application/json" },
   }
@@ -203,9 +232,8 @@ function prepareFetchOptions(options: FetchOptions): RequestInit {
  *
  * @internal
  */
-function applyCachingStrategy(options: RequestInit, method: string, revalidate: number) {
+function applyCachingStrategy(options: NextFetchRequestInit, method: string, revalidate: number) {
   if (method === "GET") {
-    // @ts-ignore - Next.js specific fetch options
     options.next = { revalidate }
   } else {
     options.cache = "no-store"
@@ -217,7 +245,7 @@ function applyCachingStrategy(options: RequestInit, method: string, revalidate: 
  *
  * @internal
  */
-function applyRequestBody(options: RequestInit, method: string, body: unknown) {
+function applyRequestBody(options: NextFetchRequestInit, method: string, body: unknown) {
   if (body && (method === "POST" || method === "DELETE")) {
     options.body = typeof body === "string" ? body : JSON.stringify(body)
   }
@@ -277,7 +305,7 @@ async function performFetchWithRetry<T>({
  *
  * @internal
  */
-async function fetchAndProcess<T>(url: string, options: RequestInit): Promise<T> {
+async function fetchAndProcess<T>(url: string, options: NextFetchRequestInit): Promise<T> {
   const response = await fetch(url, options)
   return await handleApiResponse<T>(response)
 }
@@ -316,17 +344,14 @@ function tryParseJson(text: string) {
  *
  * @internal
  */
-function buildUpstreamError(response: Response, data: unknown, text: string) {
+function buildUpstreamError(response: Response, data: unknown, text: string): ExperticketError {
   const resp = data as Record<string, unknown>
   const message = String(resp?.ErrorMessage || text || "Unknown error")
-  const error = new Error(`Experticket API error ${response.status}: ${message}`)
-
-  // @ts-ignore - attaching status for better error handling
-  error.status = response.status
-  // @ts-ignore
-  error.details = text
-
-  return error
+  return new ExperticketError(
+    `Experticket API error ${response.status}: ${message}`,
+    response.status,
+    text
+  )
 }
 
 /**

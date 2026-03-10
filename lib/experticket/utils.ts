@@ -89,13 +89,13 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
 
   if (Array.isArray(response)) return response as T[]
 
-  const resp = response as Record<string, unknown>
-  if (resp.Success === false) return []
+  const responseObject = response as Record<string, unknown>
+  if (responseObject.Success === false) return []
 
   return (
-    extractListFromObject<T>(resp, listKeys) ??
-    extractFromFallbacks<T>(resp) ??
-    wrapAsArrayIfValid<T>(resp)
+    extractListFromObject<T>(responseObject, listKeys) ??
+    extractFromFallbacks<T>(responseObject) ??
+    wrapAsArrayIfValid<T>(responseObject)
   )
 }
 
@@ -114,15 +114,15 @@ export function isValidObject(val: unknown): val is Record<string, unknown> {
  * @internal
  */
 export function extractListFromObject<T>(
-  resp: Record<string, unknown>,
+  responseObject: Record<string, unknown>,
   listKeys?: string | string[]
 ): T[] | undefined {
   if (!listKeys) return undefined
 
   const keys = Array.isArray(listKeys) ? listKeys : [listKeys]
   for (const key of keys) {
-    if (Array.isArray(resp[key])) {
-      return resp[key] as T[]
+    if (Array.isArray(responseObject[key])) {
+      return responseObject[key] as T[]
     }
   }
   return undefined
@@ -133,11 +133,13 @@ export function extractListFromObject<T>(
  *
  * @internal
  */
-export function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | undefined {
+export function extractFromFallbacks<T>(
+  responseObject: Record<string, unknown>
+): T[] | undefined {
   const fallbacks = ["Transactions", "Documents", "AccessCodes", "Codes", "CancellationRequests"]
   for (const key of fallbacks) {
-    if (Array.isArray(resp[key])) {
-      return resp[key] as T[]
+    if (Array.isArray(responseObject[key])) {
+      return responseObject[key] as T[]
     }
   }
   return undefined
@@ -148,7 +150,7 @@ export function extractFromFallbacks<T>(resp: Record<string, unknown>): T[] | un
  *
  * @internal
  */
-export function wrapAsArrayIfValid<T>(resp: Record<string, unknown>): T[] {
-  const isContainer = "Success" in resp || "Timestamp" in resp
-  return !isContainer ? [resp as unknown as T] : []
+export function wrapAsArrayIfValid<T>(responseObject: Record<string, unknown>): T[] {
+  const isContainer = "Success" in responseObject || "Timestamp" in responseObject
+  return !isContainer ? [responseObject as unknown as T] : []
 }

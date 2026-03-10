@@ -14,3 +14,4 @@ tsconfig.tsbuildinfo
 *.tsbuildinfo
 dist-types/
 temp/
+.eslintcache
