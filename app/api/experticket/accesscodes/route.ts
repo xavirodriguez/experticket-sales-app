@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const saleId = searchParams.get("SaleId") || ""
-    const data = await experticketService.getAccessCodes(saleId)
-    return NextResponse.json(data)
+    const accessCodesData = await experticketService.getAccessCodes(saleId)
+    return NextResponse.json(accessCodesData)
   } catch (err: unknown) {
     return createErrorResponse(err)
   }

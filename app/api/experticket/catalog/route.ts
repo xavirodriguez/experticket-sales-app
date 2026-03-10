@@ -18,9 +18,9 @@ export const runtime = "nodejs"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const lang = searchParams.get("LanguageCode") || undefined
-    const data = await experticketService.getCatalog(lang)
-    return NextResponse.json(data)
+    const languageCode = searchParams.get("LanguageCode") || undefined
+    const catalogData = await experticketService.getCatalog(languageCode)
+    return NextResponse.json(catalogData)
   } catch (err: unknown) {
     return createErrorResponse(err)
   }

@@ -10,6 +10,7 @@ import type {
   ReservationRequest,
   TransactionCreateRequest,
   CancellationRequest,
+  CancellationRequestResponse,
 } from "./types"
 
 /**
@@ -60,8 +61,8 @@ export class ExperticketService {
   /**
    * Checks available capacity for products/sessions.
    */
-  async getCapacity(params: Record<string, any>): Promise<adapters.DomainCapacity> {
-    const raw = await experticketFetch("availablecapacity", { params })
+  async getCapacity(queryParams: Record<string, string>): Promise<adapters.DomainCapacity> {
+    const raw = await experticketFetch("availablecapacity", { params: queryParams })
     const validated = schemas.AvailableCapacityResponseSchema.parse(raw)
     return adapters.adaptCapacity(validated)
   }
@@ -69,10 +70,10 @@ export class ExperticketService {
   /**
    * Calculates real-time prices.
    */
-  async getRealTimePrices(body: any): Promise<adapters.DomainRealTimePrices> {
+  async getRealTimePrices(priceRequest: unknown): Promise<adapters.DomainRealTimePrices> {
     const raw = await experticketFetch("RealTimePrices", {
       method: "POST",
-      body,
+      body: priceRequest,
     })
     const validated = schemas.RealTimePricesResponseSchema.parse(raw)
     return adapters.adaptPrices(validated)
@@ -81,10 +82,10 @@ export class ExperticketService {
   /**
    * Checks required ticket questions.
    */
-  async checkTicketQuestions(body: any): Promise<adapters.DomainTicketQuestions> {
+  async checkTicketQuestions(questionRequest: unknown): Promise<adapters.DomainTicketQuestions> {
     const raw = await experticketFetch("checkticketsquestions", {
       method: "POST",
-      body,
+      body: questionRequest,
     })
     const validated = schemas.TicketQuestionsResponseSchema.parse(raw)
     return adapters.adaptQuestions(validated)
@@ -93,10 +94,12 @@ export class ExperticketService {
   /**
    * Creates a temporary reservation.
    */
-  async createReservation(data: ReservationRequest): Promise<adapters.DomainReservation> {
+  async createReservation(
+    reservationRequest: ReservationRequest
+  ): Promise<adapters.DomainReservation> {
     const raw = await experticketFetch("reservation", {
       method: "POST",
-      body: data,
+      body: reservationRequest,
     })
     const validated = schemas.ReservationResponseSchema.parse(raw)
     return adapters.adaptReservation(validated)
@@ -105,10 +108,12 @@ export class ExperticketService {
   /**
    * Finalizes a transaction.
    */
-  async createTransaction(data: TransactionCreateRequest): Promise<adapters.DomainTransaction> {
+  async createTransaction(
+    transactionRequest: TransactionCreateRequest
+  ): Promise<adapters.DomainTransaction> {
     const raw = await experticketFetch("transaction", {
       method: "POST",
-      body: data,
+      body: transactionRequest,
     })
     const validated = schemas.TransactionSchema.parse(raw)
     return adapters.adaptTransaction(validated)
@@ -117,8 +122,10 @@ export class ExperticketService {
   /**
    * Lists transactions.
    */
-  async listTransactions(params: Record<string, any>): Promise<adapters.DomainTransactionList> {
-    const raw = await experticketFetch("transaction", { params })
+  async listTransactions(
+    queryParams: Record<string, string>
+  ): Promise<adapters.DomainTransactionList> {
+    const raw = await experticketFetch("transaction", { params: queryParams })
     const validated = schemas.TransactionListResponseSchema.parse(raw)
     return adapters.adaptTransactionList(validated)
   }
@@ -148,10 +155,12 @@ export class ExperticketService {
   /**
    * Requests a cancellation.
    */
-  async createCancellation(data: CancellationRequest): Promise<any> {
+  async createCancellation(
+    cancellationRequest: CancellationRequest
+  ): Promise<CancellationRequestResponse> {
     const raw = await experticketFetch("cancellationrequest", {
       method: "POST",
-      body: data,
+      body: cancellationRequest,
     })
     return schemas.CancellationRequestResponseSchema.parse(raw)
   }
@@ -159,8 +168,10 @@ export class ExperticketService {
   /**
    * Lists cancellation requests.
    */
-  async listCancellations(params: Record<string, any>): Promise<adapters.DomainCancellations> {
-    const raw = await experticketFetch("cancellationrequest", { params })
+  async listCancellations(
+    queryParams: Record<string, string>
+  ): Promise<adapters.DomainCancellations> {
+    const raw = await experticketFetch("cancellationrequest", { params: queryParams })
     const validated = schemas.CancellationListResponseSchema.parse(raw)
     return adapters.adaptCancellations(validated)
   }

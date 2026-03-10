@@ -9,9 +9,9 @@ export const runtime = "nodejs"
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const data = await experticketService.createTransaction(body)
-    return NextResponse.json(data)
+    const transactionRequest = await request.json()
+    const transactionData = await experticketService.createTransaction(transactionRequest)
+    return NextResponse.json(transactionData)
   } catch (err: unknown) {
     return createErrorResponse(err)
   }
@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const params = Object.fromEntries(searchParams.entries())
-    const data = await experticketService.listTransactions(params)
-    return NextResponse.json(data)
+    const queryParams = Object.fromEntries(searchParams.entries())
+    const transactionListData = await experticketService.listTransactions(queryParams)
+    return NextResponse.json(transactionListData)
   } catch (err: unknown) {
     return createErrorResponse(err)
   }
