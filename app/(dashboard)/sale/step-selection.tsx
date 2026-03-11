@@ -55,14 +55,14 @@ export function StepSelection({ state, updateState, onNext }: Props) {
         onLanguageChange={setLanguage}
         accessDate={accessDate}
         onDateChange={setAccessDate}
-        languages={languages as any}
+        languages={languages}
       />
 
       <ProviderSelector
-        providers={providers as any}
+        providers={providers}
         isLoading={catalogLoading}
-        selectedProvider={selectedProvider as any}
-        onSelect={setSelectedProvider as any}
+        selectedProvider={selectedProvider}
+        onSelect={setSelectedProvider}
       />
 
       {selectedProvider && (

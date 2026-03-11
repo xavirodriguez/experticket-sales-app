@@ -21,9 +21,10 @@
  * ```
  */
 export const fetcher = (url: string): Promise<any> =>
-  fetch(url).then((res) => {
+  fetch(url).then(async (res) => {
     if (!res.ok) {
-      throw new Error("Failed to fetch data")
+      const text = await res.text()
+      throw new Error(`HTTP ${res.status}: ${url} -> ${text}`)
     }
     return res.json()
   })
