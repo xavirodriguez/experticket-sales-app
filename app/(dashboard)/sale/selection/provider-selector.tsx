@@ -3,16 +3,16 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { ChevronRight } from "lucide-react"
-import type { CatalogProvider } from "@/lib/experticket/types"
+import type { DomainProvider } from "@/lib/experticket/adapter"
 
 /**
  * Props for the ProviderSelector component.
  */
 interface Props {
-  providers: CatalogProvider[]
+  providers: DomainProvider[]
   isLoading: boolean
-  selectedProvider: CatalogProvider | undefined
-  onSelect: (p: CatalogProvider) => void
+  selectedProvider: DomainProvider | undefined
+  onSelect: (p: DomainProvider) => void
 }
 
 /**
@@ -41,9 +41,9 @@ export function ProviderSelector({
             <div className="space-y-1">
               {providers.map((prov) => (
                 <ProviderItem
-                  key={prov.ProviderId}
+                  key={prov.providerId}
                   provider={prov}
-                  isSelected={selectedProvider?.ProviderId === prov.ProviderId}
+                  isSelected={selectedProvider?.providerId === prov.providerId}
                   onSelect={() => onSelect(prov)}
                 />
               ))}
@@ -60,7 +60,7 @@ function ProviderItem({
   isSelected,
   onSelect,
 }: {
-  provider: CatalogProvider
+  provider: DomainProvider
   isSelected: boolean
   onSelect: () => void
 }) {
@@ -73,11 +73,11 @@ function ProviderItem({
     >
       <div>
         <span className="font-medium">
-          {provider.ProviderName || provider.ProviderCommercialName || provider.ProviderId}
+          {provider.providerName || provider.providerCommercialName || provider.providerId}
         </span>
-        {provider.Tags && provider.Tags.length > 0 && (
+        {provider.tags && provider.tags.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {provider.Tags.map((t) => (
+            {provider.tags.map((t) => (
               <Badge key={t} variant="outline" className="text-[10px]">
                 {t}
               </Badge>

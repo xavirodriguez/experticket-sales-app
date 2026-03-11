@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import type { Language } from "@/lib/experticket/types"
+import type { DomainLanguage } from "@/lib/experticket/adapter"
 
 /**
  * Props for the LanguageAndDateSelector component.
@@ -11,7 +11,7 @@ interface Props {
   onLanguageChange: (val: string) => void
   accessDate: string
   onDateChange: (val: string) => void
-  languages: Language[]
+  languages: DomainLanguage[]
 }
 
 /**
@@ -34,8 +34,8 @@ export function LanguageAndDateSelector({
           </SelectTrigger>
           <SelectContent>
             {languages.map((l) => (
-              <SelectItem key={l.Code} value={l.Code}>
-                {l.EnglishName} ({l.Code})
+              <SelectItem key={l.code} value={l.code}>
+                {l.englishName} ({l.code})
               </SelectItem>
             ))}
           </SelectContent>
