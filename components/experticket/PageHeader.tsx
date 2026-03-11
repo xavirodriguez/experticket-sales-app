@@ -1,31 +1,26 @@
-/**
- * @module PageHeader
- * @description A reusable header component for dashboard pages.
- */
-
 "use client"
 
 /**
- * Defines the properties for the {@link PageHeader} component.
+ * Properties for the {@link PageHeader} component.
  */
 export interface PageHeaderProps {
-  /** The primary title of the page, rendered as an h1. */
+  /** Primary title of the page, rendered as an h1. */
   title: string
-  /** An optional subtitle or description to provide more context. */
+  /** Optional subtitle or description to provide more context. */
   description?: string
   /** Optional CSS class names to be applied to the container. */
   className?: string
 }
 
 /**
- * Renders a consistent page header with a title and optional description.
+ * Consistent page header with a title and optional description.
  *
  * @remarks
  * The title is styled with large, bold text suitable for the top of a page.
  * The description, if provided, appears directly below the title.
  *
- * @param props - The component properties.
- * @returns A JSX element representing the page header.
+ * @param props - Component properties.
+ * @returns JSX element representing the page header.
  *
  * @example
  * ```tsx

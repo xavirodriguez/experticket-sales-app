@@ -1,12 +1,13 @@
 /**
- * @module experticket-types
- * @description Type definitions for the Experticket API requests and responses.
+ * Type definitions for Experticket API requests and responses.
+ *
+ * @packageDocumentation
  */
 
 // ── Experticket API Types ──────────────────────────────────────────
 
 /**
- * Defines the base response shape shared by all Experticket API responses.
+ * Base response shape shared by all Experticket API responses.
  *
  * @remarks
  * All responses from the Experticket API include a `Success` flag indicating the
@@ -24,7 +25,7 @@ export interface ExperticketBaseResponse {
    * This field is typically populated only when {@link ExperticketBaseResponse.Success} is `false`.
    */
   ErrorMessage?: string | null
-  /** A list of machine-readable error codes associated with the failure. */
+  /** List of machine-readable error codes associated with the failure. */
   ErrorCodes?: string[]
   /** Detailed breakdown of errors mapped to specific entity identifiers and names. */
   ErrorEntityBreakDown?: { Id: string; Name: string }[]
@@ -33,7 +34,7 @@ export interface ExperticketBaseResponse {
 // ── Catalog ───────────────────────────────────────────────────────
 
 /**
- * Represents an individual ticket item within the product catalog.
+ * Individual ticket item within the product catalog.
  */
 export interface CatalogTicket {
   /** Unique identifier for the ticket. */
@@ -53,7 +54,7 @@ export interface CatalogTicket {
 }
 
 /**
- * Represents a specific time slot or session available for a product.
+ * Specific time slot or session available for a product.
  */
 export interface CatalogSession {
   /** Unique identifier for the session. */
@@ -69,7 +70,7 @@ export interface CatalogSession {
 }
 
 /**
- * Defines a product available for purchase in the Experticket system.
+ * Product available for purchase in the Experticket system.
  *
  * @remarks
  * Products are the primary sellable units and contain associated tickets and sessions.
@@ -81,7 +82,7 @@ export interface CatalogProduct {
   ProductName?: string
   /** Detailed multi-line description of the product. */
   ProductDescription?: string
-  /** The base price for the product. */
+  /** Base price for the product. */
   Price?: number
   /** Numeric identifier representing the pricing mode (e.g., per person). */
   PriceMode?: number
@@ -102,7 +103,7 @@ export interface CatalogProduct {
 }
 
 /**
- * Defines a logical grouping of related products.
+ * Logical grouping of related products.
  *
  * @remarks
  * A product base can enforce capacity restrictions across all its child products.
@@ -116,14 +117,14 @@ export interface CatalogProductBase {
   ProductBaseDescription?: string
   /** Dates where capacity is restricted at the product base level. */
   DaysWithLimitedCapacity?: string[]
-  /** The list of individual products belonging to this base. */
+  /** List of individual products belonging to this base. */
   Products?: CatalogProduct[]
   /** Additional dynamic properties returned by the API. */
   [key: string]: unknown
 }
 
 /**
- * Represents a service provider such as a museum, venue, or tour operator.
+ * Service provider such as a museum, venue, or tour operator.
  */
 export interface CatalogProvider {
   /** Unique identifier for the provider. */
@@ -151,7 +152,7 @@ export interface CatalogProvider {
 }
 
 /**
- * Defines the structure of the response from the product catalog endpoint.
+ * Structure of the response from the product catalog endpoint.
  */
 export interface CatalogResponse extends ExperticketBaseResponse {
   /** Collection of providers and their associated products. */
@@ -163,19 +164,19 @@ export interface CatalogResponse extends ExperticketBaseResponse {
 // ── Languages ─────────────────────────────────────────────────────
 
 /**
- * Represents a language supported by the Experticket platform.
+ * Language supported by the Experticket platform.
  */
 export interface Language {
   /** ISO 639-1 two-letter language code (e.g., "en"). */
   Code: string
-  /** The name of the language written in English. */
+  /** Name of the language written in English. */
   EnglishName: string
-  /** The name of the language written in its own native script. */
+  /** Name of the language written in its own native script. */
   NativeName: string
 }
 
 /**
- * Defines the response containing all available system languages.
+ * Response containing all available system languages.
  */
 export interface LanguagesResponse extends ExperticketBaseResponse {
   /** List of languages supported for localized content. */
@@ -185,7 +186,7 @@ export interface LanguagesResponse extends ExperticketBaseResponse {
 // ── Tags ──────────────────────────────────────────────────────────
 
 /**
- * Represents a hierarchical tag used for classification and filtering.
+ * Hierarchical tag used for classification and filtering.
  */
 export interface Tag {
   /** Unique string identifier for the tag. */
@@ -201,7 +202,7 @@ export interface Tag {
 }
 
 /**
- * Defines the response containing the complete tag hierarchy.
+ * Response containing the complete tag hierarchy.
  */
 export interface TagsResponse extends ExperticketBaseResponse {
   /** Root-level tags in the system hierarchy. */
@@ -211,7 +212,7 @@ export interface TagsResponse extends ExperticketBaseResponse {
 // ── Last Updated ──────────────────────────────────────────────────
 
 /**
- * Defines the response indicating the last system update time.
+ * Response indicating the last system update time.
  */
 export interface LastUpdatedResponse extends ExperticketBaseResponse {
   /** ISO 8601 timestamp of the most recent system-wide update. */
@@ -221,7 +222,7 @@ export interface LastUpdatedResponse extends ExperticketBaseResponse {
 // ── Available Capacity ────────────────────────────────────────────
 
 /**
- * Represents the remaining capacity for a specific item on a specific date.
+ * Remaining capacity for a specific item on a specific date.
  */
 export interface CapacityItem {
   /** Identifier of the product base if the capacity is defined at the base level. */
@@ -230,7 +231,7 @@ export interface CapacityItem {
   ProductId?: string
   /** Identifier of the session if the capacity is defined for a time slot. */
   SessionId?: string
-  /** The ISO 8601 date string for which capacity is reported. */
+  /** ISO 8601 date string for which capacity is reported. */
   Date: string
   /** Number of remaining available slots. If undefined, capacity is unlimited. */
   AvailableCapacity?: number
@@ -241,7 +242,7 @@ export interface CapacityItem {
 }
 
 /**
- * Defines the response returned when querying for available capacity.
+ * Response returned when querying for available capacity.
  */
 export interface AvailableCapacityResponse extends ExperticketBaseResponse {
   /** Capacity records grouped by product base identifiers. */
@@ -255,16 +256,16 @@ export interface AvailableCapacityResponse extends ExperticketBaseResponse {
 // ── Real-Time Prices ──────────────────────────────────────────────
 
 /**
- * Represents a dynamic price calculation for a product on a specific date.
+ * Dynamic price calculation for a product on a specific date.
  */
 export interface RealTimePriceItem {
   /** Identifier of the product for which the price was calculated. */
   ProductId: string
-  /** The ISO 8601 date used for the calculation. */
+  /** ISO 8601 date used for the calculation. */
   Date?: string
-  /** The actual date of access if it differs from the selection date. */
+  /** Actual date of access if it differs from the selection date. */
   AccessDate?: string
-  /** The final calculated numeric price. */
+  /** Final calculated numeric price. */
   Price: number
   /** Numeric identifier for the price mode. */
   PriceMode?: number
@@ -277,7 +278,7 @@ export interface RealTimePriceItem {
 }
 
 /**
- * Defines the response from the real-time pricing endpoint.
+ * Response from the real-time pricing endpoint.
  */
 export interface RealTimePricesResponse extends ExperticketBaseResponse {
   /** Collection of calculated real-time prices for the requested products. */
@@ -287,40 +288,40 @@ export interface RealTimePricesResponse extends ExperticketBaseResponse {
 // ── Ticket Questions ──────────────────────────────────────────────
 
 /**
- * Represents a predefined selectable value for a multi-choice ticket question.
+ * Predefined selectable value for a multi-choice ticket question.
  */
 export interface TicketQuestionValue {
   /** Unique identifier for the value option. */
   Id?: string
-  /** The localized display string for the option. */
+  /** Localized display string for the option. */
   Value?: string
 }
 
 /**
- * Defines a mandatory or optional question to be answered during reservation.
+ * Mandatory or optional question to be answered during reservation.
  */
 export interface TicketQuestion {
   /** Unique identifier for the question. */
   Id: string
-  /** The full text of the question to be displayed to the user. */
+  /** Full text of the question to be displayed to the user. */
   Question: string
-  /** A condensed version of the question text for mobile or summary views. */
+  /** Condensed version of the question text for mobile or summary views. */
   ShortQuestion?: string
   /** Indicates if an answer must be provided to proceed with the reservation. */
   Required?: boolean
-  /** The expected primitive data type of the answer (e.g., "string", "int"). */
+  /** Expected primitive data type of the answer (e.g., "string", "int"). */
   DataType?: string
-  /** A list of valid options if the question is a multiple-choice type. */
+  /** List of valid options if the question is a multiple-choice type. */
   Values?: TicketQuestionValue[]
 }
 
 /**
- * Defines a collection of questions grouped under a profile.
+ * Collection of questions grouped under a profile.
  */
 export interface TicketQuestionsProfile {
   /** Unique identifier for the question profile. */
   Id: string
-  /** The ordered list of questions contained in this profile. */
+  /** Ordered list of questions contained in this profile. */
   Questions?: TicketQuestion[]
 }
 
@@ -345,7 +346,7 @@ export interface TicketQuestionsProduct {
 }
 
 /**
- * Defines the response containing all required questions for a selection of products.
+ * Response containing all required questions for a selection of products.
  */
 export interface TicketQuestionsResponse extends ExperticketBaseResponse {
   /** List of products and their associated ticket-level question requirements. */
@@ -357,7 +358,7 @@ export interface TicketQuestionsResponse extends ExperticketBaseResponse {
 // ── Reservation ───────────────────────────────────────────────────
 
 /**
- * Defines the data structure for reserving a specific product unit.
+ * Data structure for reserving a specific product unit.
  */
 export interface ReservationProductRequest {
   /** Identifier of the product to be reserved. */
@@ -378,15 +379,15 @@ export interface ReservationProductRequest {
     Questions?: {
       /** Identifier of the question being answered. */
       TicketQuestionId: string
-      /** The provided answer if the question expects a string. */
+      /** Provided answer if the question expects a string. */
       StringValue?: string
-      /** The provided answer if the question expects a boolean. */
+      /** Provided answer if the question expects a boolean. */
       BooleanValue?: boolean
-      /** The provided answer if the question expects an ISO date string. */
+      /** Provided answer if the question expects an ISO date string. */
       DateTimeValue?: string
-      /** The provided answer if the question expects an integer. */
+      /** Provided answer if the question expects an integer. */
       IntegerValue?: number
-      /** The provided answer if the question expects a decimal. */
+      /** Provided answer if the question expects a decimal. */
       DecimalValue?: number
     }[]
   }[] | null
@@ -397,38 +398,38 @@ export interface ReservationProductRequest {
 }
 
 /**
- * Defines the payload required to create a temporary reservation.
+ * Payload required to create a temporary reservation.
  */
 export interface ReservationRequest {
   /** Partner API Key used for authentication. */
   ApiKey?: string
   /** Flag to indicate if the reservation should be processed as a test. */
   IsTest?: boolean
-  /** The primary ISO 8601 access date and time for the entire reservation. */
+  /** Primary ISO 8601 access date and time for the entire reservation. */
   AccessDateTime: string
-  /** The optional ISO 8601 end time for venue access. */
+  /** Optional ISO 8601 end time for venue access. */
   AccessEndDateTime?: string
-  /** The list of products and their quantities to be reserved. */
+  /** List of products and their quantities to be reserved. */
   Products: ReservationProductRequest[]
   /** ISO language code preferred for any localized error or success messages. */
   LanguageCode?: string | null
 }
 
 /**
- * Represents the reservation status and details for an individual product.
+ * Reservation status and details for an individual product.
  */
 export interface ReservationProductResponse {
   /** Unique identifier of the product. */
   ProductId: string
-  /** The reserved quantity confirmed by the system. */
+  /** Reserved quantity confirmed by the system. */
   Quantity: number
-  /** The unit price applied at the moment of reservation. */
+  /** Unit price applied at the moment of reservation. */
   Price?: number
-  /** The numeric pricing mode identifier. */
+  /** Numeric pricing mode identifier. */
   PriceMode?: number
   /** Indicates if the reservation for this specific product was successful. */
   Success: boolean
-  /** Error message describing the failure if {@link Success} is false. */
+  /** Error message describing the failure if {@link ReservationProductResponse.Success} is false. */
   ErrorMessage?: string
   /** List of individual ticket instances generated for this product reservation. */
   Tickets?: { TicketId: string; SessionId?: string; AccessDateTime?: string }[]
@@ -437,18 +438,18 @@ export interface ReservationProductResponse {
 }
 
 /**
- * Defines the response returned after a reservation attempt.
+ * Response returned after a reservation attempt.
  */
 export interface ReservationResponse extends ExperticketBaseResponse {
   /** Unique identifier for the created reservation session. */
   ReservationId?: string
-  /** The number of minutes remaining before the reservation expires and is released. */
+  /** Number of minutes remaining before the reservation expires and is released. */
   MinutesToExpiry?: number
-  /** The confirmed ISO 8601 access start time. */
+  /** Confirmed ISO 8601 access start time. */
   AccessDateTime?: string
-  /** The confirmed ISO 8601 access end time. */
+  /** Confirmed ISO 8601 access end time. */
   AccessEndDateTime?: string
-  /** The aggregate total price for all reserved products. */
+  /** Aggregate total price for all reserved products. */
   TotalPrice?: number
   /** Individual result details for each product included in the request. */
   Products?: ReservationProductResponse[]
@@ -457,32 +458,32 @@ export interface ReservationResponse extends ExperticketBaseResponse {
 // ── Transaction ───────────────────────────────────────────────────
 
 /**
- * Defines the payload to finalize a reservation into a permanent transaction.
+ * Payload to finalize a reservation into a permanent transaction.
  */
 export interface TransactionCreateRequest {
   /** Partner API Key for authentication. */
   ApiKey?: string
   /** Flag to indicate if this is a test transaction. */
   IsTest?: boolean
-  /** The identifier of the valid, non-expired reservation to be converted. */
+  /** Identifier of the valid, non-expired reservation to be converted. */
   ReservationId: string
-  /** The confirmed ISO 8601 access date and time. */
+  /** Confirmed ISO 8601 access date and time. */
   AccessDateTime: string
   /** List of product identifiers to be included in the final sale. */
   Products: { ProductId: string }[]
 }
 
 /**
- * Represents a specific ticket instance within a finalized transaction.
+ * Specific ticket instance within a finalized transaction.
  */
 export interface TransactionTicket {
   /** Unique internal identifier for the ticket instance. */
   TicketId: string
-  /** The name of the ticket type. */
+  /** Name of the ticket type. */
   TicketName?: string
-  /** The unique code used by the end user for venue entry. */
+  /** Unique code used by the end user for venue entry. */
   AccessCode?: string
-  /** The code used for financial reporting and billing. */
+  /** Code used for financial reporting and billing. */
   BillingCode?: string
   /** Identifier of the session the ticket is valid for. */
   SessionId?: string
@@ -501,14 +502,14 @@ export interface TransactionTicket {
 }
 
 /**
- * Represents a product record within a finalized transaction.
+ * Product record within a finalized transaction.
  */
 export interface TransactionProduct {
   /** Unique identifier of the product. */
   ProductId: string
   /** Human-readable name of the product. */
   ProductName?: string
-  /** The primary access code associated with this product instance. */
+  /** Primary access code associated with this product instance. */
   AccessCode?: string
   /** Identifier of the provider who owns the product. */
   ProviderId?: string
@@ -516,11 +517,11 @@ export interface TransactionProduct {
   ProviderName?: string
   /** Numeric classification code for the provider. */
   ProviderType?: number
-  /** The final numeric price charged for this product. */
+  /** Final numeric price charged for this product. */
   Price?: number
-  /** The original manufacturer's suggested retail price. */
+  /** Original manufacturer's suggested retail price. */
   RetailPrice?: number
-  /** The price amount before value-added tax is applied. */
+  /** Price amount before value-added tax is applied. */
   PriceWithoutVat?: number
   /** Numeric identifier for the pricing mode. */
   PriceMode?: number
@@ -535,10 +536,10 @@ export interface TransactionProduct {
 }
 
 /**
- * Defines a completed sale or transaction record.
+ * Completed sale or transaction record.
  *
  * @remarks
- * This interface contains the full details of a finalized purchase, including products and payment status.
+ * Contains the full details of a finalized purchase, including products and payment status.
  */
 export interface Transaction {
   /** Unique identifier for the sale record. */
@@ -551,11 +552,11 @@ export interface Transaction {
   TransactionDateTime?: string
   /** ISO 8601 timestamp of when the transaction was cancelled, if applicable. */
   CancelledDateTime?: string | null
-  /** The aggregate total price charged to the client. */
+  /** Aggregate total price charged to the client. */
   TotalPrice?: number
-  /** The aggregate total retail price (MSRP) for all items. */
+  /** Aggregate total retail price (MSRP) for all items. */
   TotalRetailPrice?: number
-  /** The aggregate total price before value-added tax. */
+  /** Aggregate total price before value-added tax. */
   TotalPriceWithoutVat?: number
   /** Numeric status code representing the current payment state. */
   PaymentStatus?: number
@@ -570,18 +571,18 @@ export interface Transaction {
 }
 
 /**
- * Defines a paginated response containing a list of transaction records.
+ * Paginated response containing a list of transaction records.
  */
 export interface TransactionListResponse extends ExperticketBaseResponse {
-  /** The collection of transaction records for the requested page. */
+  /** Collection of transaction records for the requested page. */
   Transactions?: Transaction[]
-  /** The index of the current page (1-based). */
+  /** Index of the current page (1-based). */
   PageNumber?: number
-  /** The maximum number of items per page. */
+  /** Maximum number of items per page. */
   PageSize?: number
-  /** The total number of items matching the query across all pages. */
+  /** Total number of items matching the query across all pages. */
   TotalItemCount?: number
-  /** The total number of available pages. */
+  /** Total number of available pages. */
   PageCount?: number
   /** Indicates if a page exists before the current one. */
   HasPreviousPage?: boolean
@@ -591,26 +592,26 @@ export interface TransactionListResponse extends ExperticketBaseResponse {
   IsFirstPage?: boolean
   /** Indicates if the current page is the last in the results. */
   IsLastPage?: boolean
-  /** The 1-based index of the first item on the current page. */
+  /** 1-based index of the first item on the current page. */
   FirstItemOnPage?: number
-  /** The 1-based index of the last item on the current page. */
+  /** 1-based index of the last item on the current page. */
   LastItemOnPage?: number
 }
 
 // ── Transaction Documents ─────────────────────────────────────────
 
 /**
- * Represents a downloadable document associated with a transaction.
+ * Downloadable document associated with a transaction.
  */
 export interface TransactionDocument {
-  /** The direct absolute URL to download the document file (typically PDF). */
+  /** Direct absolute URL to download the document file (typically PDF). */
   SalesDocumentUrl: string
   /** ISO language code in which the document is written. */
   LanguageCode?: string
 }
 
 /**
- * Defines the response containing links to generated transaction documents.
+ * Response containing links to generated transaction documents.
  */
 export interface TransactionDocumentsResponse extends ExperticketBaseResponse {
   /** List of generated documents available for download. */
@@ -620,12 +621,12 @@ export interface TransactionDocumentsResponse extends ExperticketBaseResponse {
 // ── Access Codes ──────────────────────────────────────────────────
 
 /**
- * Represents the access code details for an individual ticket instance.
+ * Access code details for an individual ticket instance.
  */
 export interface AccessCodeTicket {
   /** Unique identifier of the ticket instance. */
   Id: string
-  /** The string representation of the access code (e.g., barcode, QR data). */
+  /** String representation of the access code (e.g., barcode, QR data). */
   AccessCode?: string
   /** Numeric status code indicating the delivery state of the code. */
   DeliveryState?: number
@@ -634,7 +635,7 @@ export interface AccessCodeTicket {
 }
 
 /**
- * Represents access code information grouped at the product level.
+ * Access code information grouped at the product level.
  */
 export interface AccessCodeProduct {
   /** Unique identifier of the product instance. */
@@ -644,7 +645,7 @@ export interface AccessCodeProduct {
 }
 
 /**
- * Represents access code information grouped at the transaction level.
+ * Access code information grouped at the transaction level.
  */
 export interface AccessCodeTransaction {
   /** Unique identifier of the transaction. */
@@ -654,7 +655,7 @@ export interface AccessCodeTransaction {
 }
 
 /**
- * Defines the response returned when querying for transaction access codes.
+ * Response returned when querying for transaction access codes.
  */
 export interface AccessCodesResponse extends ExperticketBaseResponse {
   /** List of transactions and their complete access code hierarchies. */
@@ -664,14 +665,14 @@ export interface AccessCodesResponse extends ExperticketBaseResponse {
 // ── Cancellation ──────────────────────────────────────────────────
 
 /**
- * Defines the payload required to request the cancellation of a sale.
+ * Payload required to request the cancellation of a sale.
  */
 export interface CancellationRequest {
   /** Partner API Key for authentication. */
   ApiKey?: string
   /** Flag to indicate if the cancellation should be processed in test mode. */
   IsTest?: boolean
-  /** The identifier of the sale record to be cancelled. */
+  /** Identifier of the sale record to be cancelled. */
   SaleId: string
   /** Numeric reason code for the cancellation request. */
   Reason: number
@@ -680,7 +681,7 @@ export interface CancellationRequest {
 }
 
 /**
- * Defines the response returned after creating a cancellation request.
+ * Response returned after creating a cancellation request.
  */
 export interface CancellationRequestResponse extends ExperticketBaseResponse {
   /** Unique identifier for the newly created cancellation request. */
@@ -688,7 +689,7 @@ export interface CancellationRequestResponse extends ExperticketBaseResponse {
 }
 
 /**
- * Represents a record of a previously submitted cancellation request.
+ * Record of a previously submitted cancellation request.
  */
 export interface CancellationRequestItem {
   /** Unique identifier of the cancellation request. */
@@ -708,14 +709,14 @@ export interface CancellationRequestItem {
 }
 
 /**
- * Defines a paginated response containing a list of cancellation requests.
+ * Paginated response containing a list of cancellation requests.
  */
 export interface CancellationListResponse extends ExperticketBaseResponse {
-  /** The collection of cancellation request items for the current page. */
+  /** Collection of cancellation request items for the current page. */
   CancellationRequests?: CancellationRequestItem[]
-  /** The index of the current page (1-based). */
+  /** Index of the current page (1-based). */
   PageNumber?: number
-  /** The maximum number of items per page. */
+  /** Maximum number of items per page. */
   PageSize?: number
   /** Indicates if a page exists before the current one. */
   HasPreviousPage?: boolean
@@ -726,12 +727,12 @@ export interface CancellationListResponse extends ExperticketBaseResponse {
 }
 
 /**
- * Defines the response containing the last updated date and time for the catalog.
+ * Response containing the last updated date and time for the catalog.
  */
 export type CatalogLastUpdatedDateTimeResponse = LastUpdatedResponse
 
 /**
- * Defines the response for checking ticket questions.
+ * Response for checking ticket questions.
  */
 export type CheckTicketsQuestionsResponse = TicketQuestionsResponse
 
@@ -746,11 +747,11 @@ export type TransactionCreateResponse = Transaction
 export type TransactionQueryResponse = TransactionListResponse
 
 /**
- * Defines the response for creating a cancellation request.
+ * Response for creating a cancellation request.
  */
 export type CancellationRequestCreateResponse = CancellationRequestResponse
 
 /**
- * Defines the response for querying cancellation requests.
+ * Response for querying cancellation requests.
  */
 export type CancellationRequestQueryResponse = CancellationListResponse

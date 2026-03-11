@@ -1,26 +1,26 @@
 import { useState, useEffect } from "react"
 
 /**
- * Defines the shape of the data returned by the {@link useCountdown} hook.
+ * Data returned by the {@link useCountdown} hook.
  */
 export interface CountdownResult {
-  /** The formatted time remaining (e.g., "5m 30s") or "Expired". */
+  /** Formatted time remaining (e.g., "5m 30s") or "Expired". */
   timeLeft: string
   /** Indicates if the target timestamp has been reached or passed. */
   isExpired: boolean
-  /** The raw numeric difference in milliseconds between the target and now. */
+  /** Raw numeric difference in milliseconds between the target and now. */
   diff: number
 }
 
 /**
- * Custom hook to manage a real-time countdown timer.
+ * Manages a real-time countdown timer.
  *
  * @remarks
  * This hook sets up an interval that updates every second. It automatically
  * handles cleanup when the component unmounts or the target changes.
  *
- * @param targetTimestamp - The unix timestamp (in milliseconds) to count down to.
- * @returns An object of type {@link CountdownResult} containing timer state.
+ * @param targetTimestamp - Unix timestamp (in milliseconds) to count down to.
+ * @returns Object containing the current timer state.
  *
  * @example
  * ```tsx
