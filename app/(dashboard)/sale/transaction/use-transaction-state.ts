@@ -11,73 +11,70 @@ import type { SaleState } from "../use-sale-wizard"
 import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**
+ * Custom hook to manage the core actions and state for Step 6 (Transaction).
+ *
+ * @internal
+ */
+function useTransactionActions() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | undefined>(undefined)
+
+  const handleSuccess = useCallback((data: DomainTransaction, setTransaction: (tx: DomainTransaction) => void) => {
+    setTransaction(data)
+    const id = data.saleId || data.transactionId || "OK"
+    toast.success(`Transaction created: ${id}`)
+  }, [])
+
+  const handleError = useCallback((err: unknown) => {
+    const msg = err instanceof Error ? err.message : "Network error"
+    setError(msg)
+    toast.error(msg)
+  }, [])
+
+  return { loading, setLoading, error, setError, handleSuccess, handleError }
+}
+
+/**
  * Custom hook to manage the state and logic for Step 6 (Transaction).
  *
  * @param state - The current global sale state.
  * @returns An object containing transaction state, loading state, and creation logic.
- * @example
- * ```typescript
- * const { transaction, createTransaction, loading } = useTransactionState(state);
- * ```
  */
 export function useTransactionState(state: SaleState) {
-  const [loading, setLoading] = useState(false)
+  const { loading, setLoading, error, setError, handleSuccess, handleError } = useTransactionActions()
   const [transaction, setTransaction] = useState<DomainTransaction | undefined>(state.transaction)
-  const [error, setError] = useState<string | undefined>(undefined)
   const [paymentRef, setPaymentRef] = useState("")
 
   const createTransaction = useCallback(async () => {
-    if (!state.reservation?.reservationId) {
-      toast.error("No valid reservation found")
-      return
-    }
+    if (!state.reservation?.reservationId) return toast.error("No valid reservation found")
     setLoading(true)
     setError(undefined)
-
     try {
       const payload = buildTransactionPayload(state, paymentRef)
-      const res = await apiFetch("/api/experticket/transaction", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      })
-
-      const data: DomainTransaction = await res.json()
-
-      // The DomainTransaction object itself represents the result of the normalization
-      // which is usually only done if Success was true. But we check anyway.
-      // Wait, adaptTransaction doesn't have Success, but the DomainTransactionList might.
-      // Actually, createTransaction (Service) returns DomainTransaction.
-      // If we are calling the API route /api/experticket/transaction (POST),
-      // it returns what experticketService.createTransaction returns,
-      // which is a DomainTransaction.
-
-      setTransaction(data)
-      toast.success(`Transaction created: ${data.saleId || data.transactionId || "OK"}`)
+      handleSuccess(await performTransactionRequest(payload), setTransaction)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Network error"
-      setError(msg)
-      toast.error(msg)
+      handleError(err)
     } finally {
       setLoading(false)
     }
-  }, [state, paymentRef])
+  }, [state, paymentRef, handleSuccess, handleError, setLoading, setError])
 
-  return {
-    loading,
-    transaction,
-    error,
-    paymentRef,
-    setPaymentRef,
-    createTransaction,
-  }
+  return { loading, transaction, error, paymentRef, setPaymentRef, createTransaction }
+}
+
+/**
+ * Executes the transaction request to the API.
+ */
+async function performTransactionRequest(payload: Record<string, unknown>): Promise<DomainTransaction> {
+  const res = await apiFetch("/api/experticket/transaction", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+  return res.json()
 }
 
 /**
  * Builds the payload for the transaction API request.
- *
- * @param state - The current sale state.
- * @param paymentRef - Optional external payment reference.
- * @returns The request payload.
  */
 function buildTransactionPayload(state: SaleState, paymentRef: string) {
   const payload: Record<string, unknown> = {

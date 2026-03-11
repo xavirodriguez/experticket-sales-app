@@ -12,106 +12,73 @@ import type { SaleState } from "../use-sale-wizard"
 import type { DomainReservation } from "@/lib/experticket/adapter"
 
 /**
- * Custom hook to manage the state and logic for Step 5 (Reservation).
- *
- * @param state - The current global sale state.
- * @param updateState - Function to update the global sale state.
- * @returns An object containing reservation state, loading states, and action handlers.
- * @example
- * ```typescript
- * const { reservation, makeReservation, cancelReservation } = useReservationState(state, update);
- * ```
+ * Custom hook to manage reservation-related actions.
+ * @internal
  */
-export function useReservationState(
-  state: SaleState,
-  updateState: (partial: Partial<SaleState>) => void
-) {
+function useReservationActions(updateState: (partial: Partial<SaleState>) => void) {
   const [loading, setLoading] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [reservation, setReservation] = useState<DomainReservation | undefined>(
-    state.reservation
-  )
   const [error, setError] = useState<string | undefined>(undefined)
-  const [expiresAt, setExpiresAt] = useState<number | undefined>(state.reservationExpiry)
 
-  const { timeLeft, isExpired } = useCountdown(expiresAt ?? null)
+  const handleReservationError = useCallback((err: unknown) => {
+    const msg = err instanceof Error ? err.message : "Network error"
+    setError(msg)
+    toast.error(msg)
+  }, [])
 
-  const resetReservationState = useCallback(() => {
-    setReservation(undefined)
-    setExpiresAt(undefined)
+  const resetState = useCallback(() => {
     updateState({ reservation: undefined, reservationExpiry: undefined })
   }, [updateState])
+
+  return { loading, setLoading, cancelling, setCancelling, error, setError, handleReservationError, resetState }
+}
+
+/**
+ * Custom hook to manage the state and logic for Step 5 (Reservation).
+ */
+export function useReservationState(state: SaleState, updateState: (partial: Partial<SaleState>) => void) {
+  const { loading, setLoading, cancelling, setCancelling, error, setError, handleReservationError, resetState } = useReservationActions(updateState)
+  const [reservation, setReservation] = useState<DomainReservation | undefined>(state.reservation)
+  const [expiresAt, setExpiresAt] = useState<number | undefined>(state.reservationExpiry)
+  const { timeLeft, isExpired } = useCountdown(expiresAt ?? null)
 
   const makeReservation = useCallback(async () => {
     setLoading(true)
     setError(undefined)
     try {
-      const payload = buildReservationPayload(state)
-      const res = await apiFetch("/api/experticket/reservation", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      })
-      const data: DomainReservation = await res.json()
-
-      if (!data.success) {
-        throw new Error(data.errorMessage || "Reservation failed")
-      }
-
+      const data = await executeReservationRequest(buildReservationPayload(state))
       setReservation(data)
       handleReservationSuccess(data, setExpiresAt, updateState)
       toast.success(`Reservation created: ${data.reservationId}`)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Network error"
-      setError(msg)
-      toast.error(msg)
+      handleReservationError(err)
     } finally {
       setLoading(false)
     }
-  }, [state, updateState])
+  }, [state, updateState, handleReservationError, setLoading, setError])
 
   const cancelReservation = useCallback(async () => {
     if (!reservation?.reservationId) return
     setCancelling(true)
     try {
-      const res = await apiFetch("/api/experticket/reservation", {
-        method: "DELETE",
-        body: JSON.stringify({
-          IsTest: getIsTestMode(),
-          ReservationId: reservation.reservationId,
-        }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        toast.success("Reservation cancelled")
-        resetReservationState()
-      } else {
-        toast.error(data.errorMessage || "Failed to cancel reservation")
-      }
+      const data = await executeCancellationRequest(reservation.reservationId)
+      if (!data.success) return toast.error(data.errorMessage || "Failed to cancel")
+      toast.success("Reservation cancelled")
+      setReservation(undefined)
+      setExpiresAt(undefined)
+      resetState()
     } catch {
       toast.error("Network error cancelling reservation")
     } finally {
       setCancelling(false)
     }
-  }, [reservation?.reservationId, resetReservationState])
+  }, [reservation?.reservationId, resetState, setCancelling])
 
-  return {
-    reservation,
-    loading,
-    cancelling,
-    error,
-    timeLeft,
-    isExpired,
-    makeReservation,
-    cancelReservation,
-    resetReservationState,
-  }
+  return { reservation, loading, cancelling, error, timeLeft, isExpired, makeReservation, cancelReservation, resetReservationState: resetState }
 }
 
 /**
  * Builds the payload for the reservation API request.
- *
- * @param state - The current sale state.
- * @returns The request payload.
  */
 function buildReservationPayload(state: SaleState) {
   return {
@@ -120,31 +87,44 @@ function buildReservationPayload(state: SaleState) {
     Products: state.selectedProducts.map((p) => ({
       ProductId: p.productId,
       Quantity: p.quantity,
-      Tickets: undefined,
-      AccessDateTime: undefined,
-      AccessEndDateTime: undefined,
     })),
     LanguageCode: state.language || undefined,
   }
 }
 
 /**
+ * Executes the reservation request to the API.
+ */
+async function executeReservationRequest(payload: unknown): Promise<DomainReservation> {
+  const res = await apiFetch("/api/experticket/reservation", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+  const data: DomainReservation = await res.json()
+  if (!data.success) throw new Error(data.errorMessage || "Reservation failed")
+  return data
+}
+
+/**
+ * Executes the cancellation request to the API.
+ */
+async function executeCancellationRequest(reservationId: string) {
+  const res = await apiFetch("/api/experticket/reservation", {
+    method: "DELETE",
+    body: JSON.stringify({ IsTest: getIsTestMode(), ReservationId: reservationId }),
+  })
+  return res.json()
+}
+
+/**
  * Handles a successful reservation response, updating the timer and global state.
- *
- * @param data - The API response data.
- * @param setExpiresAt - Local state setter for expiry timestamp.
- * @param updateState - Global state update function.
  */
 function handleReservationSuccess(
   data: DomainReservation,
   setExpiresAt: (val: number | undefined) => void,
   updateState: (partial: Partial<SaleState>) => void
 ) {
-  if (data.minutesToExpiry) {
-    const expiry = Date.now() + data.minutesToExpiry * 60 * 1000
-    setExpiresAt(expiry)
-    updateState({ reservation: data, reservationExpiry: expiry })
-  } else {
-    updateState({ reservation: data, reservationExpiry: undefined })
-  }
+  const expiry = data.minutesToExpiry ? Date.now() + data.minutesToExpiry * 60 * 1000 : undefined
+  setExpiresAt(expiry)
+  updateState({ reservation: data, reservationExpiry: expiry })
 }
