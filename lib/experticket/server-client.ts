@@ -25,6 +25,13 @@ export class ExperticketError extends Error {
   /** Raw response body or additional error details. */
   public readonly details?: string
 
+  /**
+   * Initializes a new instance of the {@link ExperticketError} class.
+   *
+   * @param message - Error message.
+   * @param status - HTTP status code.
+   * @param details - Raw response body or additional details.
+   */
   constructor(message: string, status: number, details?: string) {
     super(message)
     this.name = "ExperticketError"
@@ -40,13 +47,17 @@ export class ExperticketError extends Error {
 export interface NextFetchRequestInit extends RequestInit {
   /** Next.js specific caching and revalidation options. */
   next?: {
+    /** Seconds between revalidations or `false` to disable. */
     revalidate?: number | false
+    /** Cache tags for on-demand revalidation. */
     tags?: string[]
   }
 }
 
 /**
  * Retrieves the API Version from environment variables.
+ *
+ * @returns Experticket API version string (e.g., "3.58").
  */
 export function getApiVersion(): string {
   return API_VERSION
@@ -54,6 +65,8 @@ export function getApiVersion(): string {
 
 /**
  * Retrieves the Partner ID from environment variables.
+ *
+ * @returns Experticket Partner ID.
  */
 export function getPartnerId(): string {
   return PARTNER_ID
@@ -61,6 +74,8 @@ export function getPartnerId(): string {
 
 /**
  * Retrieves the default language code from environment variables.
+ *
+ * @returns Default ISO language code (e.g., "en").
  */
 export function getDefaultLanguage(): string {
   return DEFAULT_LANG
@@ -68,6 +83,8 @@ export function getDefaultLanguage(): string {
 
 /**
  * Retrieves the raw API Key from environment variables.
+ *
+ * @returns Experticket API Key.
  */
 export function getApiKey(): string {
   return API_KEY
@@ -107,9 +124,9 @@ export interface FetchOptions {
  * This function handles URL building, timeouts, retries (only for GET requests),
  * and JSON parsing. It is intended for use in server-side contexts only.
  *
- * @param path - The API endpoint path relative to the base URL.
+ * @param path - API endpoint path relative to the base URL.
  * @param options - Configuration for the request.
- * @returns A promise that resolves to the parsed JSON response of type T.
+ * @returns Parsed JSON response of type T.
  *
  * @throws {@link ExperticketError}
  * Thrown if the API response is not OK or if a network/timeout error occurs.
@@ -143,9 +160,9 @@ export async function experticketFetch<T = unknown>(
  * @internal
  */
 export interface ExecuteRequestOptions {
-  /** The full URL for the request. */
+  /** Full URL for the request. */
   url: string
-  /** The fetch configuration. */
+  /** Fetch configuration. */
   options: NextFetchRequestInit
   /** Timeout in milliseconds. */
   timeout: number
@@ -158,9 +175,9 @@ export interface ExecuteRequestOptions {
  * @internal
  */
 export interface RetryOptions {
-  /** The full URL for the request. */
+  /** Full URL for the request. */
   url: string
-  /** The fetch configuration. */
+  /** Fetch configuration. */
   options: NextFetchRequestInit
   /** Number of retry attempts. */
   retries: number

@@ -1,6 +1,7 @@
 /**
- * @module experticket-service
- * @description Service layer for orchestrating Experticket API calls with validation and normalization.
+ * Service layer for orchestrating Experticket API calls with validation and normalization.
+ *
+ * @packageDocumentation
  */
 
 import { experticketFetch, getPartnerId, getDefaultLanguage } from "./server-client"
@@ -16,11 +17,18 @@ import type {
 } from "./types"
 
 /**
- * Service class for Experticket operations.
+ * Orchestrates operations with the Experticket API.
+ *
+ * @remarks
+ * This service handles data fetching, schema validation using Zod, and
+ * normalization into domain models.
  */
 export class ExperticketService {
   /**
-   * Retrieves and validates the product catalog.
+   * Retrieves the product catalog.
+   *
+   * @param languageCode - Optional ISO language code for localized content.
+   * @returns Normalized catalog including providers and products.
    */
   async getCatalog(languageCode?: string): Promise<adapters.DomainCatalog> {
     const raw = await experticketFetch("catalog", {
@@ -34,7 +42,9 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves and validates supported languages.
+   * Retrieves supported languages.
+   *
+   * @returns List of languages supported by the platform.
    */
   async getLanguages(): Promise<adapters.DomainLanguages> {
     const raw = await experticketFetch("AvailableLanguages")
@@ -43,7 +53,9 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves and validates product tags.
+   * Retrieves product tags.
+   *
+   * @returns Hierarchical tag tree for product classification.
    */
   async getTags(): Promise<adapters.DomainTags> {
     const raw = await experticketFetch("tags")
@@ -53,6 +65,8 @@ export class ExperticketService {
 
   /**
    * Retrieves the system last updated date.
+   *
+   * @returns ISO 8601 timestamp of the last system update.
    */
   async getLastUpdated(): Promise<adapters.DomainLastUpdated> {
     const raw = await experticketFetch("cataloglastupdateddatetime")
@@ -61,7 +75,10 @@ export class ExperticketService {
   }
 
   /**
-   * Checks available capacity for products/sessions.
+   * Checks available capacity for products or sessions.
+   *
+   * @param queryParams - Filter parameters for the capacity check.
+   * @returns Capacity records for the requested items and dates.
    */
   async getCapacity(queryParams: Record<string, string>): Promise<adapters.DomainCapacity> {
     const raw = await experticketFetch("availablecapacity", { params: queryParams })
@@ -70,7 +87,10 @@ export class ExperticketService {
   }
 
   /**
-   * Calculates real-time prices.
+   * Calculates real-time prices for a selection.
+   *
+   * @param priceRequest - Pricing request details.
+   * @returns Calculated prices and access dates.
    */
   async getRealTimePrices(
     priceRequest: RealTimePriceRequest
@@ -84,7 +104,10 @@ export class ExperticketService {
   }
 
   /**
-   * Checks required ticket questions.
+   * Checks required ticket questions for a selection.
+   *
+   * @param questionRequest - Question request details.
+   * @returns Mandatory questions and profiles for the selection.
    */
   async checkTicketQuestions(
     questionRequest: TicketQuestionRequest
@@ -99,6 +122,9 @@ export class ExperticketService {
 
   /**
    * Creates a temporary reservation.
+   *
+   * @param reservationRequest - Reservation details including products and answers.
+   * @returns Reservation session details and confirmed items.
    */
   async createReservation(
     reservationRequest: ReservationRequest
@@ -112,7 +138,10 @@ export class ExperticketService {
   }
 
   /**
-   * Finalizes a transaction.
+   * Finalizes a transaction from a reservation.
+   *
+   * @param transactionRequest - Transaction details including reservation ID.
+   * @returns Finalized transaction record.
    */
   async createTransaction(
     transactionRequest: TransactionCreateRequest
@@ -126,7 +155,10 @@ export class ExperticketService {
   }
 
   /**
-   * Lists transactions.
+   * Lists historical transactions.
+   *
+   * @param queryParams - Filter and pagination parameters.
+   * @returns Paginated list of transaction records.
    */
   async listTransactions(
     queryParams: Record<string, string>
@@ -137,7 +169,10 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves transaction documents.
+   * Retrieves downloadable documents for a sale.
+   *
+   * @param saleId - Unique identifier of the sale.
+   * @returns List of document URLs and language codes.
    */
   async getDocuments(saleId: string): Promise<adapters.DomainDocuments> {
     const raw = await experticketFetch("transactiondocuments", {
@@ -148,7 +183,10 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves access codes.
+   * Retrieves access codes for a sale.
+   *
+   * @param saleId - Unique identifier of the sale.
+   * @returns Access codes for all tickets in the transaction.
    */
   async getAccessCodes(saleId: string): Promise<adapters.DomainAccessCodes> {
     const raw = await experticketFetch("transactionaccesscodes", {
@@ -159,7 +197,10 @@ export class ExperticketService {
   }
 
   /**
-   * Requests a cancellation.
+   * Requests a cancellation for a sale.
+   *
+   * @param cancellationRequest - Cancellation details and reason.
+   * @returns Result of the cancellation request.
    */
   async createCancellation(
     cancellationRequest: CancellationRequest
@@ -173,6 +214,9 @@ export class ExperticketService {
 
   /**
    * Lists cancellation requests.
+   *
+   * @param queryParams - Filter and pagination parameters.
+   * @returns Paginated list of cancellation request items.
    */
   async listCancellations(
     queryParams: Record<string, string>
