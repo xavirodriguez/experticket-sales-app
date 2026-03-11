@@ -1,8 +1,3 @@
-/**
- * @module SearchCard
- * @description A reusable search component contained within a card.
- */
-
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -12,36 +7,36 @@ import { Label } from "@/components/ui/label"
 import { Search, Loader2 } from "lucide-react"
 
 /**
- * Defines the properties for the {@link SearchCard} component.
+ * Properties for the {@link SearchCard} component.
  */
 export interface SearchCardProps {
-  /** The title displayed at the top of the card. */
+  /** Title displayed at the top of the card. */
   title: string
-  /** A descriptive subtitle for the card. */
+  /** Descriptive subtitle for the card. */
   description: string
-  /** The text used as the label for the search input field. */
+  /** Text used as the label for the search input field. */
   inputLabel: string
-  /** The placeholder text shown in the input field when empty. */
+  /** Placeholder text shown in the input field when empty. */
   inputPlaceholder?: string
-  /** The current controlled value of the search input. */
+  /** Current controlled value of the search input. */
   searchValue: string
-  /** Callback function triggered whenever the input value changes. */
+  /** Callback triggered whenever the input value changes. */
   onSearchValueChange: (value: string) => void
-  /** Callback function triggered when the search button is clicked or Enter is pressed. */
+  /** Callback triggered when the search button is clicked or Enter is pressed. */
   onSearch: () => void
   /** Indicates if a search operation is currently pending. */
   isLoading?: boolean
 }
 
 /**
- * Renders a card containing a search input and an action button.
+ * Card containing a search input and an action button.
  *
  * @remarks
  * This component handles the Enter key press within the input to trigger the search.
  * The search button is automatically disabled when the input is empty or a search is loading.
  *
- * @param props - The component properties.
- * @returns A JSX element representing the search card.
+ * @param props - Component properties.
+ * @returns JSX element representing the search card.
  *
  * @example
  * ```tsx

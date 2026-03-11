@@ -17,8 +17,8 @@ import type { Transaction } from "./types"
  * This function checks multiple common keys (`SaleId`, `TransactionId`, `Id`) used by
  * different Experticket API endpoints to ensure a valid identifier is resolved.
  *
- * @param transaction - The transaction object to extract the ID from.
- * @returns The extracted identifier string, or "N/A" if no valid identifier is found.
+ * @param transaction - Transaction object to extract the ID from.
+ * @returns Extracted identifier string, or "N/A" if no valid identifier is found.
  *
  * @example
  * ```typescript
@@ -38,9 +38,9 @@ export function resolveTransactionId(transaction: Transaction): string {
  * If the provided amount is null, undefined, or empty, the function returns "N/A".
  * It handles both numeric and stringified numbers.
  *
- * @param amount - The numeric or string amount to format.
- * @param currency - The ISO currency code to append (defaults to "EUR").
- * @returns A formatted string containing the amount with two decimal places and the currency.
+ * @param amount - Numeric or string amount to format.
+ * @param currency - ISO currency code to append.
+ * @returns Formatted string containing the amount with two decimal places and the currency.
  *
  * @example
  * ```typescript
@@ -72,9 +72,9 @@ export function formatPrice(
  * under various keys. This function attempts to find the list based on common
  * patterns and provided keys.
  *
- * @param response - The raw, unknown API response to normalize.
+ * @param response - Raw, unknown API response to normalize.
  * @param listKeys - Optional key or list of keys to prioritize when searching for the array.
- * @returns A typed array containing the normalized entities.
+ * @returns Typed array containing the normalized entities.
  *
  * @example
  * ```typescript

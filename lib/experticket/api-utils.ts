@@ -18,9 +18,9 @@ import { ExperticketError } from "./server-client"
  * This helper ensures that all internal API proxy routes return errors in a format
  * consistent with {@link ExperticketBaseResponse}, using a standard HTTP status.
  *
- * @param err - The error object or message to be returned.
- * @param fallbackStatus - The HTTP status code (defaults to 502 Bad Gateway).
- * @returns A {@link NextResponse} object containing the serialized error details.
+ * @param err - Error object or message to be returned.
+ * @param fallbackStatus - HTTP status code to use if the error is not an {@link ExperticketError}.
+ * @returns Next.js Response object containing the serialized error details.
  *
  * @example
  * ```typescript
