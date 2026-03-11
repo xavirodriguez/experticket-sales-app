@@ -255,6 +255,18 @@ export interface AvailableCapacityResponse extends ExperticketBaseResponse {
 // ── Real-Time Prices ──────────────────────────────────────────────
 
 /**
+ * Defines the request payload for real-time price calculation.
+ */
+export interface RealTimePriceRequest {
+  /** List of product identifiers to query. */
+  ProductIds: string[]
+  /** ISO 8601 start date for the price query. */
+  StartDate: string
+  /** ISO 8601 end date for the price query. */
+  EndDate: string
+}
+
+/**
  * Represents a dynamic price calculation for a product on a specific date.
  */
 export interface RealTimePriceItem {
@@ -285,6 +297,18 @@ export interface RealTimePricesResponse extends ExperticketBaseResponse {
 }
 
 // ── Ticket Questions ──────────────────────────────────────────────
+
+/**
+ * Defines the request payload for checking ticket questions.
+ */
+export interface TicketQuestionRequest {
+  /** List of product identifiers. */
+  ProductIds: string[]
+  /** List of question profile identifiers. */
+  TicketsQuestionsProfileIds: string[]
+  /** Preferred language code for localized questions. */
+  LanguageCode?: string
+}
 
 /**
  * Represents a predefined selectable value for a multi-choice ticket question.

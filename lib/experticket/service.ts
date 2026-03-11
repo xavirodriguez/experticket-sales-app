@@ -11,6 +11,8 @@ import type {
   TransactionCreateRequest,
   CancellationRequest,
   CancellationRequestResponse,
+  RealTimePriceRequest,
+  TicketQuestionRequest,
 } from "./types"
 
 /**
@@ -70,7 +72,9 @@ export class ExperticketService {
   /**
    * Calculates real-time prices.
    */
-  async getRealTimePrices(priceRequest: unknown): Promise<adapters.DomainRealTimePrices> {
+  async getRealTimePrices(
+    priceRequest: RealTimePriceRequest
+  ): Promise<adapters.DomainRealTimePrices> {
     const raw = await experticketFetch("RealTimePrices", {
       method: "POST",
       body: priceRequest,
@@ -82,7 +86,9 @@ export class ExperticketService {
   /**
    * Checks required ticket questions.
    */
-  async checkTicketQuestions(questionRequest: unknown): Promise<adapters.DomainTicketQuestions> {
+  async checkTicketQuestions(
+    questionRequest: TicketQuestionRequest
+  ): Promise<adapters.DomainTicketQuestions> {
     const raw = await experticketFetch("checkticketsquestions", {
       method: "POST",
       body: questionRequest,
