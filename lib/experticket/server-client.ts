@@ -55,36 +55,36 @@ export interface NextFetchRequestInit extends RequestInit {
 }
 
 /**
- * Retrieves the API Version from environment variables.
+ * Retrieves the Experticket API Version from the environment configuration.
  *
- * @returns Experticket API version string (e.g., "3.58").
+ * @returns The configured API version string (e.g., "3.58").
  */
 export function getApiVersion(): string {
   return API_VERSION
 }
 
 /**
- * Retrieves the Partner ID from environment variables.
+ * Retrieves the Experticket Partner ID from the environment configuration.
  *
- * @returns Experticket Partner ID.
+ * @returns The configured Partner ID.
  */
 export function getPartnerId(): string {
   return PARTNER_ID
 }
 
 /**
- * Retrieves the default language code from environment variables.
+ * Retrieves the default ISO language code from the environment configuration.
  *
- * @returns Default ISO language code (e.g., "en").
+ * @returns The default language code (e.g., "en").
  */
 export function getDefaultLanguage(): string {
   return DEFAULT_LANG
 }
 
 /**
- * Retrieves the raw API Key from environment variables.
+ * Retrieves the Experticket API Key from the environment configuration.
  *
- * @returns Experticket API Key.
+ * @returns The configured API Key.
  */
 export function getApiKey(): string {
   return API_KEY

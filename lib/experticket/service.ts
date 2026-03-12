@@ -25,10 +25,18 @@ import type {
  */
 export class ExperticketService {
   /**
-   * Retrieves the product catalog.
+   * Retrieves the product catalog including providers and products.
    *
    * @param languageCode - Optional ISO language code for localized content.
-   * @returns Normalized catalog including providers and products.
+   * @returns A promise that resolves to the normalized catalog.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails or the response is invalid.
+   *
+   * @example
+   * ```typescript
+   * const catalog = await experticketService.getCatalog("en");
+   * ```
    */
   async getCatalog(languageCode?: string): Promise<adapters.DomainCatalog> {
     const raw = await experticketFetch("catalog", {
@@ -42,9 +50,12 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves supported languages.
+   * Retrieves the list of languages supported by the Experticket platform.
    *
-   * @returns List of languages supported by the platform.
+   * @returns A promise that resolves to the supported languages.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async getLanguages(): Promise<adapters.DomainLanguages> {
     const raw = await experticketFetch("AvailableLanguages")
@@ -53,9 +64,12 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves product tags.
+   * Retrieves the hierarchical tag tree for product classification.
    *
-   * @returns Hierarchical tag tree for product classification.
+   * @returns A promise that resolves to the tag tree.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async getTags(): Promise<adapters.DomainTags> {
     const raw = await experticketFetch("tags")
@@ -64,9 +78,12 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves the system last updated date.
+   * Retrieves the timestamp of the last system-wide catalog update.
    *
-   * @returns ISO 8601 timestamp of the last system update.
+   * @returns A promise that resolves to the last update timestamp.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async getLastUpdated(): Promise<adapters.DomainLastUpdated> {
     const raw = await experticketFetch("cataloglastupdateddatetime")
@@ -75,10 +92,24 @@ export class ExperticketService {
   }
 
   /**
-   * Checks available capacity for products or sessions.
+   * Checks available capacity and pricing for products or sessions.
    *
-   * @param queryParams - Filter parameters for the capacity check.
-   * @returns Capacity records for the requested items and dates.
+   * @remarks
+   * Use this method to verify if a selection is bookable for specific dates.
+   *
+   * @param queryParams - Filter parameters such as `ProductIds` and `Dates`.
+   * @returns A promise that resolves to the capacity records.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
+   *
+   * @example
+   * ```typescript
+   * const capacity = await experticketService.getCapacity({
+   *   ProductIds: "123,456",
+   *   Dates: "2024-12-25"
+   * });
+   * ```
    */
   async getCapacity(queryParams: Record<string, string>): Promise<adapters.DomainCapacity> {
     const raw = await experticketFetch("availablecapacity", { params: queryParams })
@@ -87,10 +118,21 @@ export class ExperticketService {
   }
 
   /**
-   * Calculates real-time prices for a selection.
+   * Calculates real-time prices for a selection of products on a specific date.
    *
-   * @param priceRequest - Pricing request details.
-   * @returns Calculated prices and access dates.
+   * @param priceRequest - Detailed pricing request including products and access date.
+   * @returns A promise that resolves to the calculated prices.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
+   *
+   * @example
+   * ```typescript
+   * const prices = await experticketService.getRealTimePrices({
+   *   AccessDateTime: "2024-12-25T10:00:00Z",
+   *   Products: [{ ProductId: "123" }]
+   * });
+   * ```
    */
   async getRealTimePrices(
     priceRequest: RealTimePriceRequest
@@ -104,10 +146,13 @@ export class ExperticketService {
   }
 
   /**
-   * Checks required ticket questions for a selection.
+   * Retrieves the mandatory questions required for a selection of products.
    *
-   * @param questionRequest - Question request details.
-   * @returns Mandatory questions and profiles for the selection.
+   * @param questionRequest - Request containing products and access date.
+   * @returns A promise that resolves to the question requirements.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async checkTicketQuestions(
     questionRequest: TicketQuestionRequest
@@ -121,10 +166,17 @@ export class ExperticketService {
   }
 
   /**
-   * Creates a temporary reservation.
+   * Creates a temporary reservation to lock inventory.
    *
-   * @param reservationRequest - Reservation details including products and answers.
-   * @returns Reservation session details and confirmed items.
+   * @remarks
+   * Reservations typically expire after a period of time (e.g., 10 minutes)
+   * if not finalized into a transaction.
+   *
+   * @param reservationRequest - Full details including products, quantities, and answers.
+   * @returns A promise that resolves to the reservation session details.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if inventory is unavailable or the request is invalid.
    */
   async createReservation(
     reservationRequest: ReservationRequest
@@ -138,10 +190,13 @@ export class ExperticketService {
   }
 
   /**
-   * Finalizes a transaction from a reservation.
+   * Finalizes a reservation into a permanent sale/transaction.
    *
-   * @param transactionRequest - Transaction details including reservation ID.
-   * @returns Finalized transaction record.
+   * @param transactionRequest - Request containing the reservation ID.
+   * @returns A promise that resolves to the finalized transaction record.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the reservation has expired or payment fails.
    */
   async createTransaction(
     transactionRequest: TransactionCreateRequest
@@ -155,10 +210,13 @@ export class ExperticketService {
   }
 
   /**
-   * Lists historical transactions.
+   * Retrieves a paginated list of historical transactions.
    *
-   * @param queryParams - Filter and pagination parameters.
-   * @returns Paginated list of transaction records.
+   * @param queryParams - Filters such as `SaleId`, `PageNumber`, and `PageSize`.
+   * @returns A promise that resolves to the paginated transaction list.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async listTransactions(
     queryParams: Record<string, string>
@@ -169,10 +227,13 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves downloadable documents for a sale.
+   * Retrieves downloadable documents (e.g., PDFs) for a specific sale.
    *
    * @param saleId - Unique identifier of the sale.
-   * @returns List of document URLs and language codes.
+   * @returns A promise that resolves to the document links.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the sale is not found or documents are not ready.
    */
   async getDocuments(saleId: string): Promise<adapters.DomainDocuments> {
     const raw = await experticketFetch("transactiondocuments", {
@@ -183,10 +244,13 @@ export class ExperticketService {
   }
 
   /**
-   * Retrieves access codes for a sale.
+   * Retrieves access codes (barcodes/QRs) for all tickets in a sale.
    *
    * @param saleId - Unique identifier of the sale.
-   * @returns Access codes for all tickets in the transaction.
+   * @returns A promise that resolves to the access code hierarchy.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the sale is not found.
    */
   async getAccessCodes(saleId: string): Promise<adapters.DomainAccessCodes> {
     const raw = await experticketFetch("transactionaccesscodes", {
@@ -197,10 +261,13 @@ export class ExperticketService {
   }
 
   /**
-   * Requests a cancellation for a sale.
+   * Submits a request to cancel an existing sale.
    *
-   * @param cancellationRequest - Cancellation details and reason.
-   * @returns Result of the cancellation request.
+   * @param cancellationRequest - Request including sale ID and reason code.
+   * @returns A promise that resolves to the result of the request.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the sale cannot be cancelled according to its conditions.
    */
   async createCancellation(
     cancellationRequest: CancellationRequest
@@ -213,10 +280,13 @@ export class ExperticketService {
   }
 
   /**
-   * Lists cancellation requests.
+   * Retrieves a paginated list of cancellation requests.
    *
-   * @param queryParams - Filter and pagination parameters.
-   * @returns Paginated list of cancellation request items.
+   * @param queryParams - Filters such as `SaleId` or pagination indexes.
+   * @returns A promise that resolves to the paginated list.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
    */
   async listCancellations(
     queryParams: Record<string, string>

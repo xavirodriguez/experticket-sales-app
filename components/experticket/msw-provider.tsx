@@ -1,14 +1,24 @@
-/**
- * @module MswProvider
- * @description Ensures MSW is initialized in the browser during development before the app renders.
- */
-
 "use client"
 
 import { useEffect, useState } from "react"
 
 /**
- * Provider that initializes Mock Service Worker in the browser.
+ * Component that initializes Mock Service Worker (MSW) in the browser during development.
+ *
+ * @remarks
+ * This provider ensures that MSW is fully ready before the rest of the application
+ * performs any client-side data fetching (e.g., via SWR). It only activates when
+ * `process.env.NEXT_PUBLIC_API_MOCKING` is set to `"enabled"` and the environment
+ * is `"development"`.
+ *
+ * @param props - Component properties.
+ *
+ * @example
+ * ```tsx
+ * <MswProvider>
+ *   <App />
+ * </MswProvider>
+ * ```
  */
 export function MswProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)

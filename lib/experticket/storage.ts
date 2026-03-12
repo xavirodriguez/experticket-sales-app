@@ -24,6 +24,11 @@ export function getIsTestMode(): boolean {
  * Persists the test mode setting in the browser's storage.
  *
  * @param enabled - Whether to enable or disable test mode.
+ *
+ * @example
+ * ```typescript
+ * setIsTestMode(true);
+ * ```
  */
 export function setIsTestMode(enabled: boolean): void {
   if (typeof window === "undefined") return
@@ -58,6 +63,11 @@ export function getStorageItem<T = string>(key: string, defaultValue: T): T {
  *
  * @param key - The unique storage key to use.
  * @param value - The value to store. Objects will be stringified to JSON.
+ *
+ * @example
+ * ```typescript
+ * setStorageItem("user_id", "user_123");
+ * ```
  */
 export function setStorageItem(key: string, value: unknown): void {
   if (typeof window === "undefined") return
