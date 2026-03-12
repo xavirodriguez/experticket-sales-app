@@ -180,19 +180,6 @@ export class ExperticketService {
   }
 
   /**
-   * Creates a temporary reservation to lock inventory.
-   *
-   * @remarks
-   * Reservations typically expire after a period of time (e.g., 10 minutes)
-   * if not finalized into a transaction.
-   *
-   * @param reservationRequest - Full details including products, quantities, and answers.
-   * @returns A promise that resolves to the reservation session details.
-   *
-   * @throws {@link ExperticketError}
-   * Thrown if inventory is unavailable or the request is invalid.
-   */
-  /**
    * Deletes an existing reservation.
    *
    * @param reservationId - Identifier of the reservation to be cancelled.
@@ -212,6 +199,19 @@ export class ExperticketService {
     return schemas.ExperticketBaseResponseSchema.parse(raw)
   }
 
+  /**
+   * Creates a temporary reservation to lock inventory.
+   *
+   * @remarks
+   * Reservations typically expire after a period of time (e.g., 10 minutes)
+   * if not finalized into a transaction.
+   *
+   * @param reservationRequest - Full details including products, quantities, and answers.
+   * @returns A promise that resolves to the reservation session details.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if inventory is unavailable or the request is invalid.
+   */
   async createReservation(
     reservationRequest: ReservationRequest
   ): Promise<adapters.DomainReservation> {

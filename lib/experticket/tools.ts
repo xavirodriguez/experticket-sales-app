@@ -8,7 +8,7 @@
  */
 
 import { experticketService } from "./service"
-import type { ReservationRequest } from "./types"
+import type { ReservationRequest, CancellationRequest } from "./types"
 
 /**
  * Consults the catalog to find which products are available for purchase.
@@ -80,4 +80,40 @@ export async function create_reservation(reservationData: ReservationRequest) {
  */
 export async function get_transaction_status(saleId: string) {
   return await experticketService.listTransactions({ SaleId: saleId })
+}
+
+/**
+ * Submits a request to cancel an existing transaction.
+ *
+ * @remarks
+ * This is a SENSITIVE tool and requires human-in-the-loop (HITL) approval.
+ *
+ * @param cancellationData - Request including sale ID and reason code.
+ * @returns A promise that resolves to the result of the cancellation request.
+ *
+ * @example
+ * ```typescript
+ * const result = await cancel_transaction({ SaleId: "S123", Reason: 4 });
+ * ```
+ */
+export async function cancel_transaction(cancellationData: CancellationRequest) {
+  return await experticketService.createCancellation(cancellationData)
+}
+
+/**
+ * Retrieves a list of cancellation requests, optionally filtered by sale.
+ *
+ * @param saleId - Optional identifier of the sale to filter by.
+ * @returns A promise that resolves to the normalized list of cancellation requests.
+ *
+ * @example
+ * ```typescript
+ * const requests = await get_cancellation_requests("S123");
+ * ```
+ */
+export async function get_cancellation_requests(saleId?: string) {
+  const query: Record<string, string> = {}
+  if (saleId) query.SaleId = saleId
+
+  return await experticketService.listCancellations(query)
 }

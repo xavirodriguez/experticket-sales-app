@@ -3,6 +3,8 @@ import {
   get_available_products,
   check_availability_and_price,
   get_transaction_status,
+  cancel_transaction,
+  get_cancellation_requests,
 } from "./tools"
 import { experticketService } from "./service"
 
@@ -13,6 +15,9 @@ vi.mock("./service", () => ({
     getCapacity: vi.fn(),
     getRealTimePrices: vi.fn(),
     listTransactions: vi.fn(),
+    createCancellation: vi.fn(),
+    listCancellations: vi.fn(),
+    createReservation: vi.fn(),
   },
 }))
 
@@ -64,6 +69,43 @@ describe("Experticket AI Tools", () => {
 
       expect(mockedService).toHaveBeenCalledWith({ SaleId: "S1" })
       expect(result.transactions[0].saleId).toBe("S1")
+    })
+  })
+
+  describe("cancel_transaction", () => {
+    it("should call createCancellation with the provided data", async () => {
+      const mockResult = { success: true, cancellationRequestId: "CR123" }
+      const mockedService = experticketService.createCancellation as any
+      mockedService.mockResolvedValueOnce(mockResult)
+
+      const data = { SaleId: "S123", Reason: 4 }
+      const result = await cancel_transaction(data)
+
+      expect(mockedService).toHaveBeenCalledWith(data)
+      expect(result.cancellationRequestId).toBe("CR123")
+    })
+  })
+
+  describe("get_cancellation_requests", () => {
+    it("should call listCancellations with SaleId filter", async () => {
+      const mockResult = { success: true, requests: [{ id: "CR123" }] }
+      const mockedService = experticketService.listCancellations as any
+      mockedService.mockResolvedValueOnce(mockResult)
+
+      const result = await get_cancellation_requests("S123")
+
+      expect(mockedService).toHaveBeenCalledWith({ SaleId: "S123" })
+      expect(result.requests[0].id).toBe("CR123")
+    })
+
+    it("should call listCancellations without filter if no saleId provided", async () => {
+      const mockResult = { success: true, requests: [] }
+      const mockedService = experticketService.listCancellations as any
+      mockedService.mockResolvedValueOnce(mockResult)
+
+      await get_cancellation_requests()
+
+      expect(mockedService).toHaveBeenCalledWith({})
     })
   })
 })
