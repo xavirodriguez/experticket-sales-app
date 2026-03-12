@@ -4,11 +4,16 @@ import { useState, useEffect } from "react"
  * Data returned by the {@link useCountdown} hook.
  */
 export interface CountdownResult {
-  /** Formatted time remaining (e.g., "5m 30s") or "Expired". */
+  /**
+   * Formatted time remaining.
+   *
+   * @remarks
+   * Example formats: "5m 30s", "0m 15s". Returns "Expired" when the timer reaches zero.
+   */
   timeLeft: string
   /** Indicates if the target timestamp has been reached or passed. */
   isExpired: boolean
-  /** Raw numeric difference in milliseconds between the target and now. */
+  /** Raw numeric difference in milliseconds between the target and current time. */
   diff: number
 }
 

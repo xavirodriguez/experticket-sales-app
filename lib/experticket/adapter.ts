@@ -65,13 +65,13 @@ export interface DomainTicket {
   ticketId: string
   /** Display name of the ticket. */
   ticketName?: string
-  /** Indicates if the ticket is subject to quota. */
+  /** Indicates if the ticket is subject to quota restrictions. */
   isQuotaTicket?: boolean
   /** Identifier of the ticket enclosure. */
   ticketEnclosureId?: string
   /** Name of the ticket enclosure. */
   ticketEnclosureName?: string
-  /** Identifier of the question profile for this ticket. */
+  /** Identifier of the question profile containing mandatory fields for this ticket. */
   ticketQuestionsProfileId?: string
 }
 
@@ -81,437 +81,448 @@ export interface DomainTicket {
 export interface DomainSession {
   /** Unique session identifier. */
   sessionId: string
-  /** ISO 8601 start time. */
+  /** ISO 8601 string representing the start time. */
   sessionTime?: string
-  /** Descriptive content name. */
+  /** Descriptive name or content summary for the session. */
   sessionContentName?: string
-  /** Indicates if capacity is limited. */
+  /** Indicates if the session has a fixed maximum capacity. */
   hasLimitedCapacity?: boolean
 }
 
 /**
- * Normalized product definition.
+ * Normalized product available for purchase.
+ *
+ * @remarks
+ * Products are sellable units and contain associated tickets and sessions.
  */
 export interface DomainProduct {
   /** Unique product identifier. */
   productId: string
   /** Display name of the product. */
   productName?: string
-  /** Detailed product description. */
+  /** Detailed multi-line description of the product. */
   productDescription?: string
-  /** Current price for the product. */
+  /** Current base price for the product. */
   price?: number
-  /** Numeric price mode identifier. */
+  /** Numeric identifier representing the pricing mode. */
   priceMode?: number
-  /** Access date criteria code. */
+  /** Criteria used to determine valid access dates. */
   accessDateCriteria?: number
-  /** Dates with limited capacity. */
+  /** List of ISO 8601 date strings with specific capacity constraints. */
   daysWithLimitedCapacity?: string[]
-  /** Tickets available under this product. */
+  /** Collection of tickets available under this product. */
   tickets?: DomainTicket[]
-  /** Sessions available for this product. */
+  /** Collection of time slots available for this product. */
   sessions?: DomainSession[]
 }
 
 /**
- * Normalized product base grouping.
+ * Normalized logical grouping of related products.
+ *
+ * @remarks
+ * A product base can enforce capacity restrictions across all its child products.
  */
 export interface DomainProductBase {
   /** Unique product base identifier. */
   productBaseId: string
   /** Name of the product base. */
   productBaseName?: string
-  /** Description of the product base. */
+  /** Detailed description of the product base grouping. */
   productBaseDescription?: string
-  /** Dates with limited capacity at the base level. */
+  /** Dates where capacity is restricted at the product base level. */
   daysWithLimitedCapacity?: string[]
-  /** Products belonging to this base. */
+  /** List of individual products belonging to this base. */
   products?: DomainProduct[]
 }
 
 /**
- * Normalized service provider.
+ * Normalized service provider (e.g., museum, venue, tour operator).
  */
 export interface DomainProvider {
   /** Unique provider identifier. */
   providerId: string
-  /** Name of the provider. */
+  /** Full name of the provider entity. */
   providerName?: string
-  /** Description of the provider. */
+  /** Comprehensive description of the provider and its services. */
   providerDescription?: string
-  /** Commercial trade name. */
+  /** Public-facing trade or commercial name. */
   providerCommercialName?: string
-  /** Access terms and conditions. */
+  /** Human-readable terms and conditions for venue access. */
   providerAccessConditions?: string
-  /** Numeric provider classification code. */
+  /** Numeric classification code for the provider type. */
   providerType?: number
-  /** URL to the provider logo. */
+  /** Absolute URL to the provider's logo image. */
   logo?: string
-  /** List of associated tags. */
+  /** Keywords or categories associated with the provider. */
   tags?: string[]
-  /** Product bases offered by the provider. */
+  /** Product bases managed and offered by this provider. */
   productBases?: DomainProductBase[]
 }
 
 /**
- * Normalized catalog data.
+ * Normalized catalog data including providers and associated products.
  */
 export interface DomainCatalog extends DomainBase {
-  /** List of providers and their products. */
+  /** Collection of providers and their products. */
   providers: DomainProvider[]
-  /** ISO 8601 timestamp of last catalog update. */
+  /** ISO 8601 timestamp of when the catalog was last updated. */
   catalogLastUpdatedDateTime?: string
 }
 
 /**
- * Normalized language definition.
+ * Normalized language supported by the platform.
  */
 export interface DomainLanguage {
-  /** ISO language code. */
+  /** ISO 639-1 two-letter language code (e.g., "en"). */
   code: string
-  /** English name of the language. */
+  /** Name of the language in English. */
   englishName: string
-  /** Native name of the language. */
+  /** Name of the language in its own native script. */
   nativeName: string
 }
 
 /**
- * Normalized list of supported languages.
+ * Normalized list of all supported system languages.
  */
 export interface DomainLanguages extends DomainBase {
-  /** List of available languages. */
+  /** List of languages supported for localized content. */
   languages: DomainLanguage[]
 }
 
 /**
- * Normalized tag hierarchy item.
+ * Normalized hierarchical tag used for classification.
  */
 export interface DomainTag {
-  /** Unique tag identifier. */
+  /** Unique string identifier for the tag. */
   id: string
-  /** Numeric system key. */
+  /** Internal numeric key used by the legacy system. */
   key: number
-  /** Localized tag name. */
+  /** Localized display name of the tag. */
   name: string
-  /** Fully qualified path name. */
+  /** Fully qualified path name including parents (e.g., "Category/Subcategory"). */
   pathName: string
-  /** Nested child tags. */
+  /** Nested child tags for building a hierarchy. */
   children: DomainTag[]
 }
 
 /**
- * Normalized tag hierarchy.
+ * Normalized complete tag hierarchy for classification and filtering.
  */
 export interface DomainTags extends DomainBase {
-  /** List of root-level tags. */
+  /** Root-level tags in the system hierarchy. */
   tags: DomainTag[]
 }
 
 /**
- * Normalized capacity information for an item.
+ * Normalized remaining capacity for a specific item on a specific date.
  */
 export interface DomainCapacityItem {
-  /** Product base identifier if applicable. */
+  /** Identifier of the product base if the capacity is defined at the base level. */
   productBaseId?: string
-  /** Product identifier if applicable. */
+  /** Identifier of the specific product if the capacity is defined at the product level. */
   productId?: string
-  /** Session identifier if applicable. */
+  /** Identifier of the session if the capacity is defined for a time slot. */
   sessionId?: string
-  /** ISO 8601 date. */
+  /** ISO 8601 date string for which capacity is reported. */
   date: string
-  /** Remaining available slots. */
+  /** Number of remaining available slots. If undefined, capacity is unlimited. */
   availableCapacity?: number
-  /** Current price. */
+  /** Current price applicable for the item on this date. */
   price?: number
-  /** Pricing mode identifier. */
+  /** Pricing mode applicable for this capacity entry. */
   priceMode?: number
 }
 
 /**
- * Normalized capacity report.
+ * Normalized capacity report containing records for bases, products, and sessions.
  */
 export interface DomainCapacity extends DomainBase {
-  /** Capacity records for product bases. */
+  /** Capacity records grouped by product base identifiers. */
   productBases: DomainCapacityItem[]
-  /** Capacity records for products. */
+  /** Capacity records grouped by individual product identifiers. */
   products: DomainCapacityItem[]
-  /** Capacity records for sessions. */
+  /** Capacity records grouped by session (time slot) identifiers. */
   sessions: DomainCapacityItem[]
 }
 
 /**
- * Normalized real-time price calculation.
+ * Normalized dynamic price calculation for a product on a specific date.
  */
 export interface DomainRealTimePrice {
-  /** Identifier of the priced product. */
+  /** Identifier of the product for which the price was calculated. */
   productId: string
-  /** Selection date. */
+  /** ISO 8601 selection date used for the calculation. */
   date?: string
-  /** Confirmed access date. */
+  /** Actual date of access if it differs from the selection date. */
   accessDate?: string
-  /** Calculated numeric price. */
+  /** Final calculated numeric price. */
   price: number
-  /** Price mode identifier. */
+  /** Numeric identifier for the price mode. */
   priceMode?: number
-  /** Indicates if calculation was successful. */
+  /** Indicates if the price was successfully calculated for this specific item. */
   success?: boolean
-  /** Error message if calculation failed. */
+  /** Error message describing why calculation failed for this item. */
   errorMessage?: string
 }
 
 /**
- * Normalized collection of real-time prices.
+ * Normalized collection of calculated real-time prices.
  */
 export interface DomainRealTimePrices extends DomainBase {
-  /** List of calculated prices. */
+  /** Collection of calculated real-time prices for the requested products. */
   prices: DomainRealTimePrice[]
 }
 
 /**
- * Normalized ticket question definition.
+ * Normalized mandatory or optional question to be answered during reservation.
  */
 export interface DomainTicketQuestion {
-  /** Unique question identifier. */
+  /** Unique identifier for the question. */
   id: string
-  /** Full text of the question. */
+  /** Full text of the question to be displayed to the user. */
   question: string
-  /** Short version of the question. */
+  /** Condensed version of the question text for mobile or summary views. */
   shortQuestion?: string
-  /** Indicates if an answer is required. */
+  /** Indicates if an answer must be provided to proceed with the reservation. */
   required?: boolean
-  /** Answer data type (e.g., string, int). */
+  /** Expected primitive data type of the answer (e.g., "string", "int"). */
   dataType?: string
-  /** Valid options for choice-based questions. */
+  /** List of valid options if the question is a multiple-choice type. */
   values?: { id?: string; value?: string }[]
 }
 
 /**
- * Normalized question profile.
+ * Normalized collection of questions grouped under a profile.
  */
 export interface DomainTicketQuestionsProfile {
-  /** Unique profile identifier. */
+  /** Unique identifier for the question profile. */
   id: string
-  /** Ordered list of questions. */
+  /** Ordered list of questions contained in this profile. */
   questions: DomainTicketQuestion[]
 }
 
 /**
- * Normalized question requirements for products.
+ * Normalized question requirements and definitions for a selection of products.
  */
 export interface DomainTicketQuestions extends DomainBase {
-  /** Requirement mapping for products. */
+  /** List of products and their associated ticket-level question requirements. */
   products: {
-    /** Product identifier. */
+    /** Unique identifier of the product. */
     productId: string
-    /** Ticket requirements. */
+    /** List of tickets belonging to this product that require answers. */
     tickets: {
-      /** Ticket identifier. */
+      /** Unique identifier of the ticket. */
       ticketId: string
-      /** Question profile identifier. */
+      /** Identifier of the profile containing the questions for this ticket. */
       ticketQuestionsProfileId?: string
     }[]
   }[]
-  /** Definitions for question profiles. */
+  /** Complete definitions for all question profiles referenced in the response. */
   profiles: DomainTicketQuestionsProfile[]
 }
 
 /**
- * Normalized product reservation result.
+ * Normalized reservation status and details for an individual product.
  */
 export interface DomainReservationProduct {
-  /** Reserved product identifier. */
+  /** Unique identifier of the product. */
   productId: string
-  /** Confirmed quantity. */
+  /** Reserved quantity confirmed by the system. */
   quantity: number
-  /** Applied unit price. */
+  /** Unit price applied at the moment of reservation. */
   price?: number
-  /** Indicates if reservation succeeded for this product. */
+  /** Indicates if the reservation for this specific product was successful. */
   success: boolean
-  /** Error message if reservation failed. */
+  /** Error message describing the failure if success is false. */
   errorMessage?: string
-  /** Confirmed ticket instances. */
+  /** List of individual ticket instances generated for this product reservation. */
   tickets?: { ticketId: string; sessionId?: string; accessDateTime?: string }[]
 }
 
 /**
- * Normalized reservation session.
+ * Normalized reservation session details.
  */
 export interface DomainReservation extends DomainBase {
-  /** Unique reservation identifier. */
+  /** Unique identifier for the created reservation session. */
   reservationId?: string
-  /** Minutes remaining until expiration. */
+  /** Number of minutes remaining before the reservation expires and is released. */
   minutesToExpiry?: number
-  /** Confirmed ISO 8601 access time. */
+  /** Confirmed ISO 8601 access start time. */
   accessDateTime?: string
-  /** Total price for all reserved items. */
+  /** Aggregate total price for all reserved products. */
   totalPrice?: number
-  /** Detailed product results. */
+  /** Individual result details for each product included in the reservation. */
   products: DomainReservationProduct[]
 }
 
 /**
- * Normalized transaction ticket instance.
+ * Normalized specific ticket instance within a finalized transaction.
  */
 export interface DomainTransactionTicket {
-  /** Unique ticket identifier. */
+  /** Unique internal identifier for the ticket instance. */
   ticketId: string
   /** Name of the ticket type. */
   ticketName?: string
-  /** User-facing access code. */
+  /** Unique code used by the end user for venue entry. */
   accessCode?: string
-  /** Session identifier. */
+  /** Identifier of the session the ticket is valid for. */
   sessionId?: string
-  /** Confirmed ISO 8601 access time. */
+  /** Confirmed ISO 8601 start time for access. */
   accessDateTime?: string
-  /** Provider's internal tracking code. */
+  /** Internal tracking code used by the provider. */
   internalCode?: string
 }
 
 /**
- * Normalized transaction product record.
+ * Normalized product record within a finalized transaction.
  */
 export interface DomainTransactionProduct {
-  /** Product identifier. */
+  /** Unique identifier of the product. */
   productId: string
-  /** Display name of the product. */
+  /** Human-readable name of the product. */
   productName?: string
-  /** Primary access code. */
+  /** Primary access code associated with this product instance. */
   accessCode?: string
-  /** Provider identifier. */
+  /** Identifier of the provider who owns the product. */
   providerId?: string
   /** Name of the provider. */
   providerName?: string
-  /** Final charged price. */
+  /** Final numeric price charged for this product. */
   price?: number
-  /** Lifecycle status code. */
+  /** Current lifecycle status code of the product instance. */
   status?: number
-  /** Ticket instances for this product. */
+  /** Collection of individual tickets generated for this product. */
   tickets?: DomainTransactionTicket[]
 }
 
 /**
- * Normalized finalized transaction.
+ * Normalized finalized sale or transaction record.
  */
 export interface DomainTransaction {
-  /** Unique sale identifier. */
+  /** Unique identifier for the sale record. */
   saleId?: string
-  /** Alternative transaction identifier. */
+  /** Alternative identifier for the transaction record. */
   transactionId?: string
-  /** Confirmed ISO 8601 access time. */
+  /** Confirmed ISO 8601 access date and time. */
   accessDateTime?: string
-  /** ISO 8601 creation timestamp. */
+  /** ISO 8601 timestamp of when the transaction was officially created. */
   transactionDateTime?: string
-  /** Total numeric price. */
+  /** Aggregate total price charged to the client. */
   totalPrice?: number
-  /** Payment status code. */
+  /** Numeric status code representing the current payment state. */
   paymentStatus?: number
-  /** Products included in the transaction. */
+  /** Collection of products included in the sale. */
   products: DomainTransactionProduct[]
 }
 
 /**
- * Normalized list of transactions.
+ * Normalized paginated response containing a list of transaction records.
  */
 export interface DomainTransactionList extends DomainBase {
-  /** Collection of transaction records. */
+  /** Collection of transaction records for the requested page. */
   transactions: DomainTransaction[]
-  /** Current page index. */
+  /** Index of the current page (1-based). */
   pageNumber?: number
-  /** Items per page. */
+  /** Maximum number of items per page. */
   pageSize?: number
-  /** Total matching items. */
+  /** Total number of items matching the query across all pages. */
   totalItemCount?: number
-  /** Total available pages. */
+  /** Total number of available pages. */
   pageCount?: number
 }
 
 /**
- * Normalized transaction document link.
+ * Normalized downloadable document associated with a transaction.
  */
 export interface DomainDocument {
-  /** Absolute URL to the document. */
+  /** Direct absolute URL to download the document file (typically PDF). */
   url: string
-  /** Document language code. */
+  /** ISO language code in which the document is written. */
   languageCode?: string
 }
 
 /**
- * Normalized collection of documents.
+ * Normalized response containing links to generated transaction documents.
  */
 export interface DomainDocuments extends DomainBase {
-  /** List of available documents. */
+  /** List of generated documents available for download. */
   documents: DomainDocument[]
 }
 
 /**
- * Normalized access code hierarchy.
+ * Normalized access code hierarchy at the transaction level.
  */
 export interface DomainAccessCode {
-  /** Transaction identifier. */
+  /** Unique identifier of the transaction. */
   id: string
-  /** Access codes grouped by product. */
+  /** Collection of products and their associated access codes. */
   products: {
-    /** Product identifier. */
+    /** Unique identifier of the product instance. */
     id: string
-    /** Access codes grouped by ticket. */
+    /** Collection of access codes for the individual tickets. */
     tickets: {
-      /** Ticket identifier. */
+      /** Unique identifier of the ticket instance. */
       id: string
-      /** User-facing access code. */
+      /** String representation of the access code (e.g., barcode). */
       accessCode?: string
-      /** Internal tracking code. */
+      /** Internal tracking identifier for the access code. */
       internalCode?: string
     }[]
   }[]
 }
 
 /**
- * Normalized collection of access codes.
+ * Normalized response containing transaction access codes.
  */
 export interface DomainAccessCodes extends DomainBase {
-  /** Access codes for requested transactions. */
+  /** List of transactions and their complete access code hierarchies. */
   transactions: DomainAccessCode[]
 }
 
 /**
- * Normalized cancellation request record.
+ * Normalized record of a previously submitted cancellation request.
  */
 export interface DomainCancellationRequest {
-  /** Unique request identifier. */
+  /** Unique identifier of the cancellation request. */
   id: string
-  /** Sale identifier. */
+  /** Identifier of the sale associated with this request. */
   saleId?: string
-  /** ISO 8601 creation timestamp. */
+  /** ISO 8601 timestamp of when the request was first created. */
   createdDateTime?: string
-  /** Status code. */
+  /** Numeric status code of the request (e.g., pending, approved). */
   status?: number
-  /** Status-related comments. */
+  /** Comments or notes regarding the current status of the request. */
   statusComments?: string
 }
 
 /**
- * Normalized list of cancellation requests.
+ * Normalized paginated response containing a list of cancellation requests.
  */
 export interface DomainCancellations extends DomainBase {
-  /** Collection of cancellation requests. */
+  /** Collection of cancellation request items for the current page. */
   requests: DomainCancellationRequest[]
 }
 
 /**
- * Normalized system update information.
+ * Normalized response indicating the last system update time.
  */
 export interface DomainLastUpdated extends DomainBase {
-  /** ISO 8601 timestamp of last update. */
+  /** ISO 8601 timestamp of the most recent system-wide update. */
   lastUpdatedDateTime?: string
 }
 
 // ── Adapter Functions ─────────────────────────────────────────────
 
 /**
- * Normalizes a CatalogResponse.
+ * Normalizes a {@link CatalogResponse} into a {@link DomainCatalog}.
  *
- * @param raw - Raw API response.
- * @returns Normalized catalog model.
+ * @param raw - Raw API response from the catalog endpoint.
+ * @returns Normalized catalog including providers and associated products.
+ *
+ * @example
+ * ```typescript
+ * const domainCatalog = adaptCatalog(rawResponse);
+ * ```
  */
 export function adaptCatalog(raw: CatalogResponse): DomainCatalog {
   return {
@@ -582,10 +593,15 @@ function adaptSession(raw: CatalogSession): DomainSession {
 }
 
 /**
- * Normalizes a LanguagesResponse.
+ * Normalizes a {@link LanguagesResponse} into a {@link DomainLanguages} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized languages model.
+ * @param raw - Raw API response containing available languages.
+ * @returns Normalized list of supported platform languages.
+ *
+ * @example
+ * ```typescript
+ * const domainLanguages = adaptLanguages(rawResponse);
+ * ```
  */
 export function adaptLanguages(raw: LanguagesResponse): DomainLanguages {
   return {
@@ -605,10 +621,15 @@ function adaptLanguage(raw: Language): DomainLanguage {
 }
 
 /**
- * Normalizes a TagsResponse.
+ * Normalizes a {@link TagsResponse} into a {@link DomainTags} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized tags model.
+ * @param raw - Raw API response containing the tag hierarchy.
+ * @returns Normalized hierarchical tag tree.
+ *
+ * @example
+ * ```typescript
+ * const domainTags = adaptTags(rawResponse);
+ * ```
  */
 export function adaptTags(raw: TagsResponse): DomainTags {
   return {
@@ -630,10 +651,15 @@ function adaptTag(raw: Tag): DomainTag {
 }
 
 /**
- * Normalizes an AvailableCapacityResponse.
+ * Normalizes an {@link AvailableCapacityResponse} into a {@link DomainCapacity} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized capacity model.
+ * @param raw - Raw API response containing capacity information.
+ * @returns Normalized capacity report for bases, products, and sessions.
+ *
+ * @example
+ * ```typescript
+ * const domainCapacity = adaptCapacity(rawResponse);
+ * ```
  */
 export function adaptCapacity(raw: AvailableCapacityResponse): DomainCapacity {
   return {
@@ -659,10 +685,15 @@ function adaptCapacityItem(item: CapacityItem): DomainCapacityItem {
 }
 
 /**
- * Normalizes a RealTimePricesResponse.
+ * Normalizes a {@link RealTimePricesResponse} into a {@link DomainRealTimePrices} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized pricing model.
+ * @param raw - Raw API response from the pricing endpoint.
+ * @returns Normalized collection of calculated real-time prices.
+ *
+ * @example
+ * ```typescript
+ * const domainPrices = adaptPrices(rawResponse);
+ * ```
  */
 export function adaptPrices(raw: RealTimePricesResponse): DomainRealTimePrices {
   return {
@@ -686,10 +717,15 @@ function adaptRealTimePrice(item: RealTimePriceItem): DomainRealTimePrice {
 }
 
 /**
- * Normalizes a TicketQuestionsResponse.
+ * Normalizes a {@link TicketQuestionsResponse} into a {@link DomainTicketQuestions} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized ticket questions model.
+ * @param raw - Raw API response containing required questions.
+ * @returns Normalized ticket questions and profiles.
+ *
+ * @example
+ * ```typescript
+ * const domainQuestions = adaptQuestions(rawResponse);
+ * ```
  */
 export function adaptQuestions(raw: TicketQuestionsResponse): DomainTicketQuestions {
   return {
@@ -734,10 +770,15 @@ function adaptTicketQuestionValue(v: TicketQuestionValue) {
 }
 
 /**
- * Normalizes a ReservationResponse.
+ * Normalizes a {@link ReservationResponse} into a {@link DomainReservation} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized reservation model.
+ * @param raw - Raw API response from the reservation endpoint.
+ * @returns Normalized reservation session details.
+ *
+ * @example
+ * ```typescript
+ * const domainReservation = adaptReservation(rawResponse);
+ * ```
  */
 export function adaptReservation(raw: ReservationResponse): DomainReservation {
   return {
@@ -778,10 +819,15 @@ function adaptReservationTicket(raw: RawReservationTicket) {
 }
 
 /**
- * Normalizes a TransactionListResponse.
+ * Normalizes a {@link TransactionListResponse} into a {@link DomainTransactionList} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized transaction list model.
+ * @param raw - Raw API response containing multiple transaction records.
+ * @returns Normalized paginated list of transactions.
+ *
+ * @example
+ * ```typescript
+ * const domainTransactionList = adaptTransactionList(rawResponse);
+ * ```
  */
 export function adaptTransactionList(raw: TransactionListResponse): DomainTransactionList {
   return {
@@ -797,10 +843,15 @@ export function adaptTransactionList(raw: TransactionListResponse): DomainTransa
 }
 
 /**
- * Normalizes a single Transaction.
+ * Normalizes a single {@link Transaction} object into a {@link DomainTransaction}.
  *
- * @param raw - Raw API response.
- * @returns Normalized transaction model.
+ * @param raw - Raw API object representing a single transaction.
+ * @returns Normalized finalized transaction record.
+ *
+ * @example
+ * ```typescript
+ * const domainTransaction = adaptTransaction(rawTransaction);
+ * ```
  */
 export function adaptTransaction(raw: Transaction): DomainTransaction {
   return {
@@ -839,10 +890,15 @@ function adaptTransactionTicket(raw: TransactionTicket): DomainTransactionTicket
 }
 
 /**
- * Normalizes a TransactionDocumentsResponse.
+ * Normalizes a {@link TransactionDocumentsResponse} into a {@link DomainDocuments} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized documents model.
+ * @param raw - Raw API response containing document links.
+ * @returns Normalized list of transaction documents.
+ *
+ * @example
+ * ```typescript
+ * const domainDocuments = adaptDocuments(rawResponse);
+ * ```
  */
 export function adaptDocuments(raw: TransactionDocumentsResponse): DomainDocuments {
   return {
@@ -861,10 +917,15 @@ function adaptTransactionDocument(raw: TransactionDocument): DomainDocument {
 }
 
 /**
- * Normalizes an AccessCodesResponse.
+ * Normalizes an {@link AccessCodesResponse} into a {@link DomainAccessCodes} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized access codes model.
+ * @param raw - Raw API response containing access code hierarchies.
+ * @returns Normalized access code details for transactions.
+ *
+ * @example
+ * ```typescript
+ * const domainAccessCodes = adaptAccessCodes(rawResponse);
+ * ```
  */
 export function adaptAccessCodes(raw: AccessCodesResponse): DomainAccessCodes {
   return {
@@ -890,10 +951,15 @@ function adaptAccessCodeTransaction(raw: AccessCodeTransaction): DomainAccessCod
 }
 
 /**
- * Normalizes a CancellationListResponse.
+ * Normalizes a {@link CancellationListResponse} into a {@link DomainCancellations} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized cancellations model.
+ * @param raw - Raw API response containing cancellation requests.
+ * @returns Normalized list of cancellation request items.
+ *
+ * @example
+ * ```typescript
+ * const domainCancellations = adaptCancellations(rawResponse);
+ * ```
  */
 export function adaptCancellations(raw: CancellationListResponse): DomainCancellations {
   return {
@@ -915,10 +981,15 @@ function adaptCancellationRequest(raw: CancellationRequestItem): DomainCancellat
 }
 
 /**
- * Normalizes a LastUpdatedResponse.
+ * Normalizes a {@link LastUpdatedResponse} into a {@link DomainLastUpdated} model.
  *
- * @param raw - Raw API response.
- * @returns Normalized last updated model.
+ * @param raw - Raw API response containing the update timestamp.
+ * @returns Normalized system last update information.
+ *
+ * @example
+ * ```typescript
+ * const domainLastUpdated = adaptLastUpdated(rawResponse);
+ * ```
  */
 export function adaptLastUpdated(raw: LastUpdatedResponse): DomainLastUpdated {
   return {

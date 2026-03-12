@@ -100,7 +100,10 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
 }
 
 /**
- * Checks if the value is a non-null object.
+ * Checks whether a given value is a non-null object.
+ *
+ * @param val - Value to check.
+ * @returns `true` if the value is an object and not null.
  *
  * @internal
  */
@@ -109,7 +112,11 @@ export function isValidObject(val: unknown): val is Record<string, unknown> {
 }
 
 /**
- * Extracts a list from the response object using provided keys.
+ * Attempts to extract a list of entities from a response object using specific keys.
+ *
+ * @param responseObject - The object to search within.
+ * @param listKeys - Key or keys to check for an array.
+ * @returns The found array, or `undefined` if no array was found.
  *
  * @internal
  */
@@ -129,7 +136,10 @@ export function extractListFromObject<T>(
 }
 
 /**
- * Extracts a list from the response object using common fallback keys.
+ * Attempts to extract a list of entities from a response object using common fallback keys.
+ *
+ * @param responseObject - The object to search within.
+ * @returns The found array, or `undefined` if no fallback key contained an array.
  *
  * @internal
  */
@@ -146,7 +156,14 @@ export function extractFromFallbacks<T>(
 }
 
 /**
- * Wraps a single object as an array if it's not a container object.
+ * Wraps the provided object into an array if it represents a single domain entity.
+ *
+ * @remarks
+ * This function avoids wrapping "container" objects that only hold metadata
+ * like `Success` or `Timestamp`.
+ *
+ * @param responseObject - The object to evaluate.
+ * @returns An array containing the object, or an empty array if it's a container.
  *
  * @internal
  */

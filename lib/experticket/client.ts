@@ -10,10 +10,13 @@
  */
 
 /**
- * Data fetcher compatible with the SWR library.
+ * Fetches data from an internal API route; designed for use with the SWR library.
  *
- * @param url - Internal API URL to fetch data from.
- * @returns Parsed JSON response.
+ * @param url - Internal application API URL to fetch data from.
+ * @returns A promise that resolves to the parsed JSON response.
+ *
+ * @throws Error
+ * Thrown if the fetch fails or the response status is not OK.
  *
  * @example
  * ```typescript

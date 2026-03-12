@@ -11,21 +11,31 @@ import { experticketService } from "./service"
 import type { ReservationRequest } from "./types"
 
 /**
- * Consults which products are available for purchase.
+ * Consults the catalog to find which products are available for purchase.
  *
  * @param language - ISO 639-1 language code (default: "en").
  * @returns A promise that resolves to the normalized product catalog.
+ *
+ * @example
+ * ```typescript
+ * const catalog = await get_available_products("en");
+ * ```
  */
 export async function get_available_products(language: string = "en") {
   return await experticketService.getCatalog(language)
 }
 
 /**
- * Validates availability and calculates the total price for a selection of products on a specific date.
+ * Validates availability and calculates the total price for a selection of products on specific dates.
  *
- * @param productIds - List of product identifiers to check.
- * @param dates - List of ISO 8601 date strings to check.
+ * @param productIds - List of unique product identifiers to check.
+ * @param dates - List of ISO 8601 date strings to check for availability.
  * @returns A promise that resolves to both capacity and pricing information.
+ *
+ * @example
+ * ```typescript
+ * const info = await check_availability_and_price(["prod1"], ["2024-12-25"]);
+ * ```
  */
 export async function check_availability_and_price(productIds: string[], dates: string[]) {
   const [capacity, pricing] = await Promise.all([
@@ -40,23 +50,33 @@ export async function check_availability_and_price(productIds: string[], dates: 
 }
 
 /**
- * Creates a temporary reservation (locks inventory).
+ * Creates a temporary reservation to lock inventory.
  *
  * @remarks
- * This is a SENSITIVE tool and should be preceded by user confirmation.
+ * This is a SENSITIVE tool and MUST be preceded by explicit user confirmation of the selection.
  *
- * @param reservationData - The full reservation request payload.
+ * @param reservationData - The full reservation request payload including products and answers.
  * @returns A promise that resolves to the reservation result.
+ *
+ * @example
+ * ```typescript
+ * const result = await create_reservation({ ... });
+ * ```
  */
 export async function create_reservation(reservationData: ReservationRequest) {
   return await experticketService.createReservation(reservationData)
 }
 
 /**
- * Consults the status of a specific transaction or sale.
+ * Consults the current status and details of a specific transaction or sale.
  *
- * @param saleId - The unique identifier of the sale.
+ * @param saleId - The unique identifier of the sale to look up.
  * @returns A promise that resolves to the transaction details.
+ *
+ * @example
+ * ```typescript
+ * const status = await get_transaction_status("SALE123");
+ * ```
  */
 export async function get_transaction_status(saleId: string) {
   return await experticketService.listTransactions({ SaleId: saleId })
