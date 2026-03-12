@@ -259,6 +259,8 @@ export interface AvailableCapacityResponse extends ExperticketBaseResponse {
  * Payload required to calculate real-time prices for a selection.
  */
 export interface RealTimePriceRequest {
+  /** Partner identifier. */
+  PartnerId?: string
   /** ISO 8601 date and time for the access. */
   AccessDateTime: string
   /** List of products to be priced. */
@@ -306,6 +308,8 @@ export interface RealTimePricesResponse extends ExperticketBaseResponse {
  * Payload required to check required ticket questions.
  */
 export interface TicketQuestionRequest {
+  /** Partner identifier. */
+  PartnerId?: string
   /** ISO 8601 access date and time. */
   AccessDateTime: string
   /** List of products to check. */
