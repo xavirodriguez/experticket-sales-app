@@ -4,10 +4,16 @@
  * @packageDocumentation
  */
 
-import { experticketFetch, getPartnerId, getDefaultLanguage } from "./server-client"
+import {
+  experticketFetch,
+  getPartnerId,
+  getDefaultLanguage,
+  getApiKey,
+} from "./server-client"
 import * as schemas from "./schema"
 import * as adapters from "./adapter"
 import type {
+  ExperticketBaseResponse,
   ReservationRequest,
   TransactionCreateRequest,
   CancellationRequest,
@@ -137,9 +143,13 @@ export class ExperticketService {
   async getRealTimePrices(
     priceRequest: RealTimePriceRequest
   ): Promise<adapters.DomainRealTimePrices> {
+    const payload = {
+      PartnerId: getPartnerId(),
+      ...priceRequest,
+    }
     const raw = await experticketFetch("RealTimePrices", {
       method: "POST",
-      body: priceRequest,
+      body: payload,
     })
     const validated = schemas.RealTimePricesResponseSchema.parse(raw)
     return adapters.adaptPrices(validated)
@@ -157,9 +167,13 @@ export class ExperticketService {
   async checkTicketQuestions(
     questionRequest: TicketQuestionRequest
   ): Promise<adapters.DomainTicketQuestions> {
+    const payload = {
+      PartnerId: getPartnerId(),
+      ...questionRequest,
+    }
     const raw = await experticketFetch("checkticketsquestions", {
       method: "POST",
-      body: questionRequest,
+      body: payload,
     })
     const validated = schemas.TicketQuestionsResponseSchema.parse(raw)
     return adapters.adaptQuestions(validated)
@@ -178,12 +192,36 @@ export class ExperticketService {
    * @throws {@link ExperticketError}
    * Thrown if inventory is unavailable or the request is invalid.
    */
+  /**
+   * Deletes an existing reservation.
+   *
+   * @param reservationId - Identifier of the reservation to be cancelled.
+   * @returns A promise that resolves when the reservation is successfully deleted.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the reservation is not found or cannot be deleted.
+   */
+  async deleteReservation(reservationId: string): Promise<ExperticketBaseResponse> {
+    const raw = await experticketFetch<ExperticketBaseResponse>("reservation", {
+      method: "DELETE",
+      body: {
+        ApiKey: getApiKey(),
+        ReservationId: reservationId,
+      },
+    })
+    return schemas.ExperticketBaseResponseSchema.parse(raw)
+  }
+
   async createReservation(
     reservationRequest: ReservationRequest
   ): Promise<adapters.DomainReservation> {
+    const payload = {
+      ApiKey: getApiKey(),
+      ...reservationRequest,
+    }
     const raw = await experticketFetch("reservation", {
       method: "POST",
-      body: reservationRequest,
+      body: payload,
     })
     const validated = schemas.ReservationResponseSchema.parse(raw)
     return adapters.adaptReservation(validated)
@@ -201,9 +239,13 @@ export class ExperticketService {
   async createTransaction(
     transactionRequest: TransactionCreateRequest
   ): Promise<adapters.DomainTransaction> {
+    const payload = {
+      ApiKey: getApiKey(),
+      ...transactionRequest,
+    }
     const raw = await experticketFetch("transaction", {
       method: "POST",
-      body: transactionRequest,
+      body: payload,
     })
     const validated = schemas.TransactionSchema.parse(raw)
     return adapters.adaptTransaction(validated)
@@ -272,9 +314,13 @@ export class ExperticketService {
   async createCancellation(
     cancellationRequest: CancellationRequest
   ): Promise<CancellationRequestResponse> {
+    const payload = {
+      ApiKey: getApiKey(),
+      ...cancellationRequest,
+    }
     const raw = await experticketFetch("cancellationrequest", {
       method: "POST",
-      body: cancellationRequest,
+      body: payload,
     })
     return schemas.CancellationRequestResponseSchema.parse(raw)
   }

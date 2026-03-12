@@ -142,7 +142,8 @@ export async function experticketFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const url = buildRequestUrl(path, options.params || {})
+  const method = options.method || "GET"
+  const url = buildRequestUrl(path, options.params || {}, method)
   const fetchOptions = prepareFetchOptions(options)
   const timeout = options.timeout ?? DEFAULT_FETCH_TIMEOUT
   const retries = options.retries ?? DEFAULT_FETCH_RETRIES
@@ -188,12 +189,20 @@ export interface RetryOptions {
  *
  * @internal
  */
-function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
+function buildRequestUrl(path: string, params: Record<string, unknown>, method: string): URL {
   const normalizedBase = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL
   const normalizedPath = path.startsWith("/") ? path.slice(1) : path
   const url = new URL(`${normalizedBase}/${normalizedPath}`)
 
   const allParams = mergeDefaultParams(params)
+
+  // Append credentials to query string only for GET requests (unless explicitly provided)
+  // This aligns with security best practices and the OpenAPI specification.
+  if (method === "GET") {
+    if (!allParams.PartnerId && PARTNER_ID) allParams.PartnerId = PARTNER_ID
+    if (!allParams.ApiKey && API_KEY) allParams.ApiKey = API_KEY
+  }
+
   appendUrlSearchParams(url, allParams)
 
   return url
@@ -204,10 +213,8 @@ function buildRequestUrl(path: string, params: Record<string, unknown>): URL {
  *
  * @internal
  */
-function mergeDefaultParams(params: Record<string, unknown>) {
+function mergeDefaultParams(params: Record<string, unknown>): Record<string, unknown> {
   return {
-    ApiKey: API_KEY,
-    PartnerId: PARTNER_ID,
     "api-version": API_VERSION,
     ...params,
   }
