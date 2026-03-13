@@ -24,7 +24,6 @@ export function CapacitySkeleton() {
  * Component for displaying a message when no capacity restrictions exist.
  *
  * @param props - Component props.
- * @param props.accessDate - The selected access date.
  * @returns A JSX element.
  */
 export function NoRestrictions({ accessDate }: { accessDate: string }) {
