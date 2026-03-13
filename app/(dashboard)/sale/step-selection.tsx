@@ -13,7 +13,6 @@ import { ProviderSelector } from "./selection/provider-selector"
 import { ProductList } from "./selection/product-list"
 import { CartSummary } from "./selection/cart-summary"
 import type { SaleState } from "./use-sale-wizard"
-import type { DomainLanguage, DomainProvider } from "@/lib/experticket/adapter"
 
 /**
  * Props for the {@link StepSelection} component.

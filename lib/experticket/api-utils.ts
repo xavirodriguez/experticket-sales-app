@@ -64,8 +64,10 @@ export function createErrorResponse(
  */
 function logErrorInDevelopment(message: string, status: number, details?: string) {
   if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
     console.error(`[Experticket API Error ${status}]: ${message}`)
     if (details) {
+      // eslint-disable-next-line no-console
       console.error("[Details]:", details)
     }
   }

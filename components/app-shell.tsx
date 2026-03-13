@@ -36,7 +36,7 @@ const navItems = [
 /**
  * AppShell component that renders the top navigation bar and a mobile drawer.
  *
- * @param props - Contains the `children` to be rendered within the main content area.
+ * @param props - Component props.
  *
  * @remarks
  * - It uses a sticky header and a responsive navigation system.
