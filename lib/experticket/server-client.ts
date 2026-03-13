@@ -10,7 +10,7 @@
 
 import { DEFAULT_FETCH_TIMEOUT, DEFAULT_FETCH_RETRIES } from "./constants"
 
-const BASE_URL = process.env.EXPERTICKET_BASE_URL || ""
+const BASE_URL = process.env.EXPERTICKET_BASE_URL || "https://api.experticket.com"
 const PARTNER_ID = process.env.EXPERTICKET_PARTNER_ID || ""
 const API_KEY = process.env.EXPERTICKET_API_KEY || ""
 const API_VERSION = process.env.EXPERTICKET_API_VERSION || "3.58"

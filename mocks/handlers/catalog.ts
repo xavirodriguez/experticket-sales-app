@@ -9,7 +9,7 @@ export const catalogHandlers = [
   // Upstream handlers (for server-side/tests)
   http.get(`${EXPERTICKET_API_BASE_URL}/catalog`, ({ request }) => {
     const url = new URL(request.url)
-    if (!url.searchParams.get("ApiKey")) return errorResponse("Missing required parameter: ApiKey", 400)
+    if (!url.searchParams.get("PartnerId")) return errorResponse("Missing required parameter: PartnerId", 400)
     try {
       const data = loadFixture<CatalogResponse>("catalog/default.json")
       return jsonResponse(data)
@@ -17,7 +17,7 @@ export const catalogHandlers = [
       return errorResponse(e.message, 500)
     }
   }),
-  http.get(`${EXPERTICKET_API_BASE_URL}/languages`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/AvailableLanguages`, () => {
     try {
       const data = loadFixture<LanguagesResponse>("catalog/languages.json")
       return jsonResponse(data)
@@ -25,7 +25,7 @@ export const catalogHandlers = [
       return errorResponse(e.message, 500)
     }
   }),
-  http.get(`${EXPERTICKET_API_BASE_URL}/lastupdated`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/cataloglastupdateddatetime`, () => {
     try {
       const data = loadFixture<LastUpdatedResponse>("catalog/lastupdated.json")
       return jsonResponse(data)

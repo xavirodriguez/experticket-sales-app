@@ -15,13 +15,13 @@ describe("Experticket MSW Integration", () => {
     expect(data.Providers[0].ProviderName).toBe("Museo de Prueba")
   })
 
-  it("should return 400 when ApiKey is missing in catalog", async () => {
-    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/catalog?PartnerId=${partnerId}`)
+  it("should return 400 when PartnerId is missing in catalog", async () => {
+    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/catalog?ApiKey=${apiKey}`)
     const data = await response.json()
 
     expect(response.status).toBe(400)
     expect(data.Success).toBe(false)
-    expect(data.ErrorMessage).toContain("Missing required parameter: ApiKey")
+    expect(data.ErrorMessage).toContain("Missing required parameter: PartnerId")
   })
 
   it("should return reservation success", async () => {
@@ -70,7 +70,7 @@ describe("Experticket MSW Integration", () => {
   })
 
   it("should return documents successfully", async () => {
-    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/documents?ApiKey=${apiKey}&SaleId=SALE-789012`)
+    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/transactiondocuments?ApiKey=${apiKey}&SaleId=SALE-789012`)
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -79,7 +79,7 @@ describe("Experticket MSW Integration", () => {
   })
 
   it("should return access codes successfully", async () => {
-    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/accesscodes?ApiKey=${apiKey}`)
+    const response = await fetch(`${EXPERTICKET_API_BASE_URL}/transactionaccesscodes?ApiKey=${apiKey}`)
     const data = await response.json()
 
     expect(response.status).toBe(200)

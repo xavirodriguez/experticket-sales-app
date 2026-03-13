@@ -7,7 +7,9 @@ import type { TicketQuestionsResponse } from "../../lib/experticket/types"
 
 export const questionsHandlers = [
   // Get Questions
-  http.get(`${EXPERTICKET_API_BASE_URL}/questions`, () => {
+  http.post(`${EXPERTICKET_API_BASE_URL}/checkticketsquestions`, async ({ request }) => {
+    const body = (await request.json()) as any
+    if (!body.PartnerId) return errorResponse("Missing required parameter: PartnerId", 400)
     try {
       const data = loadFixture<TicketQuestionsResponse>("questions/default.json")
       return jsonResponse(data)
@@ -15,7 +17,7 @@ export const questionsHandlers = [
       return errorResponse(e.message, 500)
     }
   }),
-  http.get("/api/experticket/questions", () => {
+  http.post("/api/experticket/questions", () => {
     try {
       const raw = loadFixture<TicketQuestionsResponse>("questions/default.json")
       return jsonResponse(adaptQuestions(raw))
