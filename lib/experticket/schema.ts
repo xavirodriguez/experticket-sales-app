@@ -299,6 +299,23 @@ export const TicketQuestionsResponseSchema = ExperticketBaseResponseSchema.exten
   TicketQuestionsProfiles: z.array(TicketQuestionsProfileSchema).optional(),
 })
 
+// ── Cancellation Schemas ──────────────────────────────────────────
+
+/** Validates a cancellation rule. */
+export const CancellationRuleSchema = z.object({
+  HoursInAdvanceOfAccess: z.number().optional(),
+  FromInclusiveDateTime: z.string().optional(),
+  ToExclusiveDateTime: z.string().optional(),
+  Percentage: z.number().optional(),
+  Amount: z.number().optional(),
+})
+
+/** Validates cancellation conditions. */
+export const CancellationConditionsSchema = z.object({
+  IsRefundable: z.boolean(),
+  Rules: z.array(CancellationRuleSchema).optional(),
+})
+
 // ── Reservation Schemas ───────────────────────────────────────────
 
 /** Validates reservation status for an individual product. */
@@ -329,7 +346,7 @@ export const ReservationProductResponseSchema = z.object({
     )
     .optional(),
   /** Rules for cancelling this product reservation. */
-  CancellationConditions: z.unknown().optional(),
+  CancellationConditions: CancellationConditionsSchema.optional(),
 })
 
 /** Validates the response returned after a reservation attempt. */
@@ -405,7 +422,7 @@ export const TransactionProductSchema = z.object({
   /** Collection of individual tickets generated. */
   Tickets: z.array(TransactionTicketSchema).optional(),
   /** Finalized rules governing cancellation. */
-  CancellationConditions: z.unknown().optional(),
+  CancellationConditions: CancellationConditionsSchema.optional(),
 })
 
 /** Validates a completed sale or transaction record. */
@@ -514,7 +531,7 @@ export const AccessCodesResponseSchema = ExperticketBaseResponseSchema.extend({
   Transactions: z.array(AccessCodeTransactionSchema).optional(),
 })
 
-// ── Cancellation Schemas ──────────────────────────────────────────
+// ── Cancellation Request Schemas ──────────────────────────────────
 
 /** Validates the response after creating a cancellation request. */
 export const CancellationRequestResponseSchema = ExperticketBaseResponseSchema.extend({

@@ -31,6 +31,8 @@ import type {
   CancellationListResponse,
   CancellationRequestItem,
   LastUpdatedResponse,
+  CancellationConditions,
+  CancellationRule,
 } from "./types"
 
 /**
@@ -348,6 +350,32 @@ export interface DomainReservationTicket {
 /**
  * Normalized reservation status and details for an individual product.
  */
+/**
+ * Normalized cancellation rule.
+ */
+export interface DomainCancellationRule {
+  /** Number of hours in advance of access when this rule applies. */
+  hoursInAdvanceOfAccess?: number
+  /** Start of the date range when this rule applies. */
+  fromInclusiveDateTime?: string
+  /** End of the date range when this rule applies. */
+  toExclusiveDateTime?: string
+  /** Percentage of the total amount that is non-refundable. */
+  percentage?: number
+  /** Exact amount to be charged as a cancellation fee. */
+  amount?: number
+}
+
+/**
+ * Normalized cancellation conditions.
+ */
+export interface DomainCancellationConditions {
+  /** Indicates if the customer can cancel for free at some point in time. */
+  isRefundable: boolean
+  /** Rules that apply when cancelling. */
+  rules?: DomainCancellationRule[]
+}
+
 export interface DomainReservationProduct {
   /** Unique identifier of the product. */
   productId: string
@@ -361,6 +389,8 @@ export interface DomainReservationProduct {
   errorMessage?: string
   /** List of individual ticket instances generated for this product reservation. */
   tickets?: DomainReservationTicket[]
+  /** Cancellation conditions for the reserved product. */
+  cancellationConditions?: DomainCancellationConditions
 }
 
 /**
@@ -417,6 +447,8 @@ export interface DomainTransactionProduct {
   status?: number
   /** Collection of individual tickets generated for this product. */
   tickets?: DomainTransactionTicket[]
+  /** Cancellation conditions for the product. */
+  cancellationConditions?: DomainCancellationConditions
 }
 
 /**
@@ -933,6 +965,9 @@ function adaptReservationProduct(
     success: apiProduct.Success,
     errorMessage: apiProduct.ErrorMessage,
     tickets: (apiProduct.Tickets || []).map(adaptReservationTicket),
+    cancellationConditions: apiProduct.CancellationConditions
+      ? adaptCancellationConditions(apiProduct.CancellationConditions)
+      : undefined,
   }
 }
 
@@ -1025,6 +1060,44 @@ function adaptTransactionProduct(apiProduct: TransactionProduct): DomainTransact
     price: apiProduct.Price,
     status: apiProduct.Status,
     tickets: (apiProduct.Tickets || []).map(adaptTransactionTicket),
+    cancellationConditions: apiProduct.CancellationConditions
+      ? adaptCancellationConditions(apiProduct.CancellationConditions)
+      : undefined,
+  }
+}
+
+/**
+ * Normalizes {@link CancellationConditions} into {@link DomainCancellationConditions}.
+ *
+ * @param apiConditions - Raw cancellation conditions from the API.
+ * @returns Normalized cancellation conditions.
+ *
+ * @internal
+ */
+function adaptCancellationConditions(
+  apiConditions: CancellationConditions
+): DomainCancellationConditions {
+  return {
+    isRefundable: apiConditions.IsRefundable,
+    rules: (apiConditions.Rules || []).map(adaptCancellationRule),
+  }
+}
+
+/**
+ * Normalizes a {@link CancellationRule} into a {@link DomainCancellationRule}.
+ *
+ * @param apiRule - Raw cancellation rule from the API.
+ * @returns Normalized cancellation rule.
+ *
+ * @internal
+ */
+function adaptCancellationRule(apiRule: CancellationRule): DomainCancellationRule {
+  return {
+    hoursInAdvanceOfAccess: apiRule.HoursInAdvanceOfAccess,
+    fromInclusiveDateTime: apiRule.FromInclusiveDateTime,
+    toExclusiveDateTime: apiRule.ToExclusiveDateTime,
+    percentage: apiRule.Percentage,
+    amount: apiRule.Amount,
   }
 }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketService } from "@/lib/experticket/service"
-import { createErrorResponse } from "@/lib/experticket/api-utils"
+import { createErrorResponse, getQueryParams } from "@/lib/experticket/api-utils"
 
 export const runtime = "nodejs"
 
@@ -17,8 +17,7 @@ export const runtime = "nodejs"
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const params = Object.fromEntries(searchParams.entries())
+    const params = getQueryParams(request)
     const data = await experticketService.getCapacity(params)
     return NextResponse.json(data)
   } catch (err: unknown) {

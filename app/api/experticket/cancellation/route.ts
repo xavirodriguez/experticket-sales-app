@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketService } from "@/lib/experticket/service"
-import { createErrorResponse } from "@/lib/experticket/api-utils"
+import { createErrorResponse, getQueryParams } from "@/lib/experticket/api-utils"
 
 export const runtime = "nodejs"
 
@@ -13,11 +13,7 @@ export async function POST(request: NextRequest) {
     const { action, saleId, reason, reasonComments, ...rest } = body
 
     if (action === "check") {
-      const data = await experticketService.listCancellations({
-        SaleId: saleId,
-        PageSize: "10",
-        Page: "1",
-      })
+      const data = await experticketService.checkCancellationEligibility(saleId)
       return NextResponse.json(data)
     }
 
@@ -38,8 +34,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const params = Object.fromEntries(searchParams.entries())
+    const params = getQueryParams(request)
     const data = await experticketService.listCancellations(params)
     return NextResponse.json(data)
   } catch (err: unknown) {
