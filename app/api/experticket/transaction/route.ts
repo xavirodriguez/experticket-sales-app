@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketService } from "@/lib/experticket/service"
-import { createErrorResponse } from "@/lib/experticket/api-utils"
+import { createErrorResponse, getQueryParams } from "@/lib/experticket/api-utils"
 
 export const runtime = "nodejs"
 
@@ -33,9 +33,8 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const queryParams = Object.fromEntries(searchParams.entries())
-    const transactionListData = await experticketService.listTransactions(queryParams)
+    const params = getQueryParams(request)
+    const transactionListData = await experticketService.listTransactions(params)
     return NextResponse.json(transactionListData)
   } catch (err: unknown) {
     return createErrorResponse(err)

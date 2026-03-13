@@ -5,22 +5,14 @@ import { createErrorResponse, getQueryParams } from "@/lib/experticket/api-utils
 export const runtime = "nodejs"
 
 /**
- * @module api-experticket-catalog
- * @description API route handler for retrieving the Experticket product catalog.
- */
-
-/**
- * Handles GET requests to retrieve the product catalog.
- *
- * @param request - The Next.js request object.
- * @returns A promise that resolves to the JSON response containing the catalog.
+ * Handles GET requests to retrieve the list of providers.
  */
 export async function GET(request: NextRequest) {
   try {
     const params = getQueryParams(request)
     const languageCode = (params.LanguageCode as string) || undefined
-    const catalogData = await experticketService.getCatalog(languageCode, params)
-    return NextResponse.json(catalogData)
+    const providersData = await experticketService.getProviders(languageCode, params)
+    return NextResponse.json(providersData)
   } catch (err: unknown) {
     return createErrorResponse(err)
   }

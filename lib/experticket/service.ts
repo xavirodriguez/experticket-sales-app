@@ -34,6 +34,7 @@ export class ExperticketService {
    * Retrieves the product catalog including providers and products.
    *
    * @param languageCode - Optional ISO language code for localized content.
+   * @param filters - Additional search filters.
    * @returns A promise that resolves to the normalized catalog.
    *
    * @throws {@link ExperticketError}
@@ -49,6 +50,31 @@ export class ExperticketService {
     filters: Record<string, string | number | boolean | string[] | undefined> = {}
   ): Promise<adapters.DomainCatalog> {
     const raw = await experticketFetch("catalog", {
+      params: {
+        PartnerId: getPartnerId(),
+        LanguageCode: languageCode || getDefaultLanguage(),
+        ...filters,
+      },
+    })
+    const validated = schemas.CatalogResponseSchema.parse(raw)
+    return adapters.adaptCatalog(validated)
+  }
+
+  /**
+   * Retrieves a simplified list of providers without their product bases.
+   *
+   * @param languageCode - Optional ISO language code for localized content.
+   * @param filters - Additional filters like ProviderIds.
+   * @returns A promise that resolves to the normalized catalog containing only providers.
+   *
+   * @throws {@link ExperticketError}
+   * Thrown if the API request fails.
+   */
+  async getProviders(
+    languageCode?: string,
+    filters: Record<string, string | number | boolean | string[] | undefined> = {}
+  ): Promise<adapters.DomainCatalog> {
+    const raw = await experticketFetch("providers", {
       params: {
         PartnerId: getPartnerId(),
         LanguageCode: languageCode || getDefaultLanguage(),
@@ -121,7 +147,9 @@ export class ExperticketService {
    * });
    * ```
    */
-  async getCapacity(queryParams: Record<string, string>): Promise<adapters.DomainCapacity> {
+  async getCapacity(
+    queryParams: Record<string, string | number | boolean | string[] | undefined>
+  ): Promise<adapters.DomainCapacity> {
     const raw = await experticketFetch("availablecapacity", { params: queryParams })
     const validated = schemas.AvailableCapacityResponseSchema.parse(raw)
     return adapters.adaptCapacity(validated)
@@ -277,7 +305,7 @@ export class ExperticketService {
    * Thrown if the API request fails.
    */
   async listTransactions(
-    queryParams: Record<string, string>
+    queryParams: Record<string, string | number | boolean | string[] | undefined>
   ): Promise<adapters.DomainTransactionList> {
     const raw = await experticketFetch("transaction", { params: queryParams })
     const validated = schemas.TransactionListResponseSchema.parse(raw)
@@ -351,11 +379,43 @@ export class ExperticketService {
    * Thrown if the API request fails.
    */
   async listCancellations(
-    queryParams: Record<string, string>
+    queryParams: Record<string, string | number | boolean | string[] | undefined>
   ): Promise<adapters.DomainCancellations> {
     const raw = await experticketFetch("cancellationrequest", { params: queryParams })
     const validated = schemas.CancellationListResponseSchema.parse(raw)
     return adapters.adaptCancellations(validated)
+  }
+
+  /**
+   * Checks if a transaction is eligible for cancellation and calculates the refund.
+   *
+   * @param saleId - Unique identifier of the sale.
+   * @returns A promise that resolves to the cancellation eligibility details.
+   */
+  async checkCancellationEligibility(saleId: string) {
+    const txList = await this.listTransactions({ SaleId: saleId })
+    const tx = txList.transactions[0]
+
+    if (!tx) {
+      throw new Error(`Transaction ${saleId} not found`)
+    }
+
+    const isCancellable = tx.products.some((p) => p.cancellationConditions?.isRefundable)
+    const amount = tx.products.reduce((acc, p) => acc + (p.price || 0), 0)
+
+    return {
+      Success: true,
+      IsCancellable: isCancellable,
+      Amount: amount,
+      Currency: "EUR",
+      Message: isCancellable
+        ? "This transaction can be cancelled."
+        : "This transaction is not eligible for refund.",
+      Policies: tx.products.map((p) => ({
+        ProductId: p.productId,
+        Conditions: p.cancellationConditions,
+      })),
+    }
   }
 }
 

@@ -102,7 +102,7 @@ export interface FetchOptions {
   /** Request body for POST or DELETE requests. */
   body?: unknown
   /** Query parameters to be appended to the URL. */
-  params?: Record<string, string | number | boolean | undefined>
+  params?: Record<string, string | number | boolean | string[] | undefined>
   /**
    * Timeout in milliseconds before the request is aborted.
    * @defaultValue 15000

@@ -488,6 +488,32 @@ export interface ReservationRequest {
 /**
  * Reservation status and details for an individual product.
  */
+/**
+ * Rule that applies when cancelling a product.
+ */
+export interface CancellationRule {
+  /** Number of hours in advance of access when this rule applies. */
+  HoursInAdvanceOfAccess?: number
+  /** Start of the date range when this rule applies. */
+  FromInclusiveDateTime?: string
+  /** End of the date range when this rule applies. */
+  ToExclusiveDateTime?: string
+  /** Percentage of the total amount that is non-refundable. */
+  Percentage?: number
+  /** Exact amount to be charged as a cancellation fee. */
+  Amount?: number
+}
+
+/**
+ * Describe the cancellation policies that apply when cancelling a sale.
+ */
+export interface CancellationConditions {
+  /** Indicates if the customer can cancel for free at some point in time. */
+  IsRefundable: boolean
+  /** Rules that apply when cancelling. */
+  Rules?: CancellationRule[]
+}
+
 export interface ReservationProductResponse {
   /** Unique identifier of the product. */
   ProductId: string
@@ -504,7 +530,7 @@ export interface ReservationProductResponse {
   /** List of individual ticket instances generated for this product reservation. */
   Tickets?: { TicketId: string; SessionId?: string; AccessDateTime?: string }[]
   /** Rules and constraints applicable for cancelling this product reservation. */
-  CancellationConditions?: unknown
+  CancellationConditions?: CancellationConditions
 }
 
 /**
@@ -602,7 +628,7 @@ export interface TransactionProduct {
   /** Collection of individual tickets generated for this product. */
   Tickets?: TransactionTicket[]
   /** Finalized rules governing the cancellation of this product. */
-  CancellationConditions?: unknown
+  CancellationConditions?: CancellationConditions
 }
 
 /**

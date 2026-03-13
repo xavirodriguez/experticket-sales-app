@@ -31,6 +31,25 @@ import { ExperticketError } from "./server-client"
  * }
  * ```
  */
+/**
+ * Extracts and normalizes query parameters from a Next.js request.
+ *
+ * @param request - The Next.js request object.
+ * @returns A record of normalized query parameters.
+ */
+export function getQueryParams(request: { nextUrl: { searchParams: URLSearchParams } }): Record<string, string | string[]> {
+  const params: Record<string, string | string[]> = {}
+  request.nextUrl.searchParams.forEach((_, key) => {
+    const values = request.nextUrl.searchParams.getAll(key)
+    if (values.length > 1) {
+      params[key] = values
+    } else if (values.length === 1) {
+      params[key] = values[0]
+    }
+  })
+  return params
+}
+
 export function createErrorResponse(
   err: unknown,
   fallbackStatus: number = 502
