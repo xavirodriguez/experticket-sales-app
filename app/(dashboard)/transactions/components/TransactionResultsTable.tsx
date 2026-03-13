@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
-import { resolveTransactionId, formatPrice } from "@/lib/experticket/utils"
+import { formatPrice } from "@/lib/experticket/utils"
 import type { DomainTransaction } from "@/lib/experticket/adapter"
 
 /**

@@ -8,8 +8,7 @@ import { AlertTriangle } from "lucide-react"
 /**
  * Component for displaying an error message during capacity check.
  *
- * @param props - Component props.
- * @param props.message - The error message to display.
+ * @param props - Component props including the error message.
  * @returns A JSX element displaying the error.
  * @example
  * ```tsx

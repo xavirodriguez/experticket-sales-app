@@ -25,8 +25,7 @@ export function QuestionsSkeleton() {
 /**
  * Displays an error message related to question fetching.
  *
- * @param props - Component props.
- * @param props.message - The error message.
+ * @param props - Component props including the error message.
  * @returns A JSX element.
  */
 export function QuestionsError({ message }: { message: string }) {
@@ -41,9 +40,7 @@ export function QuestionsError({ message }: { message: string }) {
 /**
  * View shown when no questions are required.
  *
- * @param props - Component props.
- * @param props.onBack - Back callback.
- * @param props.onNext - Next callback.
+ * @param props - Component props including navigation callbacks.
  * @returns A JSX element.
  */
 export function NoQuestionsView({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
@@ -62,9 +59,7 @@ export function NoQuestionsView({ onBack, onNext }: { onBack: () => void; onNext
 /**
  * Navigation buttons for wizard steps.
  *
- * @param props - Component props.
- * @param props.onBack - Back callback.
- * @param props.onNext - Next callback.
+ * @param props - Component props including navigation callbacks.
  * @returns A JSX element.
  */
 export function StepNavigation({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
