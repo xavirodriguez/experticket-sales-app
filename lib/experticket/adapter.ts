@@ -615,6 +615,14 @@ function adaptTicket(apiTicket: CatalogTicket): DomainTicket {
   }
 }
 
+/**
+ * Normalizes a {@link CatalogSession} into a {@link DomainSession}.
+ *
+ * @param apiSession - Raw session data from the API.
+ * @returns Normalized session domain model.
+ *
+ * @internal
+ */
 function adaptSession(apiSession: CatalogSession): DomainSession {
   return {
     sessionId: apiSession.SessionId,
@@ -644,6 +652,14 @@ export function adaptLanguages(languagesResponse: LanguagesResponse): DomainLang
   }
 }
 
+/**
+ * Normalizes a {@link Language} into a {@link DomainLanguage}.
+ *
+ * @param apiLanguage - Raw language data from the API.
+ * @returns Normalized language domain model.
+ *
+ * @internal
+ */
 function adaptLanguage(apiLanguage: Language): DomainLanguage {
   return {
     code: apiLanguage.Code,
@@ -672,6 +688,14 @@ export function adaptTags(tagsResponse: TagsResponse): DomainTags {
   }
 }
 
+/**
+ * Normalizes a {@link Tag} into a {@link DomainTag}.
+ *
+ * @param apiTag - Raw tag data from the API.
+ * @returns Normalized tag domain model.
+ *
+ * @internal
+ */
 function adaptTag(apiTag: Tag): DomainTag {
   return {
     id: apiTag.Id,
@@ -704,6 +728,14 @@ export function adaptCapacity(capacityResponse: AvailableCapacityResponse): Doma
   }
 }
 
+/**
+ * Normalizes a {@link CapacityItem} into a {@link DomainCapacityItem}.
+ *
+ * @param item - Raw capacity data from the API.
+ * @returns Normalized capacity item domain model.
+ *
+ * @internal
+ */
 function adaptCapacityItem(item: CapacityItem): DomainCapacityItem {
   return {
     productBaseId: item.ProductBaseId,
@@ -736,6 +768,14 @@ export function adaptPrices(pricesResponse: RealTimePricesResponse): DomainRealT
   }
 }
 
+/**
+ * Normalizes a {@link RealTimePriceItem} into a {@link DomainRealTimePrice}.
+ *
+ * @param item - Raw real-time price data from the API.
+ * @returns Normalized real-time price domain model.
+ *
+ * @internal
+ */
 function adaptRealTimePrice(item: RealTimePriceItem): DomainRealTimePrice {
   return {
     productId: item.ProductId,
@@ -769,6 +809,14 @@ export function adaptQuestions(questionsResponse: TicketQuestionsResponse): Doma
   }
 }
 
+/**
+ * Normalizes a {@link TicketQuestionsProduct} into a domain-specific product question requirement.
+ *
+ * @param apiProduct - Raw product question requirement from the API.
+ * @returns Normalized product question requirement.
+ *
+ * @internal
+ */
 function adaptTicketQuestionsProduct(apiProduct: TicketQuestionsProduct): DomainProductRequirement {
   return {
     productId: apiProduct.ProductId,
@@ -776,6 +824,14 @@ function adaptTicketQuestionsProduct(apiProduct: TicketQuestionsProduct): Domain
   }
 }
 
+/**
+ * Normalizes a ticket requirement into a domain-specific ticket requirement model.
+ *
+ * @param apiTicket - Raw ticket requirement data from the API.
+ * @returns Normalized ticket requirement.
+ *
+ * @internal
+ */
 function adaptTicketRequirement(apiTicket: {
   TicketId: string
   TicketQuestionsProfileId?: string
@@ -786,6 +842,14 @@ function adaptTicketRequirement(apiTicket: {
   }
 }
 
+/**
+ * Normalizes a {@link TicketQuestionsProfile} into a {@link DomainTicketQuestionsProfile}.
+ *
+ * @param apiProfile - Raw question profile from the API.
+ * @returns Normalized question profile domain model.
+ *
+ * @internal
+ */
 function adaptProfile(apiProfile: TicketQuestionsProfile): DomainTicketQuestionsProfile {
   return {
     id: apiProfile.Id,
@@ -793,6 +857,14 @@ function adaptProfile(apiProfile: TicketQuestionsProfile): DomainTicketQuestions
   }
 }
 
+/**
+ * Normalizes a {@link TicketQuestion} into a {@link DomainTicketQuestion}.
+ *
+ * @param apiQuestion - Raw question data from the API.
+ * @returns Normalized question domain model.
+ *
+ * @internal
+ */
 function adaptTicketQuestion(apiQuestion: TicketQuestion): DomainTicketQuestion {
   return {
     id: apiQuestion.Id,
@@ -804,6 +876,14 @@ function adaptTicketQuestion(apiQuestion: TicketQuestion): DomainTicketQuestion 
   }
 }
 
+/**
+ * Normalizes a {@link TicketQuestionValue} into a domain-specific selectable option.
+ *
+ * @param v - Raw selectable value from the API.
+ * @returns Normalized selectable option.
+ *
+ * @internal
+ */
 function adaptTicketQuestionValue(v: TicketQuestionValue) {
   return { id: v.Id, value: v.Value }
 }
@@ -832,6 +912,14 @@ export function adaptReservation(reservationResponse: ReservationResponse): Doma
   }
 }
 
+/**
+ * Normalizes a {@link ReservationProductResponse} into a {@link DomainReservationProduct}.
+ *
+ * @param apiProduct - Raw reservation product data from the API.
+ * @returns Normalized reservation product domain model.
+ *
+ * @internal
+ */
 function adaptReservationProduct(
   apiProduct: ReservationProductResponse
 ): DomainReservationProduct {
@@ -851,6 +939,14 @@ interface RawReservationTicket {
   AccessDateTime?: string
 }
 
+/**
+ * Normalizes a {@link RawReservationTicket} into a domain-specific ticket instance.
+ *
+ * @param apiTicket - Raw reservation ticket data.
+ * @returns Normalized ticket instance.
+ *
+ * @internal
+ */
 function adaptReservationTicket(apiTicket: RawReservationTicket): DomainReservationTicket {
   return {
     ticketId: apiTicket.TicketId,
@@ -908,6 +1004,14 @@ export function adaptTransaction(apiTransaction: Transaction): DomainTransaction
   }
 }
 
+/**
+ * Normalizes a {@link TransactionProduct} into a {@link DomainTransactionProduct}.
+ *
+ * @param apiProduct - Raw transaction product data from the API.
+ * @returns Normalized transaction product domain model.
+ *
+ * @internal
+ */
 function adaptTransactionProduct(apiProduct: TransactionProduct): DomainTransactionProduct {
   return {
     productId: apiProduct.ProductId,
@@ -921,6 +1025,14 @@ function adaptTransactionProduct(apiProduct: TransactionProduct): DomainTransact
   }
 }
 
+/**
+ * Normalizes a {@link TransactionTicket} into a {@link DomainTransactionTicket}.
+ *
+ * @param apiTicket - Raw transaction ticket data from the API.
+ * @returns Normalized transaction ticket domain model.
+ *
+ * @internal
+ */
 function adaptTransactionTicket(apiTicket: TransactionTicket): DomainTransactionTicket {
   return {
     ticketId: apiTicket.TicketId,
@@ -952,6 +1064,14 @@ export function adaptDocuments(documentsResponse: TransactionDocumentsResponse):
   }
 }
 
+/**
+ * Normalizes a {@link TransactionDocument} into a {@link DomainDocument}.
+ *
+ * @param apiDocument - Raw transaction document data from the API.
+ * @returns Normalized document domain model.
+ *
+ * @internal
+ */
 function adaptTransactionDocument(apiDocument: TransactionDocument): DomainDocument {
   return {
     url: apiDocument.SalesDocumentUrl,
@@ -979,6 +1099,14 @@ export function adaptAccessCodes(accessCodesResponse: AccessCodesResponse): Doma
   }
 }
 
+/**
+ * Normalizes an {@link AccessCodeTransaction} into a {@link DomainAccessCode}.
+ *
+ * @param apiTransaction - Raw access code transaction data from the API.
+ * @returns Normalized access code transaction domain model.
+ *
+ * @internal
+ */
 function adaptAccessCodeTransaction(apiTransaction: AccessCodeTransaction): DomainAccessCode {
   return {
     id: apiTransaction.Id,
@@ -986,6 +1114,14 @@ function adaptAccessCodeTransaction(apiTransaction: AccessCodeTransaction): Doma
   }
 }
 
+/**
+ * Normalizes an access code product into a domain-specific product model.
+ *
+ * @param apiProduct - Raw product access code data.
+ * @returns Normalized access code product.
+ *
+ * @internal
+ */
 function adaptAccessCodeProduct(apiProduct: {
   Id: string
   Tickets?: { Id: string; AccessCode?: string; InternalCode?: string }[]
@@ -996,6 +1132,14 @@ function adaptAccessCodeProduct(apiProduct: {
   }
 }
 
+/**
+ * Normalizes an access code ticket into a domain-specific ticket model.
+ *
+ * @param apiTicket - Raw ticket access code data.
+ * @returns Normalized access code ticket.
+ *
+ * @internal
+ */
 function adaptAccessCodeTicket(apiTicket: {
   Id: string
   AccessCode?: string
@@ -1030,6 +1174,14 @@ export function adaptCancellations(
   }
 }
 
+/**
+ * Normalizes a {@link CancellationRequestItem} into a {@link DomainCancellationRequest}.
+ *
+ * @param apiItem - Raw cancellation request item from the API.
+ * @returns Normalized cancellation request domain model.
+ *
+ * @internal
+ */
 function adaptCancellationRequest(apiItem: CancellationRequestItem): DomainCancellationRequest {
   return {
     id: apiItem.CancellationRequestId,

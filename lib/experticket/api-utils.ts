@@ -56,6 +56,10 @@ export function createErrorResponse(
 /**
  * Logs API errors to the console in development mode.
  *
+ * @param message - Error message to log.
+ * @param status - HTTP status code.
+ * @param details - Optional error details or raw response body.
+ *
  * @internal
  */
 function logErrorInDevelopment(message: string, status: number, details?: string) {

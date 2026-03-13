@@ -158,6 +158,7 @@ export async function experticketFetch<T = unknown>(
 
 /**
  * Options for executing a request with timeout.
+ *
  * @internal
  */
 export interface ExecuteRequestOptions {
@@ -173,6 +174,7 @@ export interface ExecuteRequestOptions {
 
 /**
  * Options for performing a fetch with retry logic.
+ *
  * @internal
  */
 export interface RetryOptions {
@@ -185,7 +187,12 @@ export interface RetryOptions {
 }
 
 /**
- * Builds a URL with query parameters.
+ * Builds a full Experticket API URL with normalized path and query parameters.
+ *
+ * @param path - API endpoint path.
+ * @param params - Query parameters to append.
+ * @param method - HTTP method of the request.
+ * @returns A constructed {@link URL} object.
  *
  * @internal
  */
@@ -235,7 +242,10 @@ function mergeDefaultParams(params: Record<string, unknown>): Record<string, unk
 }
 
 /**
- * Appends query parameters to a URL object.
+ * Appends normalized query parameters to a URL object.
+ *
+ * @param url - URL object to modify.
+ * @param params - Parameters to append.
  *
  * @internal
  */
@@ -248,7 +258,10 @@ function appendUrlSearchParams(url: URL, params: Record<string, unknown>) {
 }
 
 /**
- * Prepares the standard fetch options.
+ * Constructs the base fetch configuration for an Experticket API call.
+ *
+ * @param options - High-level fetch options.
+ * @returns Normalized {@link NextFetchRequestInit} object.
  *
  * @internal
  */
@@ -266,7 +279,11 @@ function prepareFetchOptions(options: FetchOptions): NextFetchRequestInit {
 }
 
 /**
- * Applies caching strategy based on the HTTP method.
+ * Configures the Next.js caching behavior based on the request method.
+ *
+ * @param options - Fetch options to modify.
+ * @param method - HTTP method.
+ * @param revalidate - Cache revalidation interval in seconds.
  *
  * @internal
  */
@@ -279,7 +296,11 @@ function applyCachingStrategy(options: NextFetchRequestInit, method: string, rev
 }
 
 /**
- * Applies request body for POST or DELETE methods.
+ * Serializes and attaches a request body for state-changing operations.
+ *
+ * @param options - Fetch options to modify.
+ * @param method - HTTP method.
+ * @param body - Raw body data.
  *
  * @internal
  */
@@ -292,7 +313,10 @@ function applyRequestBody(options: NextFetchRequestInit, method: string, body: u
 }
 
 /**
- * Executes a fetch request with a specified timeout.
+ * Wraps a fetch request with an AbortController for timeout management.
+ *
+ * @param requestOptions - Execution configuration.
+ * @returns Parsed JSON response.
  *
  * @internal
  */
@@ -314,7 +338,10 @@ async function executeRequestWithTimeout<T>({
 }
 
 /**
- * Performs the actual fetch with retry logic for idempotent GET requests.
+ * Orchestrates multiple fetch attempts with exponential backoff for GET requests.
+ *
+ * @param retryOptions - Retry configuration.
+ * @returns Parsed JSON response.
  *
  * @internal
  */
@@ -352,7 +379,13 @@ async function executeAttempts<T>(
 }
 
 /**
- * Processes the API response, ensuring it is OK and parsing JSON.
+ * Validates the HTTP status and parses the body of an API response.
+ *
+ * @param response - Native fetch Response object.
+ * @returns Parsed JSON content of type T.
+ *
+ * @throws {@link ExperticketError}
+ * Thrown if the response status is not successful.
  *
  * @internal
  */
@@ -368,7 +401,10 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 }
 
 /**
- * Attempts to parse a string as JSON, returning an empty object on failure.
+ * Safely attempts to parse a JSON string without throwing.
+ *
+ * @param text - Raw string content to parse.
+ * @returns Parsed object or an empty object `{}` on failure.
  *
  * @internal
  */
@@ -381,7 +417,12 @@ function tryParseJson(text: string) {
 }
 
 /**
- * Builds an Error object enriched with upstream API details.
+ * Constructs a detailed {@link ExperticketError} from an unsuccessful API response.
+ *
+ * @param response - Failed fetch Response object.
+ * @param data - Parsed JSON error details (if any).
+ * @param text - Raw response body string.
+ * @returns A structured error object.
  *
  * @internal
  */
@@ -396,7 +437,10 @@ function buildUpstreamError(response: Response, data: unknown, text: string): Ex
 }
 
 /**
- * Simple delay helper.
+ * Pauses execution for a specified duration.
+ *
+ * @param ms - Milliseconds to sleep.
+ * @returns A promise that resolves after the delay.
  *
  * @internal
  */
