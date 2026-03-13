@@ -194,18 +194,32 @@ function buildRequestUrl(path: string, params: Record<string, unknown>, method: 
   const normalizedPath = path.startsWith("/") ? path.slice(1) : path
   const url = new URL(`${normalizedBase}/${normalizedPath}`)
 
-  const allParams = mergeDefaultParams(params)
-
-  // Append credentials to query string only for GET requests (unless explicitly provided)
-  // This aligns with security best practices and the OpenAPI specification.
-  if (method === "GET") {
-    if (!allParams.PartnerId && PARTNER_ID) allParams.PartnerId = PARTNER_ID
-    if (!allParams.ApiKey && API_KEY) allParams.ApiKey = API_KEY
-  }
+  const mergedParams = mergeDefaultParams(params)
+  const allParams = applyCredentials(mergedParams, method)
 
   appendUrlSearchParams(url, allParams)
 
   return url
+}
+
+/**
+ * Appends credentials to query string for GET requests if not provided.
+ *
+ * @internal
+ */
+function applyCredentials(params: Record<string, unknown>, method: string): Record<string, unknown> {
+  const allParams = { ...params }
+
+  if (method === "GET") {
+    if (!allParams.PartnerId && PARTNER_ID) {
+      allParams.PartnerId = PARTNER_ID
+    }
+    if (!allParams.ApiKey && API_KEY) {
+      allParams.ApiKey = API_KEY
+    }
+  }
+
+  return allParams
 }
 
 /**
@@ -270,7 +284,9 @@ function applyCachingStrategy(options: NextFetchRequestInit, method: string, rev
  * @internal
  */
 function applyRequestBody(options: NextFetchRequestInit, method: string, body: unknown) {
-  if (body && (method === "POST" || method === "DELETE")) {
+  const isPostOrDelete = method === "POST" || method === "DELETE"
+
+  if (body && isPostOrDelete) {
     options.body = typeof body === "string" ? body : JSON.stringify(body)
   }
 }
@@ -308,30 +324,31 @@ async function performFetchWithRetry<T>({
   retries,
 }: RetryOptions): Promise<T> {
   const maxAttempts = options.method === "GET" ? 1 + retries : 1
-  let lastError: unknown
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fetchAndProcess<T>(url, options)
-    } catch (error) {
-      lastError = error
-      if (attempt < maxAttempts) {
-        await delay(500 * attempt)
-      }
-    }
-  }
-
-  throw lastError
+  return await executeAttempts<T>(url, options, maxAttempts)
 }
 
 /**
- * Fetches the URL and processes the response.
+ * Recursively executes fetch attempts until success or max attempts reached.
  *
  * @internal
  */
-async function fetchAndProcess<T>(url: string, options: NextFetchRequestInit): Promise<T> {
-  const response = await fetch(url, options)
-  return await handleApiResponse<T>(response)
+async function executeAttempts<T>(
+  url: string,
+  options: NextFetchRequestInit,
+  maxAttempts: number,
+  currentAttempt: number = 1
+): Promise<T> {
+  try {
+    const response = await fetch(url, options)
+    return await handleApiResponse<T>(response)
+  } catch (error) {
+    if (currentAttempt >= maxAttempts) {
+      throw error
+    }
+    await delay(500 * currentAttempt)
+    return await executeAttempts<T>(url, options, maxAttempts, currentAttempt + 1)
+  }
 }
 
 /**
@@ -384,5 +401,6 @@ function buildUpstreamError(response: Response, data: unknown, text: string): Ex
  * @internal
  */
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  const executor = (resolve: () => void) => setTimeout(resolve, ms)
+  return new Promise<void>(executor)
 }

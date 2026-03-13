@@ -85,18 +85,41 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
   response: unknown,
   listKeys?: string | string[]
 ): T[] {
-  if (!isValidObject(response)) return []
+  if (Array.isArray(response)) {
+    return response as T[]
+  }
 
-  if (Array.isArray(response)) return response as T[]
+  if (!isValidObject(response)) {
+    return []
+  }
 
-  const responseObject = response as Record<string, unknown>
-  if (responseObject.Success === false) return []
+  return normalizeFromObject<T>(response as Record<string, unknown>, listKeys)
+}
 
-  return (
-    extractListFromObject<T>(responseObject, listKeys) ??
-    extractFromFallbacks<T>(responseObject) ??
-    wrapAsArrayIfValid<T>(responseObject)
-  )
+/**
+ * Normalizes an API response from a non-array object.
+ *
+ * @param responseObj - The object to normalize.
+ * @param listKeys - Optional key or keys to search for the array.
+ * @returns Normalized array of entities.
+ *
+ * @internal
+ */
+function normalizeFromObject<T>(
+  responseObj: Record<string, unknown>,
+  listKeys?: string | string[]
+): T[] {
+  if (responseObj.Success === false) {
+    return []
+  }
+
+  const extracted = extractListFromObject<T>(responseObj, listKeys)
+  if (extracted) return extracted
+
+  const fallbacks = extractFromFallbacks<T>(responseObj)
+  if (fallbacks) return fallbacks
+
+  return wrapAsArrayIfValid<T>(responseObj)
 }
 
 /**

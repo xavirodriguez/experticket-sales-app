@@ -302,23 +302,45 @@ export interface DomainTicketQuestionsProfile {
 }
 
 /**
+ * Normalized requirement for a ticket within a product.
+ */
+export interface DomainTicketRequirement {
+  /** Unique identifier of the ticket. */
+  ticketId: string
+  /** Identifier of the profile containing the questions for this ticket. */
+  ticketQuestionsProfileId?: string
+}
+
+/**
+ * Normalized product requirement for ticket questions.
+ */
+export interface DomainProductRequirement {
+  /** Unique identifier of the product. */
+  productId: string
+  /** List of tickets belonging to this product that require answers. */
+  tickets: DomainTicketRequirement[]
+}
+
+/**
  * Normalized question requirements and definitions for a selection of products.
  */
 export interface DomainTicketQuestions extends DomainBase {
   /** List of products and their associated ticket-level question requirements. */
-  products: {
-    /** Unique identifier of the product. */
-    productId: string
-    /** List of tickets belonging to this product that require answers. */
-    tickets: {
-      /** Unique identifier of the ticket. */
-      ticketId: string
-      /** Identifier of the profile containing the questions for this ticket. */
-      ticketQuestionsProfileId?: string
-    }[]
-  }[]
+  products: DomainProductRequirement[]
   /** Complete definitions for all question profiles referenced in the response. */
   profiles: DomainTicketQuestionsProfile[]
+}
+
+/**
+ * Normalized ticket instance within a reservation.
+ */
+export interface DomainReservationTicket {
+  /** Identifier of the ticket. */
+  ticketId: string
+  /** Identifier of the session. */
+  sessionId?: string
+  /** ISO 8601 access time. */
+  accessDateTime?: string
 }
 
 /**
@@ -336,7 +358,7 @@ export interface DomainReservationProduct {
   /** Error message describing the failure if success is false. */
   errorMessage?: string
   /** List of individual ticket instances generated for this product reservation. */
-  tickets?: { ticketId: string; sessionId?: string; accessDateTime?: string }[]
+  tickets?: DomainReservationTicket[]
 }
 
 /**
@@ -450,25 +472,35 @@ export interface DomainDocuments extends DomainBase {
 }
 
 /**
+ * Normalized access code details for a ticket instance.
+ */
+export interface DomainAccessCodeTicket {
+  /** Unique identifier of the ticket instance. */
+  id: string
+  /** String representation of the access code (e.g., barcode). */
+  accessCode?: string
+  /** Internal tracking identifier for the access code. */
+  internalCode?: string
+}
+
+/**
+ * Normalized access code information for a product.
+ */
+export interface DomainAccessCodeProduct {
+  /** Unique identifier of the product instance. */
+  id: string
+  /** Collection of access codes for the individual tickets. */
+  tickets: DomainAccessCodeTicket[]
+}
+
+/**
  * Normalized access code hierarchy at the transaction level.
  */
 export interface DomainAccessCode {
   /** Unique identifier of the transaction. */
   id: string
   /** Collection of products and their associated access codes. */
-  products: {
-    /** Unique identifier of the product instance. */
-    id: string
-    /** Collection of access codes for the individual tickets. */
-    tickets: {
-      /** Unique identifier of the ticket instance. */
-      id: string
-      /** String representation of the access code (e.g., barcode). */
-      accessCode?: string
-      /** Internal tracking identifier for the access code. */
-      internalCode?: string
-    }[]
-  }[]
+  products: DomainAccessCodeProduct[]
 }
 
 /**
@@ -524,71 +556,71 @@ export interface DomainLastUpdated extends DomainBase {
  * const domainCatalog = adaptCatalog(rawResponse);
  * ```
  */
-export function adaptCatalog(raw: CatalogResponse): DomainCatalog {
+export function adaptCatalog(catalogResponse: CatalogResponse): DomainCatalog {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    catalogLastUpdatedDateTime: raw.CatalogLastUpdatedDateTime,
-    providers: (raw.Providers || []).map(adaptProvider),
+    success: catalogResponse.Success,
+    timestamp: catalogResponse.Timestamp,
+    errorMessage: catalogResponse.ErrorMessage ?? undefined,
+    catalogLastUpdatedDateTime: catalogResponse.CatalogLastUpdatedDateTime,
+    providers: (catalogResponse.Providers || []).map(adaptProvider),
   }
 }
 
-function adaptProvider(raw: CatalogProvider): DomainProvider {
+function adaptProvider(apiProvider: CatalogProvider): DomainProvider {
   return {
-    providerId: raw.ProviderId,
-    providerName: raw.ProviderName,
-    providerDescription: raw.ProviderDescription,
-    providerCommercialName: raw.ProviderCommercialName,
-    providerAccessConditions: raw.ProviderAccessConditions,
-    providerType: raw.ProviderType,
-    logo: raw.Logo,
-    tags: raw.Tags,
-    productBases: (raw.ProductBases || []).map(adaptProductBase),
+    providerId: apiProvider.ProviderId,
+    providerName: apiProvider.ProviderName,
+    providerDescription: apiProvider.ProviderDescription,
+    providerCommercialName: apiProvider.ProviderCommercialName,
+    providerAccessConditions: apiProvider.ProviderAccessConditions,
+    providerType: apiProvider.ProviderType,
+    logo: apiProvider.Logo,
+    tags: apiProvider.Tags,
+    productBases: (apiProvider.ProductBases || []).map(adaptProductBase),
   }
 }
 
-function adaptProductBase(raw: CatalogProductBase): DomainProductBase {
+function adaptProductBase(apiProductBase: CatalogProductBase): DomainProductBase {
   return {
-    productBaseId: raw.ProductBaseId,
-    productBaseName: raw.ProductBaseName,
-    productBaseDescription: raw.ProductBaseDescription,
-    daysWithLimitedCapacity: raw.DaysWithLimitedCapacity,
-    products: (raw.Products || []).map(adaptProduct),
+    productBaseId: apiProductBase.ProductBaseId,
+    productBaseName: apiProductBase.ProductBaseName,
+    productBaseDescription: apiProductBase.ProductBaseDescription,
+    daysWithLimitedCapacity: apiProductBase.DaysWithLimitedCapacity,
+    products: (apiProductBase.Products || []).map(adaptProduct),
   }
 }
 
-function adaptProduct(raw: CatalogProduct): DomainProduct {
+function adaptProduct(apiProduct: CatalogProduct): DomainProduct {
   return {
-    productId: raw.ProductId,
-    productName: raw.ProductName,
-    productDescription: raw.ProductDescription,
-    price: raw.Price,
-    priceMode: raw.PriceMode,
-    accessDateCriteria: raw.AccessDateCriteria,
-    daysWithLimitedCapacity: raw.DaysWithLimitedCapacity,
-    tickets: (raw.Tickets || []).map(adaptTicket),
-    sessions: (raw.Sessions || []).map(adaptSession),
+    productId: apiProduct.ProductId,
+    productName: apiProduct.ProductName,
+    productDescription: apiProduct.ProductDescription,
+    price: apiProduct.Price,
+    priceMode: apiProduct.PriceMode,
+    accessDateCriteria: apiProduct.AccessDateCriteria,
+    daysWithLimitedCapacity: apiProduct.DaysWithLimitedCapacity,
+    tickets: (apiProduct.Tickets || []).map(adaptTicket),
+    sessions: (apiProduct.Sessions || []).map(adaptSession),
   }
 }
 
-function adaptTicket(raw: CatalogTicket): DomainTicket {
+function adaptTicket(apiTicket: CatalogTicket): DomainTicket {
   return {
-    ticketId: raw.TicketId,
-    ticketName: raw.TicketName,
-    isQuotaTicket: raw.IsQuotaTicket,
-    ticketEnclosureId: raw.TicketEnclosureId,
-    ticketEnclosureName: raw.TicketEnclosureName,
-    ticketQuestionsProfileId: raw.TicketQuestionsProfileId,
+    ticketId: apiTicket.TicketId,
+    ticketName: apiTicket.TicketName,
+    isQuotaTicket: apiTicket.IsQuotaTicket,
+    ticketEnclosureId: apiTicket.TicketEnclosureId,
+    ticketEnclosureName: apiTicket.TicketEnclosureName,
+    ticketQuestionsProfileId: apiTicket.TicketQuestionsProfileId,
   }
 }
 
-function adaptSession(raw: CatalogSession): DomainSession {
+function adaptSession(apiSession: CatalogSession): DomainSession {
   return {
-    sessionId: raw.SessionId,
-    sessionTime: raw.SessionTime,
-    sessionContentName: raw.SessionContentName,
-    hasLimitedCapacity: raw.HasLimitedCapacity,
+    sessionId: apiSession.SessionId,
+    sessionTime: apiSession.SessionTime,
+    sessionContentName: apiSession.SessionContentName,
+    hasLimitedCapacity: apiSession.HasLimitedCapacity,
   }
 }
 
@@ -603,20 +635,20 @@ function adaptSession(raw: CatalogSession): DomainSession {
  * const domainLanguages = adaptLanguages(rawResponse);
  * ```
  */
-export function adaptLanguages(raw: LanguagesResponse): DomainLanguages {
+export function adaptLanguages(languagesResponse: LanguagesResponse): DomainLanguages {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    languages: (raw.Languages || []).map(adaptLanguage),
+    success: languagesResponse.Success,
+    timestamp: languagesResponse.Timestamp,
+    errorMessage: languagesResponse.ErrorMessage ?? undefined,
+    languages: (languagesResponse.Languages || []).map(adaptLanguage),
   }
 }
 
-function adaptLanguage(raw: Language): DomainLanguage {
+function adaptLanguage(apiLanguage: Language): DomainLanguage {
   return {
-    code: raw.Code,
-    englishName: raw.EnglishName,
-    nativeName: raw.NativeName,
+    code: apiLanguage.Code,
+    englishName: apiLanguage.EnglishName,
+    nativeName: apiLanguage.NativeName,
   }
 }
 
@@ -631,22 +663,22 @@ function adaptLanguage(raw: Language): DomainLanguage {
  * const domainTags = adaptTags(rawResponse);
  * ```
  */
-export function adaptTags(raw: TagsResponse): DomainTags {
+export function adaptTags(tagsResponse: TagsResponse): DomainTags {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    tags: (raw.Tags || []).map(adaptTag),
+    success: tagsResponse.Success,
+    timestamp: tagsResponse.Timestamp,
+    errorMessage: tagsResponse.ErrorMessage ?? undefined,
+    tags: (tagsResponse.Tags || []).map(adaptTag),
   }
 }
 
-function adaptTag(raw: Tag): DomainTag {
+function adaptTag(apiTag: Tag): DomainTag {
   return {
-    id: raw.Id,
-    key: raw.Key,
-    name: raw.Name,
-    pathName: raw.PathName,
-    children: (raw.Children || []).map(adaptTag),
+    id: apiTag.Id,
+    key: apiTag.Key,
+    name: apiTag.Name,
+    pathName: apiTag.PathName,
+    children: (apiTag.Children || []).map(adaptTag),
   }
 }
 
@@ -661,14 +693,14 @@ function adaptTag(raw: Tag): DomainTag {
  * const domainCapacity = adaptCapacity(rawResponse);
  * ```
  */
-export function adaptCapacity(raw: AvailableCapacityResponse): DomainCapacity {
+export function adaptCapacity(capacityResponse: AvailableCapacityResponse): DomainCapacity {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    productBases: (raw.ProductBases || []).map(adaptCapacityItem),
-    products: (raw.Products || []).map(adaptCapacityItem),
-    sessions: (raw.Sessions || []).map(adaptCapacityItem),
+    success: capacityResponse.Success,
+    timestamp: capacityResponse.Timestamp,
+    errorMessage: capacityResponse.ErrorMessage ?? undefined,
+    productBases: (capacityResponse.ProductBases || []).map(adaptCapacityItem),
+    products: (capacityResponse.Products || []).map(adaptCapacityItem),
+    sessions: (capacityResponse.Sessions || []).map(adaptCapacityItem),
   }
 }
 
@@ -695,12 +727,12 @@ function adaptCapacityItem(item: CapacityItem): DomainCapacityItem {
  * const domainPrices = adaptPrices(rawResponse);
  * ```
  */
-export function adaptPrices(raw: RealTimePricesResponse): DomainRealTimePrices {
+export function adaptPrices(pricesResponse: RealTimePricesResponse): DomainRealTimePrices {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    prices: (raw.ProductsRealTimePrices || []).map(adaptRealTimePrice),
+    success: pricesResponse.Success,
+    timestamp: pricesResponse.Timestamp,
+    errorMessage: pricesResponse.ErrorMessage ?? undefined,
+    prices: (pricesResponse.ProductsRealTimePrices || []).map(adaptRealTimePrice),
   }
 }
 
@@ -727,41 +759,48 @@ function adaptRealTimePrice(item: RealTimePriceItem): DomainRealTimePrice {
  * const domainQuestions = adaptQuestions(rawResponse);
  * ```
  */
-export function adaptQuestions(raw: TicketQuestionsResponse): DomainTicketQuestions {
+export function adaptQuestions(questionsResponse: TicketQuestionsResponse): DomainTicketQuestions {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    products: (raw.Products || []).map(adaptTicketQuestionsProduct),
-    profiles: (raw.TicketQuestionsProfiles || []).map(adaptProfile),
+    success: questionsResponse.Success,
+    timestamp: questionsResponse.Timestamp,
+    errorMessage: questionsResponse.ErrorMessage ?? undefined,
+    products: (questionsResponse.Products || []).map(adaptTicketQuestionsProduct),
+    profiles: (questionsResponse.TicketQuestionsProfiles || []).map(adaptProfile),
   }
 }
 
-function adaptTicketQuestionsProduct(raw: TicketQuestionsProduct) {
+function adaptTicketQuestionsProduct(apiProduct: TicketQuestionsProduct): DomainProductRequirement {
   return {
-    productId: raw.ProductId,
-    tickets: (raw.Tickets || []).map((t) => ({
-      ticketId: t.TicketId,
-      ticketQuestionsProfileId: t.TicketQuestionsProfileId,
-    })),
+    productId: apiProduct.ProductId,
+    tickets: (apiProduct.Tickets || []).map(adaptTicketRequirement),
   }
 }
 
-function adaptProfile(raw: TicketQuestionsProfile): DomainTicketQuestionsProfile {
+function adaptTicketRequirement(apiTicket: {
+  TicketId: string
+  TicketQuestionsProfileId?: string
+}): DomainTicketRequirement {
   return {
-    id: raw.Id,
-    questions: (raw.Questions || []).map(adaptTicketQuestion),
+    ticketId: apiTicket.TicketId,
+    ticketQuestionsProfileId: apiTicket.TicketQuestionsProfileId,
   }
 }
 
-function adaptTicketQuestion(raw: TicketQuestion): DomainTicketQuestion {
+function adaptProfile(apiProfile: TicketQuestionsProfile): DomainTicketQuestionsProfile {
   return {
-    id: raw.Id,
-    question: raw.Question,
-    shortQuestion: raw.ShortQuestion,
-    required: raw.Required,
-    dataType: raw.DataType,
-    values: (raw.Values || []).map(adaptTicketQuestionValue),
+    id: apiProfile.Id,
+    questions: (apiProfile.Questions || []).map(adaptTicketQuestion),
+  }
+}
+
+function adaptTicketQuestion(apiQuestion: TicketQuestion): DomainTicketQuestion {
+  return {
+    id: apiQuestion.Id,
+    question: apiQuestion.Question,
+    shortQuestion: apiQuestion.ShortQuestion,
+    required: apiQuestion.Required,
+    dataType: apiQuestion.DataType,
+    values: (apiQuestion.Values || []).map(adaptTicketQuestionValue),
   }
 }
 
@@ -780,27 +819,29 @@ function adaptTicketQuestionValue(v: TicketQuestionValue) {
  * const domainReservation = adaptReservation(rawResponse);
  * ```
  */
-export function adaptReservation(raw: ReservationResponse): DomainReservation {
+export function adaptReservation(reservationResponse: ReservationResponse): DomainReservation {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    reservationId: raw.ReservationId,
-    minutesToExpiry: raw.MinutesToExpiry,
-    accessDateTime: raw.AccessDateTime,
-    totalPrice: raw.TotalPrice,
-    products: (raw.Products || []).map(adaptReservationProduct),
+    success: reservationResponse.Success,
+    timestamp: reservationResponse.Timestamp,
+    errorMessage: reservationResponse.ErrorMessage ?? undefined,
+    reservationId: reservationResponse.ReservationId,
+    minutesToExpiry: reservationResponse.MinutesToExpiry,
+    accessDateTime: reservationResponse.AccessDateTime,
+    totalPrice: reservationResponse.TotalPrice,
+    products: (reservationResponse.Products || []).map(adaptReservationProduct),
   }
 }
 
-function adaptReservationProduct(raw: ReservationProductResponse): DomainReservationProduct {
+function adaptReservationProduct(
+  apiProduct: ReservationProductResponse
+): DomainReservationProduct {
   return {
-    productId: raw.ProductId,
-    quantity: raw.Quantity,
-    price: raw.Price,
-    success: raw.Success,
-    errorMessage: raw.ErrorMessage,
-    tickets: (raw.Tickets || []).map(adaptReservationTicket),
+    productId: apiProduct.ProductId,
+    quantity: apiProduct.Quantity,
+    price: apiProduct.Price,
+    success: apiProduct.Success,
+    errorMessage: apiProduct.ErrorMessage,
+    tickets: (apiProduct.Tickets || []).map(adaptReservationTicket),
   }
 }
 
@@ -810,11 +851,11 @@ interface RawReservationTicket {
   AccessDateTime?: string
 }
 
-function adaptReservationTicket(raw: RawReservationTicket) {
+function adaptReservationTicket(apiTicket: RawReservationTicket): DomainReservationTicket {
   return {
-    ticketId: raw.TicketId,
-    sessionId: raw.SessionId,
-    accessDateTime: raw.AccessDateTime,
+    ticketId: apiTicket.TicketId,
+    sessionId: apiTicket.SessionId,
+    accessDateTime: apiTicket.AccessDateTime,
   }
 }
 
@@ -829,23 +870,25 @@ function adaptReservationTicket(raw: RawReservationTicket) {
  * const domainTransactionList = adaptTransactionList(rawResponse);
  * ```
  */
-export function adaptTransactionList(raw: TransactionListResponse): DomainTransactionList {
+export function adaptTransactionList(
+  transactionListResponse: TransactionListResponse
+): DomainTransactionList {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    transactions: (raw.Transactions || []).map(adaptTransaction),
-    pageNumber: raw.PageNumber,
-    pageSize: raw.PageSize,
-    totalItemCount: raw.TotalItemCount,
-    pageCount: raw.PageCount,
+    success: transactionListResponse.Success,
+    timestamp: transactionListResponse.Timestamp,
+    errorMessage: transactionListResponse.ErrorMessage ?? undefined,
+    transactions: (transactionListResponse.Transactions || []).map(adaptTransaction),
+    pageNumber: transactionListResponse.PageNumber,
+    pageSize: transactionListResponse.PageSize,
+    totalItemCount: transactionListResponse.TotalItemCount,
+    pageCount: transactionListResponse.PageCount,
   }
 }
 
 /**
  * Normalizes a single {@link Transaction} object into a {@link DomainTransaction}.
  *
- * @param raw - Raw API object representing a single transaction.
+ * @param apiTransaction - Raw API object representing a single transaction.
  * @returns Normalized finalized transaction record.
  *
  * @example
@@ -853,39 +896,39 @@ export function adaptTransactionList(raw: TransactionListResponse): DomainTransa
  * const domainTransaction = adaptTransaction(rawTransaction);
  * ```
  */
-export function adaptTransaction(raw: Transaction): DomainTransaction {
+export function adaptTransaction(apiTransaction: Transaction): DomainTransaction {
   return {
-    saleId: raw.SaleId,
-    transactionId: raw.TransactionId,
-    accessDateTime: raw.AccessDateTime,
-    transactionDateTime: raw.TransactionDateTime,
-    totalPrice: raw.TotalPrice,
-    paymentStatus: raw.PaymentStatus,
-    products: (raw.Products || []).map(adaptTransactionProduct),
+    saleId: apiTransaction.SaleId,
+    transactionId: apiTransaction.TransactionId,
+    accessDateTime: apiTransaction.AccessDateTime,
+    transactionDateTime: apiTransaction.TransactionDateTime,
+    totalPrice: apiTransaction.TotalPrice,
+    paymentStatus: apiTransaction.PaymentStatus,
+    products: (apiTransaction.Products || []).map(adaptTransactionProduct),
   }
 }
 
-function adaptTransactionProduct(raw: TransactionProduct): DomainTransactionProduct {
+function adaptTransactionProduct(apiProduct: TransactionProduct): DomainTransactionProduct {
   return {
-    productId: raw.ProductId,
-    productName: raw.ProductName,
-    accessCode: raw.AccessCode,
-    providerId: raw.ProviderId,
-    providerName: raw.ProviderName,
-    price: raw.Price,
-    status: raw.Status,
-    tickets: (raw.Tickets || []).map(adaptTransactionTicket),
+    productId: apiProduct.ProductId,
+    productName: apiProduct.ProductName,
+    accessCode: apiProduct.AccessCode,
+    providerId: apiProduct.ProviderId,
+    providerName: apiProduct.ProviderName,
+    price: apiProduct.Price,
+    status: apiProduct.Status,
+    tickets: (apiProduct.Tickets || []).map(adaptTransactionTicket),
   }
 }
 
-function adaptTransactionTicket(raw: TransactionTicket): DomainTransactionTicket {
+function adaptTransactionTicket(apiTicket: TransactionTicket): DomainTransactionTicket {
   return {
-    ticketId: raw.TicketId,
-    ticketName: raw.TicketName,
-    accessCode: raw.AccessCode,
-    sessionId: raw.SessionId,
-    accessDateTime: raw.AccessDateTime,
-    internalCode: raw.InternalCode,
+    ticketId: apiTicket.TicketId,
+    ticketName: apiTicket.TicketName,
+    accessCode: apiTicket.AccessCode,
+    sessionId: apiTicket.SessionId,
+    accessDateTime: apiTicket.AccessDateTime,
+    internalCode: apiTicket.InternalCode,
   }
 }
 
@@ -900,19 +943,19 @@ function adaptTransactionTicket(raw: TransactionTicket): DomainTransactionTicket
  * const domainDocuments = adaptDocuments(rawResponse);
  * ```
  */
-export function adaptDocuments(raw: TransactionDocumentsResponse): DomainDocuments {
+export function adaptDocuments(documentsResponse: TransactionDocumentsResponse): DomainDocuments {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    documents: (raw.Documents || []).map(adaptTransactionDocument),
+    success: documentsResponse.Success,
+    timestamp: documentsResponse.Timestamp,
+    errorMessage: documentsResponse.ErrorMessage ?? undefined,
+    documents: (documentsResponse.Documents || []).map(adaptTransactionDocument),
   }
 }
 
-function adaptTransactionDocument(raw: TransactionDocument): DomainDocument {
+function adaptTransactionDocument(apiDocument: TransactionDocument): DomainDocument {
   return {
-    url: raw.SalesDocumentUrl,
-    languageCode: raw.LanguageCode,
+    url: apiDocument.SalesDocumentUrl,
+    languageCode: apiDocument.LanguageCode,
   }
 }
 
@@ -927,26 +970,41 @@ function adaptTransactionDocument(raw: TransactionDocument): DomainDocument {
  * const domainAccessCodes = adaptAccessCodes(rawResponse);
  * ```
  */
-export function adaptAccessCodes(raw: AccessCodesResponse): DomainAccessCodes {
+export function adaptAccessCodes(accessCodesResponse: AccessCodesResponse): DomainAccessCodes {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    transactions: (raw.Transactions || []).map(adaptAccessCodeTransaction),
+    success: accessCodesResponse.Success,
+    timestamp: accessCodesResponse.Timestamp,
+    errorMessage: accessCodesResponse.ErrorMessage ?? undefined,
+    transactions: (accessCodesResponse.Transactions || []).map(adaptAccessCodeTransaction),
   }
 }
 
-function adaptAccessCodeTransaction(raw: AccessCodeTransaction): DomainAccessCode {
+function adaptAccessCodeTransaction(apiTransaction: AccessCodeTransaction): DomainAccessCode {
   return {
-    id: raw.Id,
-    products: (raw.Products || []).map((p) => ({
-      id: p.Id,
-      tickets: (p.Tickets || []).map((tk) => ({
-        id: tk.Id,
-        accessCode: tk.AccessCode,
-        internalCode: tk.InternalCode,
-      })),
-    })),
+    id: apiTransaction.Id,
+    products: (apiTransaction.Products || []).map(adaptAccessCodeProduct),
+  }
+}
+
+function adaptAccessCodeProduct(apiProduct: {
+  Id: string
+  Tickets?: { Id: string; AccessCode?: string; InternalCode?: string }[]
+}): DomainAccessCodeProduct {
+  return {
+    id: apiProduct.Id,
+    tickets: (apiProduct.Tickets || []).map(adaptAccessCodeTicket),
+  }
+}
+
+function adaptAccessCodeTicket(apiTicket: {
+  Id: string
+  AccessCode?: string
+  InternalCode?: string
+}): DomainAccessCodeTicket {
+  return {
+    id: apiTicket.Id,
+    accessCode: apiTicket.AccessCode,
+    internalCode: apiTicket.InternalCode,
   }
 }
 
@@ -961,22 +1019,24 @@ function adaptAccessCodeTransaction(raw: AccessCodeTransaction): DomainAccessCod
  * const domainCancellations = adaptCancellations(rawResponse);
  * ```
  */
-export function adaptCancellations(raw: CancellationListResponse): DomainCancellations {
+export function adaptCancellations(
+  cancellationsResponse: CancellationListResponse
+): DomainCancellations {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    requests: (raw.CancellationRequests || []).map(adaptCancellationRequest),
+    success: cancellationsResponse.Success,
+    timestamp: cancellationsResponse.Timestamp,
+    errorMessage: cancellationsResponse.ErrorMessage ?? undefined,
+    requests: (cancellationsResponse.CancellationRequests || []).map(adaptCancellationRequest),
   }
 }
 
-function adaptCancellationRequest(raw: CancellationRequestItem): DomainCancellationRequest {
+function adaptCancellationRequest(apiItem: CancellationRequestItem): DomainCancellationRequest {
   return {
-    id: raw.CancellationRequestId,
-    saleId: raw.SaleId,
-    createdDateTime: raw.CreatedDateTime,
-    status: raw.Status,
-    statusComments: raw.StatusComments,
+    id: apiItem.CancellationRequestId,
+    saleId: apiItem.SaleId,
+    createdDateTime: apiItem.CreatedDateTime,
+    status: apiItem.Status,
+    statusComments: apiItem.StatusComments,
   }
 }
 
@@ -991,11 +1051,11 @@ function adaptCancellationRequest(raw: CancellationRequestItem): DomainCancellat
  * const domainLastUpdated = adaptLastUpdated(rawResponse);
  * ```
  */
-export function adaptLastUpdated(raw: LastUpdatedResponse): DomainLastUpdated {
+export function adaptLastUpdated(lastUpdatedResponse: LastUpdatedResponse): DomainLastUpdated {
   return {
-    success: raw.Success,
-    timestamp: raw.Timestamp,
-    errorMessage: raw.ErrorMessage ?? undefined,
-    lastUpdatedDateTime: raw.LastUpdatedDateTime,
+    success: lastUpdatedResponse.Success,
+    timestamp: lastUpdatedResponse.Timestamp,
+    errorMessage: lastUpdatedResponse.ErrorMessage ?? undefined,
+    lastUpdatedDateTime: lastUpdatedResponse.LastUpdatedDateTime,
   }
 }
