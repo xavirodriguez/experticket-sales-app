@@ -57,7 +57,7 @@ export function CapacityTable({ items }: Props) {
 /**
  * Renders a badge indicating the available capacity.
  *
- * @param props - Component props.
+ * @param props - Component props including the number of available units.
  * @returns A JSX element containing a Badge.
  */
 function CapacityBadge({ available }: { available?: number }) {

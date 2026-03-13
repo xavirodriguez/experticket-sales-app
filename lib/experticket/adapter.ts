@@ -566,14 +566,6 @@ export function adaptCatalog(catalogResponse: CatalogResponse): DomainCatalog {
   }
 }
 
-/**
- * Normalizes a {@link CatalogProvider} into a {@link DomainProvider}.
- *
- * @param apiProvider - Raw provider data from the API.
- * @returns Normalized provider domain model.
- *
- * @internal
- */
 function adaptProvider(apiProvider: CatalogProvider): DomainProvider {
   return {
     providerId: apiProvider.ProviderId,
@@ -588,14 +580,6 @@ function adaptProvider(apiProvider: CatalogProvider): DomainProvider {
   }
 }
 
-/**
- * Normalizes a {@link CatalogProductBase} into a {@link DomainProductBase}.
- *
- * @param apiProductBase - Raw product base data from the API.
- * @returns Normalized product base domain model.
- *
- * @internal
- */
 function adaptProductBase(apiProductBase: CatalogProductBase): DomainProductBase {
   return {
     productBaseId: apiProductBase.ProductBaseId,
@@ -606,14 +590,6 @@ function adaptProductBase(apiProductBase: CatalogProductBase): DomainProductBase
   }
 }
 
-/**
- * Normalizes a {@link CatalogProduct} into a {@link DomainProduct}.
- *
- * @param apiProduct - Raw product data from the API.
- * @returns Normalized product domain model.
- *
- * @internal
- */
 function adaptProduct(apiProduct: CatalogProduct): DomainProduct {
   return {
     productId: apiProduct.ProductId,
@@ -628,14 +604,6 @@ function adaptProduct(apiProduct: CatalogProduct): DomainProduct {
   }
 }
 
-/**
- * Normalizes a {@link CatalogTicket} into a {@link DomainTicket}.
- *
- * @param apiTicket - Raw ticket data from the API.
- * @returns Normalized ticket domain model.
- *
- * @internal
- */
 function adaptTicket(apiTicket: CatalogTicket): DomainTicket {
   return {
     ticketId: apiTicket.TicketId,

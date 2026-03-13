@@ -212,10 +212,6 @@ function buildRequestUrl(path: string, params: Record<string, unknown>, method: 
 /**
  * Appends credentials to query string for GET requests if not provided.
  *
- * @param params - Query parameters to modify.
- * @param method - HTTP method.
- * @returns Parameters with credentials applied if applicable.
- *
  * @internal
  */
 function applyCredentials(params: Record<string, unknown>, method: string): Record<string, unknown> {
@@ -234,10 +230,7 @@ function applyCredentials(params: Record<string, unknown>, method: string): Reco
 }
 
 /**
- * Merges default API parameters with user-provided parameters.
- *
- * @param params - User-provided query parameters.
- * @returns Combined parameter object.
+ * Merges default parameters with provided ones.
  *
  * @internal
  */
@@ -364,12 +357,6 @@ async function performFetchWithRetry<T>({
 
 /**
  * Recursively executes fetch attempts until success or max attempts reached.
- *
- * @param url - Full URL to fetch.
- * @param options - Fetch configuration.
- * @param maxAttempts - Maximum number of attempts allowed.
- * @param currentAttempt - Current attempt index (1-based).
- * @returns Parsed JSON response.
  *
  * @internal
  */
