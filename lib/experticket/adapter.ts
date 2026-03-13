@@ -114,6 +114,8 @@ export interface DomainProduct {
   tickets?: DomainTicket[]
   /** Collection of time slots available for this product. */
   sessions?: DomainSession[]
+  /** Indicates if the product requires real-time pricing. */
+  requiresRealTimePrice?: boolean
 }
 
 /**
@@ -601,6 +603,7 @@ function adaptProduct(apiProduct: CatalogProduct): DomainProduct {
     daysWithLimitedCapacity: apiProduct.DaysWithLimitedCapacity,
     tickets: (apiProduct.Tickets || []).map(adaptTicket),
     sessions: (apiProduct.Sessions || []).map(adaptSession),
+    requiresRealTimePrice: Boolean(apiProduct.RequiresRealTimePrice),
   }
 }
 

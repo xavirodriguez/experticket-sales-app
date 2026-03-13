@@ -74,7 +74,7 @@ describe("Experticket AI Tools", () => {
 
   describe("cancel_transaction", () => {
     it("should call createCancellation with the provided data", async () => {
-      const mockResult = { success: true, cancellationRequestId: "CR123" }
+      const mockResult = { Success: true, CancellationRequestId: "CR123" }
       const mockedService = experticketService.createCancellation as any
       mockedService.mockResolvedValueOnce(mockResult)
 
@@ -82,7 +82,7 @@ describe("Experticket AI Tools", () => {
       const result = await cancel_transaction(data)
 
       expect(mockedService).toHaveBeenCalledWith(data)
-      expect(result.cancellationRequestId).toBe("CR123")
+      expect(result.CancellationRequestId).toBe("CR123")
     })
   })
 

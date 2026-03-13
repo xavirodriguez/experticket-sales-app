@@ -37,24 +37,31 @@ export default function SalePage() {
 
       {/* Step indicator */}
       <nav aria-label="Sale steps" className="flex flex-wrap items-center gap-2">
-        {STEPS.map((label, idx) => (
-          <button
-            key={label}
-            onClick={() => idx < step && goTo(idx)}
-            disabled={idx > step}
-            className="flex items-center gap-1.5"
-          >
-            <Badge
-              variant={idx === step ? "default" : idx < step ? "secondary" : "outline"}
-              className={cn(
-                "cursor-pointer text-xs transition-colors",
-                idx > step && "opacity-50 cursor-not-allowed"
-              )}
+        {STEPS.reduce((acc, label, idx) => {
+          const isSkipped = state.skippedSteps.has(idx)
+          if (isSkipped) return acc
+
+          const displayIdx = acc.length + 1
+          acc.push(
+            <button
+              key={label}
+              onClick={() => idx < step && goTo(idx)}
+              disabled={idx > step}
+              className="flex items-center gap-1.5"
             >
-              {idx + 1}. {label}
-            </Badge>
-          </button>
-        ))}
+              <Badge
+                variant={idx === step ? "default" : idx < step ? "secondary" : "outline"}
+                className={cn(
+                  "cursor-pointer text-xs transition-colors",
+                  idx > step && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {displayIdx}. {label}
+              </Badge>
+            </button>
+          )
+          return acc
+        }, [] as React.ReactNode[])}
       </nav>
 
       {/* Step content */}

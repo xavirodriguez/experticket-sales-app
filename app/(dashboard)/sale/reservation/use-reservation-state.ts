@@ -84,9 +84,26 @@ function buildReservationPayload(state: SaleState) {
   return {
     IsTest: getIsTestMode(),
     AccessDateTime: `${state.accessDate}T00:00:00`,
+    AccessEndDateTime: state.accessEndDate ? `${state.accessEndDate}T23:59:59` : undefined,
     Products: state.selectedProducts.map((p) => ({
       ProductId: p.productId,
       Quantity: p.quantity,
+      Tickets: p.tickets
+        ? Array.from({ length: p.quantity }).flatMap(() =>
+            p.tickets!.map((t) => ({
+              TicketId: t.ticketId,
+              SessionId: state.sessionId,
+              AccessDateTime: `${state.accessDate}T00:00:00`,
+              Questions: t.ticketQuestionsProfileId
+                ? Object.entries(state.questionAnswers)
+                    .map(([qId, val]) => ({
+                      TicketQuestionId: qId,
+                      StringValue: String(val),
+                    }))
+                : undefined,
+            }))
+          )
+        : undefined,
     })),
     LanguageCode: state.language || undefined,
   }

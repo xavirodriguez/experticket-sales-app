@@ -44,11 +44,15 @@ export class ExperticketService {
    * const catalog = await experticketService.getCatalog("en");
    * ```
    */
-  async getCatalog(languageCode?: string): Promise<adapters.DomainCatalog> {
+  async getCatalog(
+    languageCode?: string,
+    filters: Record<string, string | number | boolean | string[] | undefined> = {}
+  ): Promise<adapters.DomainCatalog> {
     const raw = await experticketFetch("catalog", {
       params: {
         PartnerId: getPartnerId(),
         LanguageCode: languageCode || getDefaultLanguage(),
+        ...filters,
       },
     })
     const validated = schemas.CatalogResponseSchema.parse(raw)
@@ -145,7 +149,14 @@ export class ExperticketService {
   ): Promise<adapters.DomainRealTimePrices> {
     const payload = {
       PartnerId: getPartnerId(),
-      ...priceRequest,
+      ProductIds: priceRequest.ProductIds,
+      AccessDates: priceRequest.AccessDates,
+      StartDate: priceRequest.StartDate,
+      EndDate: priceRequest.EndDate,
+      CombinedProducts: priceRequest.CombinedProducts,
+      // Fallback for legacy calls if any
+      ...(priceRequest.AccessDateTime && { AccessDateTime: priceRequest.AccessDateTime }),
+      ...(priceRequest.Products && { Products: priceRequest.Products }),
     }
     const raw = await experticketFetch("RealTimePrices", {
       method: "POST",
@@ -169,7 +180,12 @@ export class ExperticketService {
   ): Promise<adapters.DomainTicketQuestions> {
     const payload = {
       PartnerId: getPartnerId(),
-      ...questionRequest,
+      ProductIds: questionRequest.ProductIds,
+      TicketsQuestionsProfileIds: questionRequest.TicketsQuestionsProfileIds,
+      LanguageCode: questionRequest.LanguageCode || getDefaultLanguage(),
+      // Fallback for legacy calls if any
+      ...(questionRequest.AccessDateTime && { AccessDateTime: questionRequest.AccessDateTime }),
+      ...(questionRequest.Products && { Products: questionRequest.Products }),
     }
     const raw = await experticketFetch("checkticketsquestions", {
       method: "POST",

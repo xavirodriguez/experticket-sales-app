@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import type {
   DomainProvider,
   DomainProduct,
@@ -50,6 +50,9 @@ export interface SaleState {
   // Step 6
   /** The final transaction details after successful creation. */
   transaction: DomainTransaction | undefined
+
+  /** Steps that should be skipped based on current selection. */
+  skippedSteps: Set<number>
 }
 
 /**
@@ -90,14 +93,30 @@ export function useSaleWizard() {
   )
 
   /**
-   * Advances to the next step in the wizard.
+   * Advances to the next step in the wizard, skipping those that aren't needed.
    */
-  const goNext = useCallback(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), [])
+  const goNext = useCallback(() => {
+    setStep((current) => {
+      let next = current + 1
+      while (next < STEPS.length - 1 && state.skippedSteps.has(next)) {
+        next++
+      }
+      return Math.min(next, STEPS.length - 1)
+    })
+  }, [state.skippedSteps])
 
   /**
-   * Navigates back to the previous step in the wizard.
+   * Navigates back to the previous step in the wizard, skipping那些 marked as skipped.
    */
-  const goBack = useCallback(() => setStep((s) => Math.max(s - 1, 0)), [])
+  const goBack = useCallback(() => {
+    setStep((current) => {
+      let prev = current - 1
+      while (prev > 0 && state.skippedSteps.has(prev)) {
+        prev--
+      }
+      return Math.max(prev, 0)
+    })
+  }, [state.skippedSteps])
 
   /**
    * Navigates to a specific step by its index.
@@ -112,6 +131,29 @@ export function useSaleWizard() {
     setState(createInitialState())
     setStep(0)
   }, [])
+
+  // Reservation cleanup logic
+  const lastReservationId = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    lastReservationId.current = state.reservation?.reservationId
+  }, [state.reservation?.reservationId])
+
+  useEffect(() => {
+    return () => {
+      const resId = lastReservationId.current
+      // Only delete if we have a reservation but NO transaction was completed
+      if (resId && !state.transaction) {
+        fetch("/api/experticket/reservation", {
+          method: "DELETE",
+          body: JSON.stringify({ ReservationId: resId }),
+          headers: { "Content-Type": "application/json" },
+        }).catch(() => {
+          // Silent catch for cleanup on unmount
+        })
+      }
+    }
+  }, [state.transaction])
 
   return {
     step,
@@ -141,5 +183,6 @@ function createInitialState(): SaleState {
     reservation: undefined,
     reservationExpiry: undefined,
     transaction: undefined,
+    skippedSteps: new Set(),
   }
 }

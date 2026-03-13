@@ -261,10 +261,36 @@ export interface AvailableCapacityResponse extends ExperticketBaseResponse {
 export interface RealTimePriceRequest {
   /** Partner identifier. */
   PartnerId?: string
-  /** ISO 8601 date and time for the access. */
-  AccessDateTime: string
-  /** List of products to be priced. */
-  Products: {
+  /** List of product IDs to consult. */
+  ProductIds?: string[]
+  /** The entry dates we wish to consult. ISO 8601 format (yyyy-MM-dd). */
+  AccessDates?: string[]
+  /** Start of input date range that we want to query. ISO 8601 format (yyyy-MM-dd). */
+  StartDate?: string
+  /** End of input date range that we want to query. ISO 8601 format (yyyy-MM-dd). */
+  EndDate?: string
+  /** Combined products array. */
+  CombinedProducts?: {
+    /** Combined product identifier. */
+    CombinedProductId: string
+    /** Array of products included in the combined product. */
+    Products: {
+      /** Product identifier. */
+      ProductId: string
+      /** Access date. ISO 8601 format (yyyy-MM-dd). */
+      AccessDate: string
+    }[]
+  }[]
+  /**
+   * ISO 8601 date and time for the access.
+   * @deprecated Use AccessDates, StartDate or EndDate instead.
+   */
+  AccessDateTime?: string
+  /**
+   * List of products to be priced.
+   * @deprecated Use ProductIds instead.
+   */
+  Products?: {
     /** Identifier of the product. */
     ProductId: string
     /** Optional identifier for combined products. */
@@ -310,10 +336,22 @@ export interface RealTimePricesResponse extends ExperticketBaseResponse {
 export interface TicketQuestionRequest {
   /** Partner identifier. */
   PartnerId?: string
-  /** ISO 8601 access date and time. */
-  AccessDateTime: string
-  /** List of products to check. */
-  Products: {
+  /** Array of products identifiers. */
+  ProductIds?: string[]
+  /** Array of identifier of the question profiles. */
+  TicketsQuestionsProfileIds?: string[]
+  /** Lenguaje code. */
+  LanguageCode?: string | null
+  /**
+   * ISO 8601 access date and time.
+   * @deprecated Use the documented fields instead.
+   */
+  AccessDateTime?: string
+  /**
+   * List of products to check.
+   * @deprecated Use ProductIds instead.
+   */
+  Products?: {
     /** Identifier of the product. */
     ProductId: string
   }[]

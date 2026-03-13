@@ -113,11 +113,20 @@ function useSelectionNavigation(
   return useCallback(() => {
     const context = { provider: selectedProvider, cart, accessDate }
     if (!validateSelection(context)) return
+
+    const skippedSteps = new Set<number>()
+    const needsPricing = cart.some((p) => p.requiresRealTimePrice)
+    const needsQuestions = cart.some((p) => p.tickets?.some((t) => t.ticketQuestionsProfileId))
+
+    if (!needsPricing) skippedSteps.add(2)
+    if (!needsQuestions) skippedSteps.add(3)
+
     updateState({
       language,
       provider: selectedProvider,
       selectedProducts: cart,
       accessDate,
+      skippedSteps,
     })
     onNext()
   }, [selectedProvider, accessDate, language, cart, updateState, onNext])

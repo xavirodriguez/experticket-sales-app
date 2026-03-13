@@ -91,6 +91,8 @@ export const CatalogProductSchema = z.record(z.unknown()).and(z.object({
   Sessions: z.array(CatalogSessionSchema).optional(),
   /** Identifier for grouping products by pax types. */
   ProductPaxGroupingId: z.string().optional(),
+  /** Indicates if the product requires real-time price. */
+  RequiresRealTimePrice: z.boolean().optional(),
 }))
 
 /** Validates a logical grouping of related products. */
