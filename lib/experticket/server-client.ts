@@ -252,7 +252,11 @@ function mergeDefaultParams(params: Record<string, unknown>): Record<string, unk
 function appendUrlSearchParams(url: URL, params: Record<string, unknown>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") {
-      url.searchParams.set(key, String(value))
+      if (Array.isArray(value)) {
+        value.forEach((v) => url.searchParams.append(key, String(v)))
+      } else {
+        url.searchParams.set(key, String(value))
+      }
     }
   })
 }

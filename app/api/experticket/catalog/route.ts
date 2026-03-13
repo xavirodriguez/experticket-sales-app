@@ -19,7 +19,28 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const languageCode = searchParams.get("LanguageCode") || undefined
-    const catalogData = await experticketService.getCatalog(languageCode)
+
+    const filters: Record<string, string | string[]> = {}
+    const supportedFilters = [
+      "ProviderIds",
+      "ProductBaseIds",
+      "ProductIds",
+      "FromDate",
+      "ToDate",
+      "ReferenceDate",
+      "api-version",
+    ]
+
+    supportedFilters.forEach((key) => {
+      const values = searchParams.getAll(key)
+      if (values.length > 1) {
+        filters[key] = values
+      } else if (values.length === 1) {
+        filters[key] = values[0]
+      }
+    })
+
+    const catalogData = await experticketService.getCatalog(languageCode, filters)
     return NextResponse.json(catalogData)
   } catch (err: unknown) {
     return createErrorResponse(err)
