@@ -10,7 +10,7 @@ import type {
 
 export const cancellationHandlers = [
   // Create Cancellation Request
-  http.post(`${EXPERTICKET_API_BASE_URL}/cancellation`, async () => {
+  http.post(`${EXPERTICKET_API_BASE_URL}/cancellationrequest`, async () => {
     try {
       const data = loadFixture<CancellationRequestResponse>("cancellation/success.json")
       return jsonResponse(data)
@@ -30,7 +30,9 @@ export const cancellationHandlers = [
   }),
 
   // List Cancellation Requests
-  http.get(`${EXPERTICKET_API_BASE_URL}/cancellation`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/cancellationrequest`, ({ request }) => {
+    const url = new URL(request.url)
+    if (!url.searchParams.get("ApiKey")) return errorResponse("Missing required parameter: ApiKey", 400)
     try {
       const data = loadFixture<CancellationListResponse>("cancellation/list.json")
       return jsonResponse(data)

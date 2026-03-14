@@ -7,7 +7,9 @@ import type { AvailableCapacityResponse, RealTimePricesResponse } from "../../li
 
 export const availabilityHandlers = [
   // Get Capacity
-  http.get(`${EXPERTICKET_API_BASE_URL}/capacity`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/availablecapacity`, ({ request }) => {
+    const url = new URL(request.url)
+    if (!url.searchParams.get("PartnerId")) return errorResponse("Missing required parameter: PartnerId", 400)
     try {
       const data = loadFixture<AvailableCapacityResponse>("availability/default.json")
       return jsonResponse(data)
@@ -25,7 +27,9 @@ export const availabilityHandlers = [
   }),
 
   // Get Prices
-  http.get(`${EXPERTICKET_API_BASE_URL}/prices`, () => {
+  http.post(`${EXPERTICKET_API_BASE_URL}/RealTimePrices`, async ({ request }) => {
+    const body = (await request.json()) as any
+    if (!body.PartnerId) return errorResponse("Missing required parameter: PartnerId", 400)
     try {
       const data = loadFixture<RealTimePricesResponse>("availability/prices.json")
       return jsonResponse(data)
@@ -33,7 +37,7 @@ export const availabilityHandlers = [
       return errorResponse(e.message, 500)
     }
   }),
-  http.get("/api/experticket/prices", () => {
+  http.post("/api/experticket/prices", () => {
     try {
       const raw = loadFixture<RealTimePricesResponse>("availability/prices.json")
       return jsonResponse(adaptPrices(raw))

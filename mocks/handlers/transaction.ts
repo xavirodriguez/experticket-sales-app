@@ -53,7 +53,9 @@ export const transactionHandlers = [
   }),
 
   // Get Documents
-  http.get(`${EXPERTICKET_API_BASE_URL}/documents`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/transactiondocuments`, ({ request }) => {
+    const url = new URL(request.url)
+    if (!url.searchParams.get("ApiKey")) return errorResponse("Missing required parameter: ApiKey", 400)
     try {
       const data = loadFixture<TransactionDocumentsResponse>("transaction/documents.json")
       return jsonResponse(data)
@@ -71,7 +73,9 @@ export const transactionHandlers = [
   }),
 
   // Get Access Codes
-  http.get(`${EXPERTICKET_API_BASE_URL}/accesscodes`, () => {
+  http.get(`${EXPERTICKET_API_BASE_URL}/transactionaccesscodes`, ({ request }) => {
+    const url = new URL(request.url)
+    if (!url.searchParams.get("ApiKey")) return errorResponse("Missing required parameter: ApiKey", 400)
     try {
       const data = loadFixture<AccessCodesResponse>("transaction/accesscodes.json")
       return jsonResponse(data)
