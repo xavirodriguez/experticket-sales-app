@@ -70,7 +70,11 @@ async function performTransactionRequest(payload: Record<string, unknown>): Prom
     method: "POST",
     body: JSON.stringify(payload),
   })
-  return res.json()
+  const data: DomainTransaction = await res.json()
+  if (!data.success) {
+    throw new Error(data.errorMessage || "Transaction failed")
+  }
+  return data
 }
 
 /**

@@ -18,24 +18,7 @@ import { PageHeader } from "@/components/experticket/PageHeader"
 import { ErrorAlert } from "@/components/experticket/ErrorAlert"
 import { CancellationSuccessDisplay } from "./components/CancellationSuccessDisplay"
 import { DEFAULT_CANCELLATION_REASON } from "@/lib/experticket/constants"
-
-/**
- * Result of a cancellation eligibility check.
- */
-interface CancellationCheckResult {
-  /** Whether the transaction is technically eligible for cancellation. */
-  IsCancellable?: boolean
-  /** Alias for IsCancellable. */
-  Cancellable?: boolean
-  /** The amount to be refunded. */
-  Amount?: number
-  /** Currency of the refund amount. */
-  Currency?: string
-  /** Status message from the API. */
-  Message?: string
-  /** Detailed cancellation policies applicable to this transaction. */
-  Policies?: Record<string, unknown>[]
-}
+import type { DomainCancellationCheckResult } from "@/lib/experticket/adapter"
 
 /**
  * Performs the API call to check cancellation eligibility.
@@ -81,11 +64,11 @@ export default function CancellationsPage() {
   const [txId, setTxId] = useState("")
   const [checking, setChecking] = useState(false)
   const [cancelling, setCancelling] = useState(false)
-  const [checkResult, setCheckResult] = useState<CancellationCheckResult | undefined>(undefined)
+  const [checkResult, setCheckResult] = useState<DomainCancellationCheckResult | undefined>(undefined)
   const [cancelComplete, setCancelComplete] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  const isCancellable = Boolean(checkResult?.IsCancellable || checkResult?.Cancellable)
+  const isCancellable = Boolean(checkResult?.isCancellable)
 
   /**
    * Checks if the transaction can be cancelled and retrieves the refund amount.
@@ -157,23 +140,23 @@ export default function CancellationsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {checkResult.Message && (
+            {checkResult.message && (
               <Alert>
                 <Info className="h-4 w-4" />
-                <AlertDescription>{checkResult.Message}</AlertDescription>
+                <AlertDescription>{checkResult.message}</AlertDescription>
               </Alert>
             )}
 
-            {checkResult.Amount !== undefined && (
+            {checkResult.amount !== undefined && (
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-sm">Refund Amount:</span>
                 <span className="text-xl font-bold">
-                  {checkResult.Amount.toFixed(2)} {checkResult.Currency || "EUR"}
+                  {checkResult.amount.toFixed(2)} {checkResult.currency || "EUR"}
                 </span>
               </div>
             )}
 
-            {checkResult.Policies && checkResult.Policies.length > 0 && (
+            {checkResult.policies && checkResult.policies.length > 0 && (
               <>
                 <Separator />
                 <div className="flex flex-col gap-2">
@@ -181,7 +164,7 @@ export default function CancellationsPage() {
                     Cancellation Policies
                   </h3>
                   <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-48 font-mono">
-                    {JSON.stringify(checkResult.Policies, null, 2)}
+                    {JSON.stringify(checkResult.policies, null, 2)}
                   </pre>
                 </div>
               </>

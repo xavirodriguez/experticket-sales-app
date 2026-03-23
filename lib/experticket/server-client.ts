@@ -271,9 +271,15 @@ function appendUrlSearchParams(url: URL, params: Record<string, unknown>) {
  */
 function prepareFetchOptions(options: FetchOptions): NextFetchRequestInit {
   const { method = "GET", body, revalidate = 60 } = options
+  const correlationId = crypto.randomUUID()
+
   const fetchOptions: NextFetchRequestInit = {
     method,
-    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "x-correlation-id": correlationId,
+    },
   }
 
   applyCachingStrategy(fetchOptions, method, revalidate)
@@ -359,21 +365,68 @@ async function performFetchWithRetry<T>({
   return await executeAttempts<T>(url, options, maxAttempts)
 }
 
+// Circuit Breaker State
+const CIRCUIT_BREAKER = {
+  failureCount: 0,
+  lastFailureTime: 0,
+  threshold: 5,
+  cooldown: 30000, // 30 seconds
+}
+
 /**
  * Recursively executes fetch attempts until success or max attempts reached.
  *
  * @internal
  */
+// Rate Limiter State (In-memory, single node only)
+const RATE_LIMITER = {
+  requests: new Map<string, number[]>(),
+  limit: 100, // requests per minute
+  window: 60000,
+}
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const timestamps = RATE_LIMITER.requests.get(key) || []
+  const validTimestamps = timestamps.filter((t) => now - t < RATE_LIMITER.window)
+  if (validTimestamps.length >= RATE_LIMITER.limit) return false
+  validTimestamps.push(now)
+  RATE_LIMITER.requests.set(key, validTimestamps)
+  return true
+}
+
 async function executeAttempts<T>(
   url: string,
   options: NextFetchRequestInit,
   maxAttempts: number,
   currentAttempt: number = 1
 ): Promise<T> {
+  // Simple Rate Limiter Check (per endpoint for this server instance)
+  const endpoint = new URL(url).pathname
+  if (!checkRateLimit(endpoint)) {
+    throw new ExperticketError("Too many requests to this endpoint. Please wait.", 429)
+  }
+
+  // Simple Circuit Breaker Check
+  if (
+    CIRCUIT_BREAKER.failureCount >= CIRCUIT_BREAKER.threshold &&
+    Date.now() - CIRCUIT_BREAKER.lastFailureTime < CIRCUIT_BREAKER.cooldown
+  ) {
+    throw new ExperticketError("Circuit breaker is open. Upstream service is currently unavailable.", 503)
+  }
+
   try {
     const response = await fetch(url, options)
-    return await handleApiResponse<T>(response)
+    const result = await handleApiResponse<T>(response)
+
+    // On success, reset circuit breaker
+    CIRCUIT_BREAKER.failureCount = 0
+    return result
   } catch (error) {
+    // Record failure for circuit breaker
+    CIRCUIT_BREAKER.failureCount++
+    CIRCUIT_BREAKER.lastFailureTime = Date.now()
+
     if (currentAttempt >= maxAttempts) {
       throw error
     }

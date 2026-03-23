@@ -31,7 +31,7 @@ export default function TransactionsPage() {
   /**
    * Fetches transaction data when a search ID is provided.
    */
-  const { data: txData, isLoading } = useSWR(
+  const { data: txData, isLoading, error: swrError } = useSWR(
     searchedTxId ? `/api/experticket/transaction?SaleId=${encodeURIComponent(searchedTxId)}` : null,
     fetcher
   )
@@ -65,7 +65,9 @@ export default function TransactionsPage() {
         isLoading={isLoading}
       />
 
-      {error && <ErrorAlert message={error} />}
+      {(error || swrError) && (
+        <ErrorAlert message={error || (swrError instanceof Error ? swrError.message : "Failed to fetch transactions")} />
+      )}
 
       {selectedTx ? (
         <TransactionDetailsView transaction={selectedTx} onBack={() => setSelectedTx(undefined)} />

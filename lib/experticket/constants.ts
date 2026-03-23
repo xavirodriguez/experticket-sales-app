@@ -38,4 +38,8 @@ export const DEFAULT_CURRENCY = "EUR"
 export const STORAGE_KEYS = {
   /** Key for storing whether the application is in test mode. */
   IS_TEST_MODE: "experticket_is_test",
+  /** Key for storing the overridden Partner ID. */
+  PARTNER_ID_OVERRIDE: "experticket_partner_id_override",
+  /** Key for storing the overridden default language. */
+  LANGUAGE_OVERRIDE: "experticket_language_override",
 } as const

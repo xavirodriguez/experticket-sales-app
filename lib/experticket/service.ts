@@ -392,7 +392,9 @@ export class ExperticketService {
    * @param saleId - Unique identifier of the sale.
    * @returns A promise that resolves to the cancellation eligibility details.
    */
-  async checkCancellationEligibility(saleId: string) {
+  async checkCancellationEligibility(
+    saleId: string
+  ): Promise<adapters.DomainCancellationCheckResult> {
     const txList = await this.listTransactions({ SaleId: saleId })
     const tx = txList.transactions[0]
 
@@ -404,16 +406,16 @@ export class ExperticketService {
     const amount = tx.products.reduce((acc, p) => acc + (p.price || 0), 0)
 
     return {
-      Success: true,
-      IsCancellable: isCancellable,
-      Amount: amount,
-      Currency: "EUR",
-      Message: isCancellable
+      success: true,
+      isCancellable: isCancellable,
+      amount: amount,
+      currency: "EUR",
+      message: isCancellable
         ? "This transaction can be cancelled."
         : "This transaction is not eligible for refund.",
-      Policies: tx.products.map((p) => ({
-        ProductId: p.productId,
-        Conditions: p.cancellationConditions,
+      policies: tx.products.map((p) => ({
+        productId: p.productId,
+        conditions: p.cancellationConditions,
       })),
     }
   }

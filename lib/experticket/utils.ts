@@ -9,6 +9,7 @@
  */
 
 import type { Transaction } from "./types"
+import type { DomainTransaction } from "./adapter"
 
 /**
  * Extracts a unique transaction or sale identifier from a transaction object.
@@ -16,6 +17,7 @@ import type { Transaction } from "./types"
  * @remarks
  * This function checks multiple common keys (`SaleId`, `TransactionId`, `Id`) used by
  * different Experticket API endpoints to ensure a valid identifier is resolved.
+ * It supports both raw API objects and normalized domain models.
  *
  * @param transaction - Transaction object to extract the ID from.
  * @returns Extracted identifier string, or "N/A" if no valid identifier is found.
@@ -26,8 +28,16 @@ import type { Transaction } from "./types"
  * // returns "12345"
  * ```
  */
-export function resolveTransactionId(transaction: Transaction): string {
-  const id = transaction.SaleId ?? transaction.TransactionId ?? transaction.Id
+export function resolveTransactionId(transaction: Transaction | DomainTransaction): string {
+  // Use type casting to handle both PascalCase (API) and camelCase (Domain)
+  const tx = transaction as any
+  const id =
+    tx.SaleId ??
+    tx.TransactionId ??
+    tx.Id ??
+    tx.saleId ??
+    tx.transactionId ??
+    tx.id
   return id !== undefined && id !== null ? String(id) : "N/A"
 }
 
@@ -93,7 +103,44 @@ export function normalizeApiResponse<T = Record<string, unknown>>(
     return []
   }
 
+  // Handle specialized case for flattening hierarchical access codes
+  // listKeys = ["transactions", "products", "tickets"]
+  if (
+    Array.isArray(listKeys) &&
+    listKeys.includes("transactions") &&
+    listKeys.includes("products") &&
+    listKeys.includes("tickets")
+  ) {
+    return flattenAccessCodes(response as Record<string, unknown>) as unknown as T[]
+  }
+
   return normalizeFromObject<T>(response as Record<string, unknown>, listKeys)
+}
+
+/**
+ * Flattens hierarchical access code response into individual ticket items.
+ *
+ * @param responseObj - Raw object from access codes API.
+ * @returns Array of individual ticket access codes with product metadata.
+ *
+ * @internal
+ */
+function flattenAccessCodes(responseObj: Record<string, unknown>): any[] {
+  const transactions = (responseObj.transactions || responseObj.Transactions || []) as any[]
+  if (!Array.isArray(transactions)) return []
+
+  return transactions.flatMap((tx) => {
+    const products = (tx.products || tx.Products || []) as any[]
+    return products.flatMap((p) => {
+      const tickets = (p.tickets || p.Tickets || []) as any[]
+      return tickets.map((t) => ({
+        ...t,
+        productId: p.id || p.ProductId,
+        productName: p.productName || p.ProductName,
+        saleId: tx.id || tx.SaleId,
+      }))
+    })
+  })
 }
 
 /**

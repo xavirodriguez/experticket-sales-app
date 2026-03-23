@@ -1,10 +1,19 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -35,11 +44,12 @@ interface TransactionDetailsViewProps {
  * @returns The rendered transaction details view.
  */
 export function TransactionDetailsView({ transaction, onBack }: TransactionDetailsViewProps) {
+  const router = useRouter()
   const [cancelDialog, setCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [cancelResult, setCancelResult] = useState<string | null>(null)
 
-  const txId = resolveTransactionId(transaction as any)
+  const txId = resolveTransactionId(transaction)
 
   async function handleCancel() {
     setCancelling(true)
@@ -76,6 +86,7 @@ export function TransactionDetailsView({ transaction, onBack }: TransactionDetai
           cancelResult={cancelResult}
           cancelling={cancelling}
           onCancel={handleCancel}
+          onNavigate={(path) => router.push(path)}
         />
         <CardContent className="flex flex-col gap-4">
           <TransactionBasicFields entries={entries} />
@@ -95,7 +106,7 @@ async function checkCancellability(txId: string): Promise<boolean> {
     body: JSON.stringify({ action: "check", saleId: txId }),
   })
   const data = await res.json()
-  return data.success !== false
+  return data.isCancellable === true || data.IsCancellable === true
 }
 
 /**
@@ -107,7 +118,7 @@ async function confirmCancellation(txId: string): Promise<string> {
     body: JSON.stringify({ action: "confirm", saleId: txId }),
   })
   const data = await res.json()
-  return data.Message || "Cancellation processed successfully."
+  return data.message || data.Message || "Cancellation processed successfully."
 }
 
 /**
@@ -129,7 +140,7 @@ function TransactionBasicFields({ entries }: { entries: [string, unknown][] }) {
 }
 
 /**
- * Renders the nested (object) fields of a transaction as JSON.
+ * Renders the nested (object) fields of a transaction as JSON, or specialized UI for cancellation conditions.
  */
 function TransactionNestedFields({ nestedEntries }: { nestedEntries: [string, unknown][] }) {
   if (nestedEntries.length === 0) return undefined
@@ -137,17 +148,76 @@ function TransactionNestedFields({ nestedEntries }: { nestedEntries: [string, un
   return (
     <>
       <Separator />
-      {nestedEntries.map(([key, value]) => (
-        <div key={key} className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            {key}
-          </h3>
-          <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-64 font-mono">
-            {JSON.stringify(value, null, 2)}
-          </pre>
-        </div>
-      ))}
+      {nestedEntries.map(([key, value]) => {
+        if (key === "products") {
+          return <ProductsCancellationDetails key={key} products={value as any[]} />
+        }
+
+        return (
+          <div key={key} className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              {key}
+            </h3>
+            <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-64 font-mono">
+              {JSON.stringify(value, null, 2)}
+            </pre>
+          </div>
+        )
+      })}
     </>
+  )
+}
+
+/**
+ * Specialized component to render products and their cancellation policies.
+ */
+function ProductsCancellationDetails({ products }: { products: any[] }) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        Products & Cancellation Policies
+      </h3>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Product</TableHead>
+            <TableHead>Refundable</TableHead>
+            <TableHead>Rules</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.map((p, i) => (
+            <TableRow key={p.productId || i}>
+              <TableCell className="font-medium">
+                {p.productName || p.productId}
+              </TableCell>
+              <TableCell>
+                {p.cancellationConditions?.isRefundable ? (
+                  <span className="text-green-600 font-medium">Yes</span>
+                ) : (
+                  <span className="text-muted-foreground">No</span>
+                )}
+              </TableCell>
+              <TableCell>
+                {p.cancellationConditions?.rules?.map((rule: any, ri: number) => (
+                  <div key={ri} className="text-xs">
+                    {rule.hoursInAdvanceOfAccess && (
+                      <span>{rule.hoursInAdvanceOfAccess}h in advance: </span>
+                    )}
+                    {rule.percentage !== undefined && (
+                      <span>{100 - rule.percentage}% refund</span>
+                    )}
+                    {rule.amount !== undefined && (
+                      <span>Fee: {rule.amount}</span>
+                    )}
+                  </div>
+                )) || <span className="text-xs text-muted-foreground">No specific rules</span>}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
 
@@ -161,6 +231,7 @@ function TransactionDetailsHeader({
   cancelResult,
   cancelling,
   onCancel,
+  onNavigate,
 }: {
   txId: string
   cancelDialog: boolean
@@ -168,6 +239,7 @@ function TransactionDetailsHeader({
   cancelResult: string | null
   cancelling: boolean
   onCancel: () => void
+  onNavigate: (path: string) => void
 }) {
   return (
     <CardHeader className="flex flex-row items-center justify-between">
@@ -179,12 +251,12 @@ function TransactionDetailsHeader({
         <ActionButton
           icon={<FileText className="mr-1 h-3 w-3" />}
           label="Documents"
-          onClick={() => window.open(`/api/experticket/documents?id=${txId}`, "_blank")}
+          onClick={() => onNavigate(`/documents?id=${txId}`)}
         />
         <ActionButton
           icon={<QrCode className="mr-1 h-3 w-3" />}
           label="Access Codes"
-          onClick={() => window.open(`/api/experticket/accesscodes?SaleId=${txId}`, "_blank")}
+          onClick={() => onNavigate(`/codes?SaleId=${txId}`)}
         />
         <CancelDialog
           txId={txId}

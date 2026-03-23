@@ -40,7 +40,7 @@ export function useReservationState(state: SaleState, updateState: (partial: Par
   const { loading, setLoading, cancelling, setCancelling, error, setError, handleReservationError, resetState } = useReservationActions(updateState)
   const [reservation, setReservation] = useState<DomainReservation | undefined>(state.reservation)
   const [expiresAt, setExpiresAt] = useState<number | undefined>(state.reservationExpiry)
-  const { timeLeft, isExpired } = useCountdown(expiresAt ?? null)
+  const { timeLeft, isExpired, isWarning } = useCountdown(expiresAt ?? null)
 
   const makeReservation = useCallback(async () => {
     setLoading(true)
@@ -74,7 +74,7 @@ export function useReservationState(state: SaleState, updateState: (partial: Par
     }
   }, [reservation?.reservationId, resetState, setCancelling])
 
-  return { reservation, loading, cancelling, error, timeLeft, isExpired, makeReservation, cancelReservation, resetReservationState: resetState }
+  return { reservation, loading, cancelling, error, timeLeft, isExpired, isWarning, makeReservation, cancelReservation, resetReservationState: resetState }
 }
 
 /**

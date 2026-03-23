@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { experticketService } from "@/lib/experticket/service"
 import { createErrorResponse, getQueryParams } from "@/lib/experticket/api-utils"
+import { DEFAULT_CANCELLATION_REASON } from "@/lib/experticket/constants"
 
 export const runtime = "nodejs"
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const data = await experticketService.createCancellation({
       SaleId: saleId,
-      Reason: reason ?? 0,
+      Reason: reason ?? DEFAULT_CANCELLATION_REASON,
       ReasonComments: reasonComments || undefined,
       ...rest,
     })
