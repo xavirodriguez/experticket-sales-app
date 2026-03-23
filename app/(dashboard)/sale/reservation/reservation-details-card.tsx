@@ -25,6 +25,8 @@ interface Props {
   onCancel: () => void
   /** Callback function to reset the reservation state (e.g., after expiry). */
   onRetry: () => void
+  /** Is warning state (low time). */
+  isWarning?: boolean
 }
 
 /**
@@ -44,6 +46,7 @@ export function ReservationDetailsCard({
   isCancelling,
   onCancel,
   onRetry,
+  isWarning,
 }: Props) {
   return (
     <Card>
@@ -59,7 +62,7 @@ export function ReservationDetailsCard({
           {reservation.totalPrice != null && (
             <TotalPriceItem price={reservation.totalPrice} />
           )}
-          <TimerItem timeLeft={timeLeft} isExpired={isExpired} />
+          <TimerItem timeLeft={timeLeft} isExpired={isExpired} isWarning={isWarning} />
         </div>
 
         <ReservedProductsList products={reservation.products || []} />
@@ -98,13 +101,15 @@ function TotalPriceItem({ price }: { price: number }) {
   )
 }
 
-function TimerItem({ timeLeft, isExpired }: { timeLeft: string; isExpired: boolean }) {
+function TimerItem({ timeLeft, isExpired, isWarning }: { timeLeft: string; isExpired: boolean; isWarning?: boolean }) {
+  const bgColor = isExpired
+    ? "border-destructive/50 bg-destructive/10"
+    : isWarning
+    ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+    : "border-border"
+
   return (
-    <div
-      className={`rounded-md border p-3 ${
-        isExpired ? "border-destructive/50 bg-destructive/10" : "border-border"
-      }`}
-    >
+    <div className={`rounded-md border p-3 ${bgColor}`}>
       <p className="text-xs text-muted-foreground">Time Remaining</p>
       <p className="flex items-center gap-1 text-sm font-medium">
         <Clock className="h-3.5 w-3.5" />

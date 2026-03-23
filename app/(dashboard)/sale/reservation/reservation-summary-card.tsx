@@ -6,6 +6,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
+import { formatPrice } from "@/lib/experticket/utils"
 
 /**
  * Props for the ReservationSummaryCard component.
@@ -23,6 +24,10 @@ interface Props {
   error: string | undefined
   /** Callback to initiate reservation. */
   onAction: () => void
+  /** Is warning state (low time). */
+  isWarning?: boolean
+  /** Total price. */
+  totalPrice?: number
 }
 
 /**
@@ -42,6 +47,8 @@ export function ReservationSummaryCard({
   loading,
   error,
   onAction,
+  isWarning,
+  totalPrice,
 }: Props) {
   return (
     <Card>
@@ -52,12 +59,20 @@ export function ReservationSummaryCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-md border border-border p-3">
-          <p className="text-sm font-medium">Reservation Summary</p>
+        <div className={`rounded-md border p-3 ${isWarning ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20" : "border-border"}`}>
+          <p className="text-sm font-medium flex items-center gap-2">
+            Reservation Summary
+            {isWarning && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+          </p>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             <li>Access Date: {accessDate}</li>
             <li>Products: {productsCount}</li>
             <li>Total Items: {itemsCount}</li>
+            {totalPrice !== undefined && (
+              <li className="mt-1 font-semibold text-foreground">
+                Total Price: {formatPrice(totalPrice)}
+              </li>
+            )}
           </ul>
         </div>
 

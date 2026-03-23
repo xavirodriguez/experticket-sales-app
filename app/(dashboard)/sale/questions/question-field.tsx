@@ -6,14 +6,14 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { TicketQuestion } from "@/lib/experticket/types"
+import type { DomainTicketQuestion } from "@/lib/experticket/adapter"
 
 /**
  * Props for the QuestionField component.
  */
 interface Props {
   /** The ticket question definition. */
-  question: TicketQuestion
+  question: DomainTicketQuestion
   /** The current value of the answer. */
   value: string
   /** Callback function to update the answer. */
@@ -27,18 +27,18 @@ interface Props {
  * @returns A JSX element containing the label and input/select field.
  * @example
  * ```tsx
- * <QuestionField question={q} value={answers[q.Id]} onChange={(v) => updateAnswer(q.Id, v)} />
+ * <QuestionField question={q} value={answers[q.id]} onChange={(v) => updateAnswer(q.id, v)} />
  * ```
  */
 export function QuestionField({ question, value, onChange }: Props) {
   const label = (
-    <Label htmlFor={question.Id}>
-      {question.Question || question.ShortQuestion || question.Id}
-      {question.Required && <span className="ml-1 text-destructive">*</span>}
+    <Label htmlFor={question.id}>
+      {question.question || question.shortQuestion || question.id}
+      {question.required && <span className="ml-1 text-destructive">*</span>}
     </Label>
   )
 
-  if (question.Values && question.Values.length > 0) {
+  if (question.values && question.values.length > 0) {
     return (
       <div className="space-y-2">
         {label}
@@ -47,9 +47,9 @@ export function QuestionField({ question, value, onChange }: Props) {
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
-            {question.Values.map((v) => (
-              <SelectItem key={v.Id || v.Value} value={v.Value || v.Id || ""}>
-                {v.Value || v.Id}
+            {question.values.map((v) => (
+              <SelectItem key={v.id || v.value} value={v.value || v.id || ""}>
+                {v.value || v.id}
               </SelectItem>
             ))}
           </SelectContent>
@@ -62,11 +62,11 @@ export function QuestionField({ question, value, onChange }: Props) {
     <div className="space-y-2">
       {label}
       <Input
-        id={question.Id}
-        type={question.DataType === "Date" ? "date" : "text"}
+        id={question.id}
+        type={question.dataType === "Date" ? "date" : "text"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={`Enter ${question.ShortQuestion || "answer"}...`}
+        placeholder={`Enter ${question.shortQuestion || "answer"}...`}
       />
     </div>
   )

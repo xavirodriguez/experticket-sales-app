@@ -454,7 +454,7 @@ export interface DomainTransactionProduct {
 /**
  * Normalized finalized sale or transaction record.
  */
-export interface DomainTransaction {
+export interface DomainTransaction extends DomainBase {
   /** Unique identifier for the sale record. */
   saleId?: string
   /** Alternative identifier for the transaction record. */
@@ -575,6 +575,27 @@ export interface DomainCancellations extends DomainBase {
 export interface DomainLastUpdated extends DomainBase {
   /** ISO 8601 timestamp of the most recent system-wide update. */
   lastUpdatedDateTime?: string
+}
+
+/**
+ * Result of a cancellation eligibility check.
+ */
+export interface DomainCancellationCheckResult {
+  /** Indicates if the operation was successful. */
+  success: boolean
+  /** Indicates if the transaction is eligible for refund. */
+  isCancellable: boolean
+  /** Total amount to be refunded. */
+  amount: number
+  /** ISO currency code. */
+  currency: string
+  /** Human-readable status message. */
+  message: string
+  /** Detailed breakdown of policies per product. */
+  policies: {
+    productId: string
+    conditions?: DomainCancellationConditions
+  }[]
 }
 
 // ── Adapter Functions ─────────────────────────────────────────────
@@ -1032,6 +1053,8 @@ export function adaptTransactionList(
  */
 export function adaptTransaction(apiTransaction: Transaction): DomainTransaction {
   return {
+    success: (apiTransaction as any).Success ?? true,
+    errorMessage: (apiTransaction as any).ErrorMessage ?? undefined,
     saleId: apiTransaction.SaleId,
     transactionId: apiTransaction.TransactionId,
     accessDateTime: apiTransaction.AccessDateTime,

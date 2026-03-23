@@ -38,8 +38,10 @@ export function useQuestionsState(state: SaleState) {
 
         const data = await performFetch(state.selectedProducts, profileIds, state.language)
         handleFetchResponse(data)
-      } catch {
-        handleNoQuestions()
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to load questions"
+        setError(msg)
+        setLoading(false)
       } finally {
         setLoading(false)
       }

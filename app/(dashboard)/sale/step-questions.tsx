@@ -69,7 +69,7 @@ export function StepQuestions({ state, updateState, onNext, onBack }: Props) {
           {questions.map((q) => (
             <QuestionField
               key={q.id}
-              question={q as any}
+              question={q}
               value={answers[q.id] || ""}
               onChange={(val) => setAnswer(q.id, val)}
             />

@@ -23,14 +23,30 @@
  * const { data, error } = useSWR('/api/experticket/catalog', fetcher);
  * ```
  */
-export const fetcher = (url: string): Promise<any> =>
-  fetch(url).then(async (res) => {
-    if (!res.ok) {
-      const text = await res.text()
+/**
+ * Generic fetcher for SWR with standard error handling.
+ *
+ * @param url - The URL to fetch.
+ * @returns A promise resolving to the parsed JSON response.
+ */
+export async function swrFetcher<T = any>(url: string): Promise<T> {
+  const res = await fetch(url)
+  if (!res.ok) {
+    const text = await res.text()
+    try {
+      const errorBody = JSON.parse(text)
+      const message =
+        errorBody.errorMessage || errorBody.message || `HTTP ${res.status}: ${url} -> ${text}`
+      throw new Error(message)
+    } catch {
       throw new Error(`HTTP ${res.status}: ${url} -> ${text}`)
     }
-    return res.json()
-  })
+  }
+  return res.json()
+}
+
+/** Legacy alias for backward compatibility. */
+export const fetcher = swrFetcher
 
 /**
  * Performs a fetch request to an internal API route.

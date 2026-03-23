@@ -13,6 +13,8 @@ export interface CountdownResult {
   timeLeft: string
   /** Indicates if the target timestamp has been reached or passed. */
   isExpired: boolean
+  /** Indicates if the remaining time is below a certain threshold (e.g., 2 minutes). */
+  isWarning: boolean
   /** Raw numeric difference in milliseconds between the target and current time. */
   diff: number
 }
@@ -38,12 +40,14 @@ export interface CountdownResult {
 export function useCountdown(targetTimestamp: number | null): CountdownResult {
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [isExpired, setIsExpired] = useState(false)
+  const [isWarning, setIsWarning] = useState(false)
   const [diff, setDiff] = useState<number>(0)
 
   useEffect(() => {
     if (!targetTimestamp) {
       setTimeLeft("")
       setIsExpired(false)
+      setIsWarning(false)
       setDiff(0)
       return
     }
@@ -54,6 +58,7 @@ export function useCountdown(targetTimestamp: number | null): CountdownResult {
 
       if (currentDiff <= 0) {
         setIsExpired(true)
+        setIsWarning(false)
         setTimeLeft("Expired")
         setDiff(0)
         return true // should clear interval
@@ -62,6 +67,7 @@ export function useCountdown(targetTimestamp: number | null): CountdownResult {
         const secs = Math.floor((currentDiff % 60000) / 1000)
         setTimeLeft(`${mins}m ${secs}s`)
         setDiff(currentDiff)
+        setIsWarning(currentDiff < 120000) // Less than 2 minutes
         return false
       }
     }
@@ -78,5 +84,5 @@ export function useCountdown(targetTimestamp: number | null): CountdownResult {
     return () => clearInterval(interval)
   }, [targetTimestamp])
 
-  return { timeLeft, isExpired, diff }
+  return { timeLeft, isExpired, isWarning, diff }
 }

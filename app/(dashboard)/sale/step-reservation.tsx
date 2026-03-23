@@ -39,6 +39,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
     error,
     timeLeft,
     isExpired,
+    isWarning,
     makeReservation,
     cancelReservation,
     resetReservationState,
@@ -63,6 +64,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
           accessDate={state.accessDate}
           productsCount={state.selectedProducts.length}
           itemsCount={state.selectedProducts.reduce((a, p) => a + p.quantity, 0)}
+          totalPrice={state.selectedProducts.reduce((a, p) => a + (p.price || 0) * p.quantity, 0)}
           loading={loading}
           error={error}
           onAction={makeReservation}
@@ -72,6 +74,7 @@ export function StepReservation({ state, updateState, onNext, onBack }: Props) {
           reservation={reservation}
           timeLeft={timeLeft}
           isExpired={isExpired}
+          isWarning={isWarning}
           isCancelling={cancelling}
           onCancel={cancelReservation}
           onRetry={resetReservationState}

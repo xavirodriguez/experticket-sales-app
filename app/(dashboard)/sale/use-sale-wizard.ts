@@ -106,7 +106,7 @@ export function useSaleWizard() {
   }, [state.skippedSteps])
 
   /**
-   * Navigates back to the previous step in the wizard, skipping那些 marked as skipped.
+   * Navigates back to the previous step in the wizard, skipping those marked as skipped.
    */
   const goBack = useCallback(() => {
     setStep((current) => {
@@ -148,8 +148,8 @@ export function useSaleWizard() {
           method: "DELETE",
           body: JSON.stringify({ ReservationId: resId }),
           headers: { "Content-Type": "application/json" },
-        }).catch(() => {
-          // Silent catch for cleanup on unmount
+        }).catch((err) => {
+          console.error("Failed to cleanup reservation on unmount:", err)
         })
       }
     }

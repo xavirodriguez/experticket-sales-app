@@ -46,6 +46,7 @@ export function LanguageAndDateSelector({
         <Input
           id="access-date"
           type="date"
+          min={new Date().toISOString().split("T")[0]}
           value={accessDate}
           onChange={(e) => onDateChange(e.target.value)}
         />

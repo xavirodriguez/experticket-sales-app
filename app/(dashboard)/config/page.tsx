@@ -5,7 +5,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, XCircle, Wifi, Settings2 } from "lucide-react"
 import { toast } from "sonner"
+import { getIsTestMode, setIsTestMode, getStorageItem, setStorageItem } from "@/lib/experticket/storage"
+import { STORAGE_KEYS } from "@/lib/experticket/constants"
 
 /**
  * Main Configuration Page component.
@@ -25,6 +27,13 @@ export default function ConfigPage() {
   const [localPartnerId, setLocalPartnerId] = useState("")
   const [localLanguage, setLocalLanguage] = useState("en")
   const [advancedMode, setAdvancedMode] = useState(false)
+
+  // Initialize from storage on mount
+  useEffect(() => {
+    setIsTest(getIsTestMode())
+    setLocalPartnerId(getStorageItem(STORAGE_KEYS.PARTNER_ID_OVERRIDE, ""))
+    setLocalLanguage(getStorageItem(STORAGE_KEYS.LANGUAGE_OVERRIDE, "en"))
+  }, [])
   const [checking, setChecking] = useState(false)
   const [connectionResult, setConnectionResult] = useState<{
     success: boolean
@@ -146,9 +155,7 @@ export default function ConfigPage() {
               checked={isTest}
               onCheckedChange={(val) => {
                 setIsTest(val)
-                if (typeof window !== "undefined") {
-                  localStorage.setItem("experticket_is_test", String(val))
-                }
+                setIsTestMode(val)
                 toast.info(val ? "Test mode enabled" : "Test mode disabled")
               }}
             />
@@ -190,7 +197,11 @@ export default function ConfigPage() {
                   id="partner-id"
                   placeholder="Leave empty to use env variable"
                   value={localPartnerId}
-                  onChange={(e) => setLocalPartnerId(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setLocalPartnerId(val)
+                    setStorageItem(STORAGE_KEYS.PARTNER_ID_OVERRIDE, val)
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -199,11 +210,15 @@ export default function ConfigPage() {
                   id="language"
                   placeholder="en"
                   value={localLanguage}
-                  onChange={(e) => setLocalLanguage(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setLocalLanguage(val)
+                    setStorageItem(STORAGE_KEYS.LANGUAGE_OVERRIDE, val)
+                  }}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                These overrides are session-only and do not persist after refresh. For production use,
+                These overrides persist in your browser's local storage. For global production defaults,
                 set EXPERTICKET_PARTNER_ID and EXPERTICKET_DEFAULT_LANGUAGE as environment variables.
               </p>
             </div>

@@ -68,7 +68,7 @@ export function StepPricing({ state, updateState, onNext, onBack }: Props) {
         <Button variant="outline" onClick={onBack}>
           <ChevronLeft className="mr-1 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handleNext}>
+        <Button onClick={handleNext} disabled={loading || !fetched || (data !== undefined && !data.success)}>
           Next: Questions
           <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
