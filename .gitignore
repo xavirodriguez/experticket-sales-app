@@ -4,6 +4,7 @@ __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 
 # Common ignores
+postman/
 node_modules/
 .next/
 .env*.local
@@ -11,7 +12,7 @@ node_modules/
 
 # Build artifacts
 tsconfig.tsbuildinfo
-*.tsbuildinfo
+*.tsbuildinfos
 dist-types/
 temp/
 .eslintcache
